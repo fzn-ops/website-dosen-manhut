@@ -6,7 +6,13 @@ defineProps({
 		type: Boolean,
 		default: false,
 	},
+	mobile: {
+		type: Boolean,
+		default: false,
+	},
 });
+
+defineEmits(['navigate']);
 
 const menuItems = [
 	{ label: 'Dashboard', href: route('dashboard'), pattern: 'dashboard', icon: 'home' },
@@ -18,7 +24,8 @@ const menuItems = [
 
 <template>
 	<aside :class="[
-		'sticky top-0 flex h-screen shrink-0 flex-col overflow-hidden bg-[#1d3a7a] py-10 font-poppins text-white transition-[width] duration-200',
+		'flex h-screen shrink-0 flex-col overflow-hidden bg-[#1d3a7a] py-10 font-poppins text-white transition-[width] duration-200',
+		mobile ? 'fixed left-0 top-0 z-40' : 'sticky top-0',
 		collapsed ? 'w-[80px] px-3' : 'w-[275px] px-5',
 	]">
 		<Link :href="route('dashboard')" :class="[
@@ -26,7 +33,7 @@ const menuItems = [
 			collapsed ? 'justify-center px-0' : 'px-4',
 		]">
 			<span class="h-11 w-11 rounded-full bg-black" aria-hidden="true"></span>
-			<span v-if="!collapsed" class="text-[32px] font-bold leading-none tracking-tight">Talenta</span>
+			<span v-if="!collapsed" class="text-[32px] font-bold leading-none tracking-tight">DoSend!</span>
 		</Link>
 
 		<nav aria-label="Navigasi utama" :class="[collapsed ? 'space-y-4' : '-mx-5 space-y-4']">
@@ -42,6 +49,7 @@ const menuItems = [
 						: collapsed ? 'text-white hover:bg-[#142e63]' : 'ml-5 rounded-l-full text-white hover:bg-[#142e63]',
 				]"
 				:title="collapsed ? item.label : undefined"
+				@click="$emit('navigate')"
 			>
 				<img :src="`/assets/icons/${item.icon}.svg`" :alt="`${item.label} icon`" class="h-5 w-5 shrink-0 object-contain" />
 				<span v-if="!collapsed">{{ item.label }}</span>
@@ -57,6 +65,7 @@ const menuItems = [
 				collapsed ? 'w-full justify-center rounded-full px-0' : 'w-[calc(100%+20px)] gap-5 rounded-l-full px-5',
 			]"
 			:title="collapsed ? 'Logout' : undefined"
+			@click="$emit('navigate')"
 		>
 			<img src="/assets/icons/logout.svg" alt="Logout icon" class="h-5 w-5 shrink-0 object-contain" />
 			<span v-if="!collapsed">Logout</span>
