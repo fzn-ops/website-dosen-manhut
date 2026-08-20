@@ -36,10 +36,10 @@
                     Aktivitas
                 </a>
                 
-                <a href="{{ url('/faq') }}" 
+                <!-- <a href="{{ url('/faq') }}" 
                    class="relative py-1 transition-colors duration-300 {{ request()->is('faq*') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:bg-white after:transition-all after:duration-300 {{ request()->is('faq*') ? 'after:w-full' : 'after:w-0 hover:after:w-full' }}">
                     FAQ
-                </a>
+                </a> -->
             </div>
 
             {{-- Mobile Menu Button (Hamburger) --}}
@@ -71,8 +71,8 @@
         <a href="{{ url('/aktivitas') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('aktivitas*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
             Aktivitas
         </a>
-        <a href="{{ url('/faq') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('faq*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
+        <!-- <a href="{{ url('/faq') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('faq*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
             FAQ
-        </a>
+        </a> -->
     </div>
 </nav>
