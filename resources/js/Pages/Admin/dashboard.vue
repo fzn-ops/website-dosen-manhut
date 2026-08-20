@@ -121,20 +121,24 @@ const activities = [
 ];
 
 const columns = [
-	{ key: 'name', label: 'Nama Aktivitas', sortable: true },
-	{ key: 'lecturer', label: 'Nama Dosen', sortable: true },
-	{ key: 'description', label: 'Deskripsi', sortable: true },
-	{ key: 'role', label: 'Peran', sortable: true },
-	{ key: 'dateSort', label: 'Tanggal', sortable: true },
-	{ key: 'action', label: 'Aksi', sortable: false },
+	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[21%]' },
+	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, cellAlign: 'left', width: 'w-[18%]' },
+	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[24%]' },
+	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'center', width: 'w-[12%]' },
+	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'center', width: 'w-[12%]' },
+	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[13%]' },
 ];
 
 const sortKey = ref('dateSort');
 const sortDirection = ref('desc');
 
-const setSort = (key, direction) => {
-	sortKey.value = key;
-	sortDirection.value = direction;
+const toggleSort = (key) => {
+	if (sortKey.value === key) {
+		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+	} else {
+		sortKey.value = key;
+		sortDirection.value = 'asc';
+	}
 };
 
 const sortedActivities = computed(() => {
@@ -197,38 +201,83 @@ const sortedActivities = computed(() => {
 				</div>
 
 				<div class="overflow-x-auto rounded-[12px] bg-white shadow-sm ring-1 ring-[#d6e0ee]">
-					<table class="w-full min-w-[1080px] text-sm">
-						<thead class="bg-[#244286] text-xs uppercase tracking-wide text-white">
-							<tr>
-								<th class="px-4 py-3 text-center">No</th>
-								<th v-for="column in columns" :key="column.key" class="px-4 py-3 text-center">
-									<div class="flex items-center justify-center gap-2">
-										<span>{{ column.label }}</span>
-										<div v-if="column.sortable" class="flex flex-col items-center leading-none">
-											<button type="button" class="rounded p-0.5 transition-colors hover:bg-white/20" :class="sortKey === column.key && sortDirection === 'asc' ? 'bg-white/25' : ''" @click="setSort(column.key, 'asc')" aria-label="Urut naik">
-												<svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 5 4 13h12L10 5Z" /></svg>
-											</button>
-											<button type="button" class="rounded p-0.5 transition-colors hover:bg-white/20" :class="sortKey === column.key && sortDirection === 'desc' ? 'bg-white/25' : ''" @click="setSort(column.key, 'desc')" aria-label="Urut turun">
-												<svg class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path d="m10 15 6-8H4l6 8Z" /></svg>
-											</button>
-										</div>
-									</div>
+					<table class="w-full min-w-[950px] table-fixed border-collapse text-sm">
+						<thead class="bg-[#183669]">
+							<tr class="h-[48px]">
+								<th class="w-[60px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white">No</th>
+								<th
+									v-for="col in columns"
+									:key="col.key"
+									:class="[
+										col.width,
+										'px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none'
+									]"
+								>
+									<button
+										v-if="col.sortable"
+										type="button"
+										@click="toggleSort(col.key)"
+										class="group mx-auto inline-flex items-center justify-center gap-1.5 transition-colors hover:text-white/80 focus:outline-none"
+									>
+										<span>{{ col.label }}</span>
+										<span class="inline-flex items-center text-white/70 group-hover:text-white">
+											<svg
+												v-if="sortKey === col.key"
+												:class="[
+													'h-3.5 w-3.5 transition-transform duration-200',
+													sortDirection === 'asc' ? 'rotate-180' : ''
+												]"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+											</svg>
+											<svg
+												v-else
+												class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+											</svg>
+										</span>
+									</button>
+									<span v-else class="block text-center">{{ col.label }}</span>
 								</th>
 							</tr>
 						</thead>
-						<tbody class="divide-y divide-[#d6e0ee] font-inter text-[15px] text-[#435b76]">
-							<tr v-for="(activity, idx) in sortedActivities" :key="activity.id" class="h-[52px] hover:bg-[#f7f9fd]">
-								<td class="px-4 py-3 text-center font-medium">{{ idx + 1 }}</td>
-								<td class="px-4 py-3 text-left font-medium text-[#2f4b6e]">{{ activity.name }}</td>
-								<td class="px-4 py-3 text-left">{{ activity.lecturer }}</td>
-								<td class="px-4 py-3 text-left">{{ activity.description }}</td>
-								<td class="px-4 py-3 text-left">{{ activity.role }}</td>
-								<td class="whitespace-nowrap px-4 py-3 text-left">{{ activity.date }}</td>
-								<td class="px-4 py-3 text-left">
-									<div class="flex items-center justify-start gap-2">
+						<tbody class="divide-y divide-[#d6e0ee] font-inter text-[14px] text-[#435b76]">
+							<tr
+								v-for="(activity, idx) in sortedActivities"
+								:key="activity.id"
+								class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
+							>
+								<td class="px-3 py-2.5 text-center font-medium">{{ idx + 1 }}</td>
+								<td class="px-4 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name">
+									<span class="block truncate">{{ activity.name }}</span>
+								</td>
+								<td class="px-4 py-2.5 text-left" :title="activity.lecturer">
+									<span class="block truncate">{{ activity.lecturer }}</span>
+								</td>
+								<td class="px-4 py-2.5 text-left" :title="activity.description">
+									<span class="block truncate">{{ activity.description }}</span>
+								</td>
+								<td class="px-3 py-2.5 text-left" :title="activity.role">
+									<span class="block truncate">{{ activity.role }}</span>
+								</td>
+								<td class="px-3 py-2.5 text-center" :title="activity.date">
+									<span class="block truncate">{{ activity.date }}</span>
+								</td>
+								<td class="px-3 py-2.5 text-center">
+									<div class="flex items-center justify-center gap-2">
 										<EditButtonTable :label="`Edit ${activity.name}`" />
 										<DeleteButtonTable :label="`Hapus ${activity.name}`" />
 									</div>
+								</td>
+							</tr>
+							<tr v-if="sortedActivities.length === 0">
+								<td colspan="7" class="py-8 text-center text-[#7890a8]">
+									Tidak ada data aktivitas yang tersedia.
 								</td>
 							</tr>
 						</tbody>

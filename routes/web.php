@@ -23,6 +23,10 @@ Route::get('/dashboard', function () {
     return Inertia::render('Admin/dashboard');
 })->name('dashboard');
 
+Route::get('/dosen', function () {
+    return Inertia::render('Admin/dosen');
+})->name('dosen');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
