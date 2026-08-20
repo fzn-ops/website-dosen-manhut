@@ -6,7 +6,7 @@
     <title>@yield('title', 'DosenManhut - IPB University')</title>
     @vite(['resources/css/app.css'])
 </head>
-<body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen font-sans antialiased">
+<body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen font-poppins antialiased">
 
     <x-layouts.navbar />
 
