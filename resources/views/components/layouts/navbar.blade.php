@@ -26,13 +26,13 @@
                     Tentang Kami
                 </a>
                 
-                <a href="{{ url('/dosen') }}" 
-                   class="relative py-1 transition-colors duration-300 {{ request()->is('dosen*') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:bg-white after:transition-all after:duration-300 {{ request()->is('dosen*') ? 'after:w-full' : 'after:w-0 hover:after:w-full' }}">
+                <a href="{{ url('/lecturers') }}" 
+                   class="relative py-1 transition-colors duration-300 {{ request()->is('lecturers*') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:bg-white after:transition-all after:duration-300 {{ request()->is('lecturers*') ? 'after:w-full' : 'after:w-0 hover:after:w-full' }}">
                     Dosen
                 </a>
                 
-                <a href="{{ url('/aktivitas') }}" 
-                   class="relative py-1 transition-colors duration-300 {{ request()->is('aktivitas*') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:bg-white after:transition-all after:duration-300 {{ request()->is('aktivitas*') ? 'after:w-full' : 'after:w-0 hover:after:w-full' }}">
+                <a href="{{ url('/activities') }}" 
+                   class="relative py-1 transition-colors duration-300 {{ request()->is('activities*') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:bg-white after:transition-all after:duration-300 {{ request()->is('activities*') ? 'after:w-full' : 'after:w-0 hover:after:w-full' }}">
                     Aktivitas
                 </a>
                 
@@ -65,10 +65,10 @@
         <a href="{{ url('/about') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('about*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
             Tentang Kami
         </a>
-        <a href="{{ url('/dosen') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('dosen*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
+        <a href="{{ url('/lecturers') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('lecturers*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
             Dosen
         </a>
-        <a href="{{ url('/aktivitas') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('aktivitas*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
+        <a href="{{ url('/activities') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('activities*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
             Aktivitas
         </a>
         <!-- <a href="{{ url('/faq') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('faq*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">

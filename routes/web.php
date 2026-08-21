@@ -14,6 +14,14 @@ Route::get('/about', function () {
     return view('pages.about');
 })->name('about');
 
+Route::get('/lecturers', function () {
+    return view('pages.lecturer.lecturers');
+})->name('lecturers');
+
+Route::get('/activities', function () {
+    return view('pages.activity.activities');
+})->name('activities');
+
 Route::get('/login', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
