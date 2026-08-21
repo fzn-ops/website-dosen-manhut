@@ -3,17 +3,37 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import SidebarAdmin from '@/Components/SidebarAdmin.vue';
 import TopbarAdmin from '@/Components/TopbarAdmin.vue';
 
-const showingSidebar = ref(true);
+const getSavedSidebarState = () => {
+    if (typeof window === 'undefined') return true;
+    const saved = localStorage.getItem('sidebar_expanded');
+    if (saved !== null) {
+        return saved === 'true';
+    }
+    return window.innerWidth >= 768;
+};
+
+const showingSidebar = ref(getSavedSidebarState());
 const isMobile = ref(false);
 
 const updateViewport = () => {
     const nextIsMobile = window.innerWidth < 768;
 
     if (nextIsMobile !== isMobile.value) {
-        showingSidebar.value = !nextIsMobile;
+        if (nextIsMobile) {
+            showingSidebar.value = false;
+        } else {
+            showingSidebar.value = getSavedSidebarState();
+        }
     }
 
     isMobile.value = nextIsMobile;
+};
+
+const toggleSidebar = () => {
+    showingSidebar.value = !showingSidebar.value;
+    if (!isMobile.value) {
+        localStorage.setItem('sidebar_expanded', showingSidebar.value ? 'true' : 'false');
+    }
 };
 
 const sidebarCollapsed = computed(() => !showingSidebar.value);
@@ -54,7 +74,7 @@ onBeforeUnmount(() => {
         />
 
         <div :class="['min-w-0 flex-1', isMobile ? 'ml-[80px]' : '']">
-            <TopbarAdmin @toggle="showingSidebar = !showingSidebar" />
+            <TopbarAdmin @toggle="toggleSidebar" />
 
             <main>
                 <slot />

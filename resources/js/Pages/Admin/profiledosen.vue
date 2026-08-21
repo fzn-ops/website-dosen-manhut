@@ -4,11 +4,10 @@ import { Head } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
-import ModalFormDosen from '@/Components/ModalFormDosen.vue';
-import ModalImportDosen from '@/Components/ModalImportDosen.vue';
+import ModalFormProfileDosen from '@/Components/ModalFormProfileDosen.vue';
 
-// Initial Lecturer Data matching design
-const initialLecturers = [
+// Available Lecturers (from Daftar Dosen)
+const availableLecturers = [
 	{ id: 1, name: 'Farhan Hakim', nip: 'J0403231075', email: 'farhanhakim123@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
 	{ id: 2, name: 'Fauzan Fuadiansyah', nip: 'J0403231076', email: 'fauzanfuadiansyah@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
 	{ id: 3, name: 'Rintan Arufafa Aji', nip: 'J0403231113', email: 'contohajakaloyangpanjang@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
@@ -31,19 +30,196 @@ const initialLecturers = [
 	{ id: 20, name: 'Fitri Handayani M.Pd.', nip: 'J0403231130', email: 'fitri.handayani@apps.ipb.ac.id', phone: '+62 812 9012 3456' },
 ];
 
-const lecturers = ref([...initialLecturers]);
+// Initial Profile Data with official 3 Divisions
+const initialProfiles = [
+	{
+		id: 1,
+		name: 'Farhan Hakim',
+		division: 'Perencanaan Kehutanan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'farhanhakim123@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 2,
+		name: 'Fauzan Fuadiansyah',
+		division: 'Perencanaan Kehutanan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'fauzanfuadiansyah@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 3,
+		name: 'Rintan Arufafa Aji',
+		division: 'Pemanfaatan Sumberdaya Hutan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'contohajakaloyangpanjang@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 4,
+		name: 'Muhammad Fauzan Fuadiansyah S.Kom., M.Cs.',
+		division: 'Kebijakan Kehutanan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'fauzan.cs@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 5,
+		name: 'Dakota Johnson',
+		division: 'Pemanfaatan Sumberdaya Hutan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'dakota.j@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 6,
+		name: 'Dr. Ir. Budi Rahardjo M.Sc.',
+		division: 'Perencanaan Kehutanan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'budi.rahardjo@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 7,
+		name: 'Prof. Dr. Sulistyo Handoko',
+		division: 'Kebijakan Kehutanan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'sulistyo.h@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 8,
+		name: 'Siti Aminah S.Si., M.Kom.',
+		division: 'Pemanfaatan Sumberdaya Hutan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'siti_aminah@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 9,
+		name: 'Ahmad Dahlan S.T., M.Eng.',
+		division: 'Perencanaan Kehutanan',
+		educations: [
+			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
+		],
+		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
+		research: 'Kayu Jati Luhur',
+		contact: 'a.dahlan@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 10,
+		name: 'Rian Hidayat S.Kom., M.T.',
+		division: 'Perencanaan Kehutanan',
+		educations: [
+			{ university: 'Universitas Gadjah Mada', major: 'Kehutanan Tropika', graduationYear: '2020' },
+		],
+		educationSummary: 'Kehutanan Tropika - Universitas Gadjah Mada - 2020',
+		research: 'Perencanaan Hutan Lestari',
+		contact: 'rian.hidayat@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 11,
+		name: 'Dewi Lestari M.Kom.',
+		division: 'Pemanfaatan Sumberdaya Hutan',
+		educations: [
+			{ university: 'IPB University', major: 'Silvikultur Tropika', graduationYear: '2022' },
+		],
+		educationSummary: 'Silvikultur Tropika - IPB University - 2022',
+		research: 'Agroforestri Berkelanjutan',
+		contact: 'dewi.lestari@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+	{
+		id: 12,
+		name: 'Hendra Setiawan Ph.D.',
+		division: 'Kebijakan Kehutanan',
+		educations: [
+			{ university: 'Kyoto University', major: 'Forest Ecology', graduationYear: '2019' },
+		],
+		educationSummary: 'Forest Ecology - Kyoto University - 2019',
+		research: 'Ekologi Satwa Liar',
+		contact: 'hendra.s@apps.ipb.ac.id',
+		scholarLink: 'https://scholar.google.com',
+		linkedinLink: 'https://linkedin.com',
+	},
+];
 
-// Search Query
+const profiles = ref([...initialProfiles]);
+
+// Search & Filter Query
 const searchQuery = ref('');
+const selectedDivisionFilter = ref('');
+const isFilterOpen = ref(false);
 
-// Sorting
+const divisionFilterList = [
+	'Semua Divisi',
+	'Perencanaan Kehutanan',
+	'Pemanfaatan Sumberdaya Hutan',
+	'Kebijakan Kehutanan',
+];
+
+const setDivisionFilter = (div) => {
+	selectedDivisionFilter.value = div === 'Semua Divisi' ? '' : div;
+	isFilterOpen.value = false;
+	currentPage.value = 1;
+};
+
+// Table Columns Config (Tanpa kolom Pendidikan)
 const columns = [
-	{ key: 'name', label: 'Nama Dosen', sortable: true, align: 'center', width: 'w-[20%]' },
-	{ key: 'nip', label: 'NIP', sortable: true, align: 'center', width: 'w-[20%]' },
-	{ key: 'email', label: 'Email', sortable: true, align: 'center', width: 'w-[27%]' },
-	{ key: 'phone', label: 'Nomor Handphone', sortable: true, align: 'center', width: 'w-[18%]' },
+	{ key: 'name', label: 'Nama Dosen', sortable: true, align: 'left', width: 'w-[26%]' },
+	{ key: 'division', label: 'Divisi', sortable: true, align: 'left', width: 'w-[24%]' },
+	{ key: 'research', label: 'Ketertarikan', sortable: true, align: 'left', width: 'w-[22%]' },
+	{ key: 'contact', label: 'Kontak', sortable: true, align: 'left', width: 'w-[18%]' },
 	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
+
+const isRowsDropdownOpen = ref(false);
 
 const sortKey = ref('name');
 const sortDirection = ref('asc');
@@ -57,17 +233,29 @@ const toggleSort = (key) => {
 	}
 };
 
-// Filtered and Sorted Lecturers
-const filteredAndSortedLecturers = computed(() => {
-	let list = [...lecturers.value];
+// Filtered and Sorted Profiles
+const filteredAndSortedProfiles = computed(() => {
+	let list = [...profiles.value];
 
+	// Filter by Division
+	if (selectedDivisionFilter.value) {
+		list = list.filter((p) => p.division === selectedDivisionFilter.value);
+	}
+
+	// Search Query
 	if (searchQuery.value.trim()) {
 		const q = searchQuery.value.toLowerCase().trim();
 		list = list.filter(
-			(l) => l.name.toLowerCase().includes(q) || l.nip.toLowerCase().includes(q) || l.email.toLowerCase().includes(q)
+			(p) =>
+				p.name.toLowerCase().includes(q) ||
+				p.division.toLowerCase().includes(q) ||
+				(p.educationSummary && p.educationSummary.toLowerCase().includes(q)) ||
+				p.research.toLowerCase().includes(q) ||
+				p.contact.toLowerCase().includes(q)
 		);
 	}
 
+	// Sorting
 	if (sortKey.value) {
 		list.sort((a, b) => {
 			const valA = (a[sortKey.value] ?? '').toString().toLowerCase();
@@ -89,16 +277,15 @@ const filteredAndSortedLecturers = computed(() => {
 const currentPage = ref(1);
 const rowsPerPage = ref(10);
 const pageInput = ref(1);
-const isRowsDropdownOpen = ref(false);
 
 const totalPages = computed(() => {
-	const count = Math.ceil(filteredAndSortedLecturers.value.length / rowsPerPage.value);
+	const count = Math.ceil(filteredAndSortedProfiles.value.length / rowsPerPage.value);
 	return count > 0 ? count : 1;
 });
 
-const paginatedLecturers = computed(() => {
+const paginatedProfiles = computed(() => {
 	const start = (currentPage.value - 1) * rowsPerPage.value;
-	return filteredAndSortedLecturers.value.slice(start, start + rowsPerPage.value);
+	return filteredAndSortedProfiles.value.slice(start, start + rowsPerPage.value);
 });
 
 // Sync input when page changes
@@ -106,8 +293,8 @@ watch(currentPage, (val) => {
 	pageInput.value = val;
 });
 
-// Reset to page 1 on search or rowsPerPage change
-watch([searchQuery, rowsPerPage], () => {
+// Reset to page 1 on search, filter, or rowsPerPage change
+watch([searchQuery, selectedDivisionFilter, rowsPerPage], () => {
 	currentPage.value = 1;
 	pageInput.value = 1;
 });
@@ -158,68 +345,53 @@ const visiblePages = computed(() => {
 	return [1, '...', current - 1, current, current + 1, '...', total];
 });
 
-// MODAL HANDLERS
-const isFormModalOpen = ref(false);
+// Modal State & Handlers
+const isModalOpen = ref(false);
 const isEditing = ref(false);
-const selectedLecturer = ref(null);
+const selectedProfile = ref(null);
 const editingId = ref(null);
-
-const isImportModalOpen = ref(false);
 
 const openCreateModal = () => {
 	isEditing.value = false;
-	selectedLecturer.value = null;
+	selectedProfile.value = null;
 	editingId.value = null;
-	isFormModalOpen.value = true;
+	isModalOpen.value = true;
 };
 
-const openEditModal = (lecturer) => {
+const openEditModal = (profile) => {
 	isEditing.value = true;
-	selectedLecturer.value = lecturer;
-	editingId.value = lecturer.id;
-	isFormModalOpen.value = true;
+	selectedProfile.value = profile;
+	editingId.value = profile.id;
+	isModalOpen.value = true;
 };
 
-const handleFormSubmit = (formData) => {
+const handleProfileSubmit = (formData) => {
 	if (isEditing.value) {
-		const index = lecturers.value.findIndex((l) => l.id === editingId.value);
+		const index = profiles.value.findIndex((p) => p.id === editingId.value);
 		if (index !== -1) {
-			lecturers.value[index] = {
-				...lecturers.value[index],
-				nip: formData.nip,
-				name: formData.name,
-				email: formData.email,
-				phone: formData.phone,
-				password: formData.password || lecturers.value[index].password || formData.nip,
+			profiles.value[index] = {
+				...profiles.value[index],
+				...formData,
 			};
 		}
 	} else {
-		const newId = lecturers.value.length ? Math.max(...lecturers.value.map((l) => l.id)) + 1 : 1;
-		lecturers.value.unshift({
+		const newId = profiles.value.length ? Math.max(...profiles.value.map((p) => p.id)) + 1 : 1;
+		profiles.value.unshift({
 			id: newId,
-			nip: formData.nip,
-			name: formData.name,
-			email: formData.email,
-			phone: formData.phone,
-			password: formData.password || formData.nip,
+			...formData,
 		});
 	}
 };
 
-const handleImportSubmit = (newLecturers) => {
-	lecturers.value.unshift(...newLecturers);
-	currentPage.value = 1;
-};
-
-const deleteLecturer = (lecturer) => {
-	if (confirm(`Apakah Anda yakin ingin menghapus data dosen ${lecturer.name}?`)) {
-		lecturers.value = lecturers.value.filter((l) => l.id !== lecturer.id);
+const deleteProfile = (profile) => {
+	if (confirm(`Apakah Anda yakin ingin menghapus profile dosen ${profile.name}?`)) {
+		profiles.value = profiles.value.filter((p) => p.id !== profile.id);
 	}
 };
 </script>
 
 <template>
-	<Head title="Daftar Dosen" />
+	<Head title="Profile Dosen" />
 
 	<AuthenticatedLayout>
 		<section class="mx-auto w-full max-w-[1520px] px-4 py-6 font-poppins sm:px-6 sm:py-8 lg:px-8">
@@ -227,14 +399,14 @@ const deleteLecturer = (lecturer) => {
 				<!-- Header Title & Subtitle -->
 				<div class="space-y-1.5">
 					<h1 class="mt-1 text-[34px] font-bold leading-[1.02] tracking-[-0.03em] text-[#173a63] sm:text-[42px] lg:text-[48px]">
-						Daftar Dosen
+						Profile Dosen
 					</h1>
 					<p class="mt-1.5 font-inter text-[14px] font-medium leading-tight text-[#4d6786] sm:text-[16px]">
-						Lihat data dosen, perbarui, atau tambahkan dosen baru
+						Lihat data profile, perbarui, atau tambahkan profile dosen baru
 					</p>
 				</div>
 
-				<!-- Action Bar (Search, Import, Tambah Button) -->
+				<!-- Action Bar (Search, Filter, Tambah Button) -->
 				<div class="flex items-center gap-3">
 					<!-- Search Input -->
 					<div class="relative flex-1">
@@ -246,23 +418,48 @@ const deleteLecturer = (lecturer) => {
 						<input
 							v-model="searchQuery"
 							type="text"
-							placeholder="Cari NIP atau Nama Dosen disini"
+							placeholder="Cari Nama Dosen disini"
 							class="h-[46px] w-full rounded-[10px] border-2 border-[#d6e0ee] bg-transparent pl-12 pr-4 font-inter text-[14px] text-[#173a63] placeholder-[#8ca1b9] transition-colors focus:border-[#183669] focus:outline-none focus:ring-0"
 						/>
 					</div>
 
-					<!-- Import Button -->
-					<button
-						type="button"
-						@click="isImportModalOpen = true"
-						class="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-[10px] border-2 border-[#d6e0ee] bg-transparent px-4 font-poppins text-[14px] font-semibold text-[#183669] transition hover:border-[#183669] hover:bg-[#183669]/5 focus:border-[#183669] focus:outline-none active:border-[#183669]"
-						title="Import Data Dosen (Excel / CSV)"
-					>
-						<svg class="h-5 w-5 text-[#183669]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-						</svg>
-						<span class="hidden sm:inline">Import</span>
-					</button>
+					<!-- Filter Button with /assets/icons/filter.svg -->
+					<div class="relative">
+						<button
+							type="button"
+							@click="isFilterOpen = !isFilterOpen"
+							class="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 border-[#d6e0ee] bg-transparent text-[#183669] transition hover:border-[#183669] hover:bg-[#183669]/5 focus:border-[#183669] focus:outline-none active:border-[#183669]"
+							title="Filter Divisi Dosen"
+						>
+							<img src="/assets/icons/filter.svg" alt="Filter Icon" class="h-5 w-5 object-contain" />
+						</button>
+
+						<!-- Filter Dropdown Menu -->
+						<div
+							v-if="isFilterOpen"
+							class="absolute right-0 z-30 mt-2 w-64 rounded-[10px] border border-[#d6e0ee] bg-white p-2 shadow-xl"
+						>
+							<p class="px-3 py-1.5 font-poppins text-xs font-bold text-[#183669] border-b border-[#f0f4f9]">
+								Filter Berdasarkan Divisi:
+							</p>
+							<div class="mt-1 space-y-1">
+								<button
+									v-for="div in divisionFilterList"
+									:key="div"
+									type="button"
+									@click="setDivisionFilter(div)"
+									:class="[
+										'w-full rounded-[6px] px-3 py-1.5 text-left font-inter text-xs transition-colors',
+										(selectedDivisionFilter === div || (!selectedDivisionFilter && div === 'Semua Divisi'))
+											? 'bg-[#183669] font-bold text-white'
+											: 'text-[#435b76] hover:bg-slate-100'
+									]"
+								>
+									{{ div }}
+								</button>
+							</div>
+						</div>
+					</div>
 
 					<!-- Tambah Button -->
 					<button
@@ -286,7 +483,7 @@ const deleteLecturer = (lecturer) => {
 									:class="[
 										col.width,
 										'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none',
-										col.align === 'center' 
+										col.align === 'center'
 									]"
 								>
 									<button
@@ -327,47 +524,48 @@ const deleteLecturer = (lecturer) => {
 						</thead>
 						<tbody class="divide-y divide-[#d6e0ee] font-inter text-[14px] text-[#435b76]">
 							<tr
-								v-for="(lecturer, idx) in paginatedLecturers"
-								:key="lecturer.id"
+								v-for="(profile, idx) in paginatedProfiles"
+								:key="profile.id"
 								class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
 							>
 								<td class="px-3 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
-								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="lecturer.name">
-									<span class="block truncate">{{ lecturer.name }}</span>
+								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="profile.name">
+									<span class="block truncate">{{ profile.name }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-center" :title="lecturer.nip">
-									<span class="block truncate">{{ lecturer.nip }}</span>
+								<td class="px-3 py-2.5 text-left" :title="profile.division">
+									<span class="block truncate">{{ profile.division }}</span>
 								</td>
-								<td :class="['px-3 py-2.5', lecturer.email && lecturer.email !== '-' ? 'text-left' : 'text-center']" :title="lecturer.email">
+								<td class="px-3 py-2.5 text-left" :title="profile.research">
+									<span class="block truncate">{{ profile.research }}</span>
+								</td>
+								<td :class="['px-3 py-2.5', profile.contact && profile.contact !== '-' ? 'text-left' : 'text-center']" :title="profile.contact">
 									<a
-										v-if="lecturer.email && lecturer.email !== '-'"
-										:href="`mailto:${lecturer.email}`"
+										v-if="profile.contact && profile.contact.includes('@')"
+										:href="`mailto:${profile.contact}`"
 										class="block truncate text-[#2a68c4] underline decoration-[#2a68c4] transition hover:text-[#1d4d96]"
 									>
-										{{ lecturer.email }}
+										{{ profile.contact }}
 									</a>
+									<span v-else-if="profile.contact && profile.contact !== '-'" class="block truncate">{{ profile.contact }}</span>
 									<span v-else class="block truncate text-[#7890a8]">-</span>
-								</td>
-								<td class="px-3 py-2.5 text-center" :title="lecturer.phone">
-									<span class="block truncate">{{ lecturer.phone }}</span>
 								</td>
 								<td class="px-3 py-2.5 text-center">
 									<div class="flex items-center justify-center gap-2">
-										<EditButtonTable :label="`Edit ${lecturer.name}`" @click="openEditModal(lecturer)" />
-										<DeleteButtonTable :label="`Hapus ${lecturer.name}`" @click="deleteLecturer(lecturer)" />
+										<EditButtonTable :label="`Edit Profile ${profile.name}`" @click="openEditModal(profile)" />
+										<DeleteButtonTable :label="`Hapus Profile ${profile.name}`" @click="deleteProfile(profile)" />
 									</div>
 								</td>
 							</tr>
-							<tr v-if="filteredAndSortedLecturers.length === 0">
+							<tr v-if="filteredAndSortedProfiles.length === 0">
 								<td colspan="6" class="py-8 text-center text-[#7890a8]">
-									Tidak ada data dosen yang sesuai pencarian.
+									Tidak ada data profile dosen yang sesuai filter atau pencarian.
 								</td>
 							</tr>
 						</tbody>
 					</table>
 				</div>
 
-				<!-- Pagination Section (Matching Image 1) -->
+				<!-- Pagination Section (Matching Image 1 with custom Rows per page Dropup) -->
 				<div class="flex flex-col gap-4 py-2 font-inter text-[13px] text-[#4d6786] sm:flex-row sm:items-center sm:justify-between">
 					<!-- Left: Page [ 1 ] of 10 | Rows per page [ 10 v ] -->
 					<div class="flex items-center gap-2">
@@ -506,23 +704,15 @@ const deleteLecturer = (lecturer) => {
 			</div>
 		</section>
 
-		<!-- MODAL FORM TAMBAH / EDIT DOSEN (COMPONENT) -->
-		<ModalFormDosen
-			:show="isFormModalOpen"
+		<!-- MODAL FORM PROFILE DOSEN (COMPONENT)       -->
+		<ModalFormProfileDosen
+			:show="isModalOpen"
 			:is-editing="isEditing"
-			:initial-data="selectedLecturer || {}"
-			:editing-id="editingId"
-			:existing-lecturers="lecturers"
-			@close="isFormModalOpen = false"
-			@submit="handleFormSubmit"
-		/>
-
-		<!-- MODAL IMPORT DATA DOSEN (COMPONENT)        -->
-		<ModalImportDosen
-			:show="isImportModalOpen"
-			:existing-lecturers="lecturers"
-			@close="isImportModalOpen = false"
-			@import="handleImportSubmit"
+			:initial-data="selectedProfile"
+			:available-lecturers="availableLecturers"
+			:existing-profiles="profiles"
+			@close="isModalOpen = false"
+			@submit="handleProfileSubmit"
 		/>
 	</AuthenticatedLayout>
 </template>

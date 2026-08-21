@@ -17,36 +17,45 @@ defineEmits(['navigate']);
 const menuItems = [
 	{ label: 'Dashboard', href: route('dashboard'), pattern: 'dashboard', icon: 'home' },
 	{ label: 'Daftar Dosen', href: '/dosen', pattern: 'dosen*', icon: 'teacher' },
-	{ label: 'Profile Dosen', href: route('profile.edit'), pattern: 'profile*', icon: 'teacher-profile' },
+	{ label: 'Profile Dosen', href: '/profile-dosen', pattern: 'profiledosen*', icon: 'teacher-profile' },
 	{ label: 'Aktivitas', href: '/aktivitas', pattern: 'aktivitas*', icon: 'activity' },
 ];
 </script>
 
 <template>
 	<aside :class="[
-		'flex h-screen shrink-0 flex-col overflow-hidden bg-[#1d3a7a] py-10 font-poppins text-white transition-[width] duration-200',
+		'flex h-screen shrink-0 flex-col overflow-hidden bg-[#1d3a7a] font-poppins text-white transition-[width] duration-200',
 		mobile ? 'fixed left-0 top-0 z-40' : 'sticky top-0',
-		collapsed ? 'w-[80px] px-3' : 'w-[275px] px-5',
+		collapsed ? 'w-[80px]' : 'w-[275px]',
 	]">
-		<Link :href="route('dashboard')" :class="[
-			'mb-12 flex items-center gap-3',
-			collapsed ? 'justify-center px-0' : 'px-4',
+		<!-- Logo Header Row (Centered Horizontally & Vertically) -->
+		<div :class="[
+			'flex h-[70px] shrink-0 items-center justify-center border-b border-white/10 px-4',
 		]">
-			<span class="h-11 w-11 rounded-full bg-black" aria-hidden="true"></span>
-			<span v-if="!collapsed" class="text-[32px] font-bold leading-none tracking-tight">DoSend!</span>
-		</Link>
+			<Link :href="route('dashboard')" class="flex items-center justify-center gap-3.5 focus:outline-none">
+				<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-base font-black text-[#1d3a7a] shadow-sm">
+				</span>
+				<span v-if="!collapsed" class="text-[24px] font-bold leading-none tracking-tight text-white">
+					DoSend!
+				</span>
+			</Link>
+		</div>
 
-		<nav aria-label="Navigasi utama" :class="[collapsed ? 'space-y-4' : '-mx-5 space-y-4']">
+		<!-- Nav Menu Area (Indented / Menjorok ke kanan dengan rounded-l-full ke tepi kanan) -->
+		<nav aria-label="Navigasi utama" :class="[
+			'mt-8 sm:mt-10 flex-1 space-y-4',
+			collapsed ? 'px-3' : 'px-0'
+		]">
 			<Link
 				v-for="item in menuItems"
 				:key="item.label"
 				:href="item.href"
 				:class="[
 					'flex h-11 items-center text-[15px] font-semibold transition-colors focus:outline-none',
-					collapsed ? 'justify-center rounded-full px-0' : 'gap-5 pl-5 pr-5',
+					collapsed ? 'justify-center rounded-full px-0' : 'gap-5 pl-7 pr-4',
 					route().current(item.pattern)
-						? collapsed ? 'bg-[#3c5da1] text-white' : 'ml-5 mr-0 rounded-l-full bg-[#3c5da1] text-white'
-						: collapsed ? 'text-white hover:bg-[#142e63]' : 'ml-5 rounded-l-full text-white hover:bg-[#142e63]',
+						? collapsed ? 'bg-[#3c5da1] text-white' : 'ml-6 rounded-l-full bg-[#3c5da1] text-white shadow-sm'
+						: collapsed ? 'text-white/80 hover:bg-[#142e63] hover:text-white' : 'ml-6 rounded-l-full text-white/80 hover:bg-[#142e63] hover:text-white',
 				]"
 				:title="collapsed ? item.label : undefined"
 				@click="$emit('navigate')"
@@ -56,19 +65,22 @@ const menuItems = [
 			</Link>
 		</nav>
 
-		<Link
-			:href="route('logout')"
-			method="post"
-			as="button"
-			:class="[
-				'mt-auto flex h-11 items-center text-[15px] font-semibold text-white transition-colors focus:outline-none hover:bg-[#142e63]',
-				collapsed ? 'w-full justify-center rounded-full px-0' : 'w-[calc(100%+20px)] gap-5 rounded-l-full px-5',
-			]"
-			:title="collapsed ? 'Logout' : undefined"
-			@click="$emit('navigate')"
-		>
-			<img src="/assets/icons/logout.svg" alt="Logout icon" class="h-5 w-5 shrink-0 object-contain" />
-			<span v-if="!collapsed">Logout</span>
-		</Link>
+		<!-- Logout Button (Menjorok sejajar dengan menu navigasi) -->
+		<div class="mt-auto pb-8">
+			<Link
+				:href="route('logout')"
+				method="post"
+				as="button"
+				:class="[
+					'flex h-11 items-center text-[15px] font-semibold text-white/80 transition-colors focus:outline-none hover:bg-[#142e63] hover:text-white',
+					collapsed ? 'w-full justify-center rounded-full px-0' : 'ml-6 w-[calc(100%-24px)] gap-5 rounded-l-full pl-7 pr-4',
+				]"
+				:title="collapsed ? 'Logout' : undefined"
+				@click="$emit('navigate')"
+			>
+				<img src="/assets/icons/logout.svg" alt="Logout icon" class="h-5 w-5 shrink-0 object-contain" />
+				<span v-if="!collapsed">Logout</span>
+			</Link>
+		</div>
 	</aside>
 </template>

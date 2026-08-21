@@ -27,6 +27,10 @@ Route::get('/dosen', function () {
     return Inertia::render('Admin/dosen');
 })->name('dosen');
 
+Route::get('/profile-dosen', function () {
+    return Inertia::render('Admin/profiledosen');
+})->name('profiledosen');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
