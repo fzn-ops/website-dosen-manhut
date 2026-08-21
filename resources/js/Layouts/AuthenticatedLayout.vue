@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import SidebarAdmin from '@/Components/SidebarAdmin.vue';
-import TopbarAdmin from '@/Components/TopbarAdmin.vue';
+import SidebarAdmin from '@/Components/admin/SidebarAdmin.vue';
+import TopbarAdmin from '@/Components/admin/TopbarAdmin.vue';
 
 const getSavedSidebarState = () => {
     if (typeof window === 'undefined') return true;

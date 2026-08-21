@@ -4,7 +4,7 @@ import { Head } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
-import ModalFormProfileDosen from '@/Components/ModalFormProfileDosen.vue';
+import ModalFormProfileDosen from '@/Components/admin/ModalFormProfileDosen.vue';
 
 // Available Lecturers (from Daftar Dosen)
 const availableLecturers = [
@@ -221,8 +221,8 @@ const columns = [
 
 const isRowsDropdownOpen = ref(false);
 
-const sortKey = ref('name');
-const sortDirection = ref('asc');
+const sortKey = ref('id');
+const sortDirection = ref('desc');
 
 const toggleSort = (key) => {
 	if (sortKey.value === key) {

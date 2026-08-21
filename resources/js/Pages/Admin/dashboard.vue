@@ -113,23 +113,23 @@ const chartOptions = {
 };
 
 const activities = [
-	{ id: 1, name: 'Lokakarya Desa Siman', lecturer: 'Prof. Sulana', description: 'Pendampingan pengelolaan UMKM desa berbasis digital.', role: 'Narasumber', date: '21 Januari 2026', dateSort: '2026-01-21' },
-	{ id: 2, name: 'Seminar Kurikulum Merdeka', lecturer: 'Dr. Budi Santoso', description: 'Pemaparan strategi implementasi kurikulum adaptif di kampus.', role: 'Pemateri Utama', date: '18 Januari 2026', dateSort: '2026-01-18' },
-	{ id: 3, name: 'Workshop Metodologi Riset', lecturer: 'Ir. Siti Aminah', description: 'Pelatihan teknik sampling dan validasi instrumen penelitian.', role: 'Fasilitator', date: '15 Januari 2026', dateSort: '2026-01-15' },
-	{ id: 4, name: 'Pelatihan SPSS Dasar', lecturer: 'Dr. Rian Hadi', description: 'Praktik olah data kuantitatif untuk tugas akhir mahasiswa.', role: 'Instruktur', date: '12 Januari 2026', dateSort: '2026-01-12' },
-	{ id: 5, name: 'Rapat Evaluasi Akademik', lecturer: 'Prof. Dina Lestari', description: 'Evaluasi capaian semester ganjil dan rencana perbaikan.', role: 'Peserta', date: '10 Januari 2026', dateSort: '2026-01-10' },
+	{ id: 5, name: 'Rapat Evaluasi Akademik', lecturer: 'Prof. Dina Lestari', description: 'Evaluasi capaian semester ganjil dan rencana perbaikan kurikulum.', role: 'Peserta', date: '22 Januari 2026', dateSort: '2026-01-22' },
+	{ id: 4, name: 'Lokakarya Desa Siman', lecturer: 'Prof. Sulana', description: 'Pendampingan pengelolaan UMKM desa berbasis digital.', role: 'Narasumber', date: '21 Januari 2026', dateSort: '2026-01-21' },
+	{ id: 3, name: 'Seminar Kurikulum Merdeka', lecturer: 'Dr. Budi Santoso', description: 'Pemaparan strategi implementasi kurikulum adaptif di kampus.', role: 'Pemateri Utama', date: '18 Januari 2026', dateSort: '2026-01-18' },
+	{ id: 2, name: 'Workshop Metodologi Riset', lecturer: 'Ir. Siti Aminah', description: 'Pelatihan teknik sampling dan validasi instrumen penelitian.', role: 'Fasilitator', date: '15 Januari 2026', dateSort: '2026-01-15' },
+	{ id: 1, name: 'Pelatihan SPSS Dasar', lecturer: 'Dr. Rian Hadi', description: 'Praktik olah data kuantitatif untuk tugas akhir mahasiswa.', role: 'Instruktur', date: '12 Januari 2026', dateSort: '2026-01-12' },
 ];
 
 const columns = [
-	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[21%]' },
+	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[24%]' },
 	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, cellAlign: 'left', width: 'w-[18%]' },
 	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[24%]' },
-	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'center', width: 'w-[12%]' },
-	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'center', width: 'w-[12%]' },
-	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[13%]' },
+	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[12%]' },
+	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'left', width: 'w-[12%]' },
+	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[10%]' },
 ];
 
-const sortKey = ref('dateSort');
+const sortKey = ref('id');
 const sortDirection = ref('desc');
 
 const toggleSort = (key) => {

@@ -4,8 +4,8 @@ import { Head } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
-import ModalFormDosen from '@/Components/ModalFormDosen.vue';
-import ModalImportDosen from '@/Components/ModalImportDosen.vue';
+import ModalFormDosen from '@/Components/admin/ModalFormDosen.vue';
+import ModalImportDosen from '@/Components/admin/ModalImportDosen.vue';
 
 // Initial Lecturer Data matching design
 const initialLecturers = [
@@ -45,8 +45,8 @@ const columns = [
 	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
 
-const sortKey = ref('name');
-const sortDirection = ref('asc');
+const sortKey = ref('id');
+const sortDirection = ref('desc');
 
 const toggleSort = (key) => {
 	if (sortKey.value === key) {
