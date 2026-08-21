@@ -34,7 +34,7 @@ const form = ref({
 	images: [],
 	imagePreviews: [],
 	lecturerQuote: '',
-	categories: ['Lokakarya'],
+	categories: [],
 	releaseDate: '',
 });
 
@@ -72,13 +72,11 @@ const selectLecturer = (lec) => {
 	lecturerSearchQuery.value = '';
 };
 
-// Category Toggle
+// Category Toggle (can check/uncheck freely)
 const toggleCategory = (cat) => {
 	const idx = form.value.categories.indexOf(cat);
 	if (idx > -1) {
-		if (form.value.categories.length > 1) {
-			form.value.categories.splice(idx, 1);
-		}
+		form.value.categories.splice(idx, 1);
 	} else {
 		form.value.categories.push(cat);
 	}
@@ -106,6 +104,13 @@ watch(
 			lecturerSearchQuery.value = '';
 
 			if (props.isEditing && props.initialData) {
+				let cats = [];
+				if (Array.isArray(props.initialData.categories) && props.initialData.categories.length > 0) {
+					cats = [...props.initialData.categories];
+				} else if (props.initialData.category && props.initialData.category !== '-') {
+					cats = [props.initialData.category];
+				}
+
 				form.value = {
 					title: props.initialData.title || props.initialData.name || '',
 					lecturerName: props.initialData.lecturerName || props.initialData.lecturer || '',
@@ -115,10 +120,8 @@ watch(
 					endDate: props.initialData.endDate || '',
 					images: props.initialData.images || [],
 					imagePreviews: props.initialData.imagePreviews || (props.initialData.image ? [props.initialData.image] : []),
-					lecturerQuote: props.initialData.lecturerQuote !== '-' ? props.initialData.lecturerQuote : '',
-					categories: Array.isArray(props.initialData.categories) && props.initialData.categories.length > 0
-						? [...props.initialData.categories]
-						: [props.initialData.category || 'Lokakarya'],
+					lecturerQuote: props.initialData.lecturerQuote !== '-' ? (props.initialData.lecturerQuote || '') : '',
+					categories: cats,
 					releaseDate: props.initialData.date || props.initialData.releaseDate || getFormattedToday(),
 				};
 			} else {
@@ -132,7 +135,7 @@ watch(
 					images: [],
 					imagePreviews: [],
 					lecturerQuote: '',
-					categories: ['Lokakarya'],
+					categories: [], // Kosong default untuk tambah data baru
 					releaseDate: getFormattedToday(),
 				};
 			}
@@ -243,8 +246,8 @@ const handleSubmit = () => {
 		images: form.value.images,
 		imagePreviews: form.value.imagePreviews,
 		lecturerQuote: form.value.lecturerQuote.trim() || '-',
-		category: form.value.categories[0],
-		categories: form.value.categories,
+		category: form.value.categories.length > 0 ? form.value.categories[0] : 'Lainnya',
+		categories: [...form.value.categories],
 		date: form.value.releaseDate || getFormattedToday(),
 	});
 
@@ -536,7 +539,7 @@ const handleSubmit = () => {
 						<!-- Kata-kata Dosen -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
-								Kata-kata Dosen<span class="text-red-500">*</span>
+								Kata-kata Dosen
 							</label>
 							<p class="font-inter text-[11px] text-[#7188a3]">Masukkan testimoni atau kutipan dari aktivitas dosen!</p>
 							<textarea
@@ -547,7 +550,7 @@ const handleSubmit = () => {
 							></textarea>
 						</div>
 
-						<!-- Kategori Checkboxes -->
+						<!-- Kategori Checkboxes (Tidak ada default yang diceklis) -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
 								Kategori<span class="text-red-500">*</span>
