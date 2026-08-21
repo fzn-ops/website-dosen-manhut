@@ -14,13 +14,13 @@
             <a href="{{ url('/') }}" class="hover:text-gray-300 transition">
                 Beranda
             </a>
-            <a href="{{ url('/tentang-kami') }}" class="hover:text-gray-300 transition">
+            <a href="{{ url('/about') }}" class="hover:text-gray-300 transition">
                 Tentang Kami
             </a>
-            <a href="{{ url('/dosen') }}" class="hover:text-gray-300 transition">
+            <a href="{{ url('/lecturers') }}" class="hover:text-gray-300 transition">
                 Dosen
             </a>
-            <a href="{{ url('/aktivitas') }}" class="hover:text-gray-300 transition">
+            <a href="{{ url('/activities') }}" class="hover:text-gray-300 transition">
                 Aktivitas
             </a>
         </div>
