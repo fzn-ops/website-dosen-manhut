@@ -21,8 +21,8 @@
                     Beranda
                 </a>
                 
-                <a href="{{ url('/tentang-kami') }}" 
-                   class="relative py-1 transition-colors duration-300 {{ request()->is('tentang-kami*') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:bg-white after:transition-all after:duration-300 {{ request()->is('tentang-kami*') ? 'after:w-full' : 'after:w-0 hover:after:w-full' }}">
+                <a href="{{ url('/about') }}" 
+                   class="relative py-1 transition-colors duration-300 {{ request()->is('about*') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:bg-white after:transition-all after:duration-300 {{ request()->is('about*') ? 'after:w-full' : 'after:w-0 hover:after:w-full' }}">
                     Tentang Kami
                 </a>
                 
@@ -62,7 +62,7 @@
         <a href="{{ url('/') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('/') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
             Beranda
         </a>
-        <a href="{{ url('/tentang-kami') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('tentang-kami*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
+        <a href="{{ url('/about') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('about*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">
             Tentang Kami
         </a>
         <a href="{{ url('/dosen') }}" class="block px-4 py-2 text-base transition-colors {{ request()->is('dosen*') ? 'bg-[#1a3675] text-white border-l-4 border-white font-semibold' : 'text-gray-300 hover:bg-[#1a3675] hover:text-white border-l-4 border-transparent' }}">

@@ -10,6 +10,10 @@ Route::get('/', function () {
     return view('pages.landing');
 })->name('landing');
 
+Route::get('/about', function () {
+    return view('pages.about');
+})->name('about');
+
 Route::get('/login', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
