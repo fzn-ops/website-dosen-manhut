@@ -121,12 +121,12 @@
         {{-- Dummy Data Dosen (Saya perbanyak agar bisa di-scroll) --}}
         @php
             $dosenList = [
-                ['nama' => 'Dr. Budi Santoso', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan'],
-                ['nama' => 'Prof. Andi Wahyu', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan'],
-                ['nama' => 'Siti Nurhaliza, M.Hut', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan'],
-                ['nama' => 'Ir. Rudi Hermawan', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan'],
-                ['nama' => 'Dr. Lestari Alam', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan'],
-                ['nama' => 'Bambang Pamungkas', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan'],
+                ['nama' => 'Dr. Budi Santoso', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'dr-budi-santoso'],
+                ['nama' => 'Prof. Andi Wahyu', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'prof-andi-wahyu'],
+                ['nama' => 'Siti Nurhaliza, M.Hut', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'siti-nurhaliza-m-hut'],
+                ['nama' => 'Ir. Rudi Hermawan', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'ir-rudi-hermawan'],
+                ['nama' => 'Dr. Lestari Alam', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'dr-lestari-alam'],
+                ['nama' => 'Bambang Pamungkas', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'bambang-pamungkas'],
             ];
         @endphp
 
@@ -143,7 +143,7 @@
                 
                 @foreach ($dosenList as $dosen)
                 {{-- Card Item (Lebar di-setting agar responsif) --}}
-                <div class="dosen-card shrink-0 w-[75%] sm:w-[45%] md:w-[30%] lg:w-[23%] snap-center relative rounded-xl overflow-hidden shadow-sm group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-lg opacity-100 scale-100" data-category="{{ $dosen['kategori'] }}">
+                <a href="{{ url('/dosen/' . $dosen['slug']) }}" class="dosen-card shrink-0 w-[75%] sm:w-[45%] md:w-[30%] lg:w-[23%] snap-center relative rounded-xl overflow-hidden shadow-sm group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-lg opacity-100 scale-100" data-category="{{ $dosen['kategori'] }}">
                     
                     <div class="w-full h-full bg-gray-300 transition-transform duration-500 group-hover:scale-110"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-[#284078]/95 via-[#284078]/40 to-transparent transition-opacity duration-300"></div>
@@ -152,9 +152,8 @@
                         <h3 class="font-bold text-lg mb-1 leading-tight">{{ $dosen['nama'] }}</h3>
                         <p class="text-xs text-gray-200">{{ $dosen['divisi'] }}</p>
                     </div>
-                </div>
+                </a>
                 @endforeach
-
             </div>
 
             {{-- Tombol Kanan --}}

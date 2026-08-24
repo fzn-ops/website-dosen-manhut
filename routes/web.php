@@ -10,6 +10,10 @@ Route::get('/', function () {
     return view('pages.landing');
 })->name('landing');
 
+Route::get('/dosen/{slug}', function ($slug) {
+    return view('pages.lecturer.show'); 
+});
+
 Route::get('/about', function () {
     return view('pages.about');
 })->name('about');

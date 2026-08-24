@@ -6,16 +6,15 @@
     {{-- Data Dummy untuk Simulasi Filter --}}
     @php
         $dosenList = [
-            ['nama' => 'Dr. Budi Santoso', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan'],
-            ['nama' => 'Prof. Andi Wahyu', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan'],
-            ['nama' => 'Siti Nurhaliza, M.Hut', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan'],
-            ['nama' => 'Ir. Rudi Hermawan', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan'],
-            ['nama' => 'Dr. Lestari Alam', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan'],
-            ['nama' => 'Bambang Pamungkas', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan'],
-            ['nama' => 'Dr. Fitri Ani', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan'],
-            ['nama' => 'Prof. Rahmat Hidayat', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan'],
-            ['nama' => 'Agus Yudhoyono, M.Si', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan'],
-            ['nama' => 'Dr. Maya Sari', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan'],
+            ['nama' => 'Dr. Budi Santoso', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'dr-budi-santoso'],
+            ['nama' => 'Prof. Andi Wahyu', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'prof-andi-wahyu'],
+            ['nama' => 'Siti Nurhaliza, M.Hut', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'siti-nurhaliza-mhut'],
+            ['nama' => 'Ir. Rudi Hermawan', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'ir-rudi-hermawan'],
+            ['nama' => 'Dr. Lestari Alam', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'dr-lestari-alam'],
+            ['nama' => 'Bambang Pamungkas', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'bambang-pamungkas'],
+            ['nama' => 'Dr. Fitri Ani', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'dr-fitri-ani'],
+            ['nama' => 'Prof. Rahmat Hidayat', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'prof-rahmat-hidayat'],
+            ['nama' => 'Agus Yudhoyono, M.Si', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'agus-yudhoyono-msi'],
         ];
     @endphp
 
@@ -82,10 +81,11 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6" id="dosenGrid">
                 
                 @foreach ($dosenList as $dosen)
-                {{-- Menyimpan data nama dan kategori di dalam atribut HTML untuk dibaca Javascript --}}
-                <div class="dosen-card relative rounded-xl overflow-hidden shadow-[0_4px_15px_-3px_rgba(0,0,0,0.1)] group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl" 
-                     data-name="{{ strtolower($dosen['nama']) }}" 
-                     data-category="{{ $dosen['kategori'] }}">
+                {{-- Ubah tag pembungkus menjadi <a> dan tambahkan 'block' pada class --}}
+                <a href="{{ url('/dosen/' . $dosen['slug']) }}" 
+                   class="dosen-card block relative rounded-xl overflow-hidden shadow-[0_4px_15px_-3px_rgba(0,0,0,0.1)] group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl" 
+                   data-name="{{ strtolower($dosen['nama']) }}" 
+                   data-category="{{ $dosen['kategori'] }}">
                     
                     <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-110"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-[#1a3675]/95 via-[#1a3675]/40 to-transparent"></div>
@@ -95,7 +95,7 @@
                         <p class="text-[9px] md:text-[10px] text-gray-200 line-clamp-1">{{ $dosen['divisi'] }}</p>
                     </div>
 
-                </div>
+                </a>
                 @endforeach
 
             </div>
