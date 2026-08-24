@@ -95,6 +95,10 @@ Route::get('/dosen/{slug}', function ($slug) {
     return view('pages.lecturer.show', compact('slug'));
 })->where('slug', '^(?!dashboard|aktivitas|profile).*$')->name('lecturer.show');
 
+
+Route::get('/activity/{slug}', function ($slug) {
+    return view('pages.activity.show', compact('slug'));
+})->where('slug', '^(?!dashboard|aktivitas|profile).*$')->name('activity.show');
 /*
 |--------------------------------------------------------------------------
 | Authenticated Profile Routes (Gatau apaan kaga dipake kayaknya)

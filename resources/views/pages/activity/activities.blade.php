@@ -6,12 +6,12 @@
     {{-- Data Dummy (Pastikan ada 'date_raw' format YYYY-MM-DD) --}}
     @php
         $aktivitasList = [
-            ['kategori' => 'Tutor', 'dosen' => 'Prof. Fulani Fulano', 'tanggal' => '10 Juni 2029', 'date_raw' => '2029-06-10', 'judul' => 'Penguatan Kapasitas Kelompok Tani Hutan', 'desc' => 'Kegiatan pengabdian kepada masyarakat dalam rangka penguatan kapasitas kelompok tani hutan menuju pengelolaan hutan rakyat lestari.'],
-            ['kategori' => 'Pembicara', 'dosen' => 'Dr. Budi Santoso', 'tanggal' => '12 Juni 2029', 'date_raw' => '2029-06-12', 'judul' => 'Seminar Nasional Perencanaan Kehutanan', 'desc' => 'Seminar nasional membahas strategi perencanaan kehutanan di era perubahan iklim dan dampaknya terhadap ekosistem.'],
-            ['kategori' => 'Lokakarya', 'dosen' => 'Siti Nurhaliza, M.Hut', 'tanggal' => '15 Juni 2029', 'date_raw' => '2029-06-15', 'judul' => 'Workshop Pemanfaatan Hasil Hutan Bukan Kayu', 'desc' => 'Workshop interaktif mengenai inovasi dan optimalisasi pemanfaatan hasil hutan bukan kayu (HHBK) untuk kesejahteraan masyarakat sekitar.'],
-            ['kategori' => 'Tutor', 'dosen' => 'Prof. Rahmat Hidayat', 'tanggal' => '20 Juni 2029', 'date_raw' => '2029-06-20', 'judul' => 'Pelatihan Sistem Informasi Geografis (SIG)', 'desc' => 'Pelatihan dasar hingga menengah penggunaan aplikasi SIG untuk pemetaan kawasan hutan dan analisis tutupan lahan.'],
-            ['kategori' => 'Seminar', 'dosen' => 'Ir. Rudi Hermawan', 'tanggal' => '22 Juni 2029', 'date_raw' => '2029-06-22', 'judul' => 'Kebijakan Resolusi Konflik Tenurial Kehutanan', 'desc' => 'Diskusi panel mengenai kebijakan terbaru dalam penyelesaian konflik tenurial di kawasan hutan negara dan hutan adat.'],
-            ['kategori' => 'Lomba', 'dosen' => 'Dr. Fitri Ani', 'tanggal' => '25 Juni 2029', 'date_raw' => '2029-06-25', 'judul' => 'Lomba Karya Tulis Ilmiah Kehutanan Nasional', 'desc' => 'Pendampingan mahasiswa dalam penyusunan karya tulis ilmiah tingkat nasional dengan tema inovasi pengelolaan hutan lestari.'],
+            ['kategori' => 'Tutor', 'dosen' => 'Prof. Fulani Fulano', 'tanggal' => '10 Juni 2029', 'date_raw' => '2029-06-10', 'judul' => 'Penguatan Kapasitas Kelompok Tani Hutan', 'desc' => 'Kegiatan pengabdian kepada masyarakat dalam rangka penguatan kapasitas kelompok tani hutan menuju pengelolaan hutan rakyat lestari.', 'slug' => 'penguatan-kapasitas-kelompok-tani-hutan'],
+            ['kategori' => 'Pembicara', 'dosen' => 'Dr. Budi Santoso', 'tanggal' => '12 Juni 2029', 'date_raw' => '2029-06-12', 'judul' => 'Seminar Nasional Perencanaan Kehutanan', 'desc' => 'Seminar nasional membahas strategi perencanaan kehutanan di era perubahan iklim dan dampaknya terhadap ekosistem.', 'slug' => 'seminar-nasional-perencanaan-kehutanan'],
+            ['kategori' => 'Lokakarya', 'dosen' => 'Siti Nurhaliza, M.Hut', 'tanggal' => '15 Juni 2029', 'date_raw' => '2029-06-15', 'judul' => 'Workshop Pemanfaatan Hasil Hutan Bukan Kayu', 'desc' => 'Workshop interaktif mengenai inovasi dan optimalisasi pemanfaatan hasil hutan bukan kayu (HHBK) untuk kesejahteraan masyarakat sekitar.', 'slug' => 'workshop-pemanfaatan-hasil-hutan-bukan-kayu'],
+            ['kategori' => 'Tutor', 'dosen' => 'Prof. Rahmat Hidayat', 'tanggal' => '20 Juni 2029', 'date_raw' => '2029-06-20', 'judul' => 'Pelatihan Sistem Informasi Geografis (SIG)', 'desc' => 'Pelatihan dasar hingga menengah penggunaan aplikasi SIG untuk pemetaan kawasan hutan dan analisis tutupan lahan.', 'slug' => 'pelatihan-sistem-informasi-geografis-sig'],
+            ['kategori' => 'Seminar', 'dosen' => 'Ir. Rudi Hermawan', 'tanggal' => '22 Juni 2029', 'date_raw' => '2029-06-22', 'judul' => 'Kebijakan Resolusi Konflik Tenurial Kehutanan', 'desc' => 'Diskusi panel mengenai kebijakan terbaru dalam penyelesaian konflik tenurial di kawasan hutan negara dan hutan adat.', 'slug' => 'kebijakan-resolusi-konflik-tenurial-kehutanan'],
+            ['kategori' => 'Lomba', 'dosen' => 'Dr. Fitri Ani', 'tanggal' => '25 Juni 2029', 'date_raw' => '2029-06-25', 'judul' => 'Lomba Karya Tulis Ilmiah Kehutanan Nasional', 'desc' => 'Pendampingan mahasiswa dalam penyusunan karya tulis ilmiah tingkat nasional dengan tema inovasi pengelolaan hutan lestari.', 'slug' => 'lomba-karya-tulis-ilmiah-kehutanan-nasional']
         ];
     @endphp
 
@@ -92,8 +92,9 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="aktivitasGrid">
                 
                 @foreach ($aktivitasList as $item)
-                {{-- Card Aktivitas --}}
-                <div class="aktivitas-card bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer" 
+                {{-- Ubah <div> menjadi <a> dan tambahkan href serta class 'block' --}}
+                <a href="{{ url('/activity/' . $item['slug']) }}" 
+                   class="aktivitas-card block bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer text-left" 
                      data-judul="{{ strtolower($item['judul']) }}" 
                      data-dosen="{{ strtolower($item['dosen']) }}"
                      data-kategori="{{ strtolower($item['kategori']) }}"
@@ -116,7 +117,7 @@
                         {{ $item['desc'] }}
                     </p>
                     
-                </div>
+                </a>
                 @endforeach
 
             </div>

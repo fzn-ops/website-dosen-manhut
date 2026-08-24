@@ -22,6 +22,7 @@
             ['nama' => 'Nama Acara Seminar Nasional', 'role' => 'Pembicara', 'year' => '2026', 'month' => 'Agustus - September', 'desc' => 'Lorem ipsum dolor sit amet, cupidatat eiusmod duis ut. Magna dolore dolor ex elit sed non cillum do aliqua adipiscing ad. Ullamco fugiat occaecat proident dolore incididunt eu pariatur officia.'],
             ['nama' => 'Lokakarya Pemanfaatan Hutan', 'role' => 'Tutor', 'year' => '2026', 'month' => 'Oktober', 'desc' => 'Lorem ipsum dolor sit amet, cupidatat eiusmod duis ut. Magna dolore dolor ex elit sed non cillum do aliqua adipiscing ad. Ullamco fugiat occaecat proident dolore incididunt eu pariatur officia.'],
             ['nama' => 'Konferensi Perubahan Iklim', 'role' => 'Keynote Speaker', 'year' => '2025', 'month' => 'Desember', 'desc' => 'Lorem ipsum dolor sit amet, cupidatat eiusmod duis ut. Magna dolore dolor ex elit sed non cillum do aliqua adipiscing ad. Ullamco fugiat occaecat proident dolore incididunt eu pariatur officia.'],
+            ['nama' => 'Konferensi Perubahan Iklim', 'role' => 'Keynote Speaker', 'year' => '2025', 'month' => 'Desember', 'desc' => 'Lorem ipsum dolor sit amet, cupidatat eiusmod duis ut. Magna dolore dolor ex elit sed non cillum do aliqua adipiscing ad. Ullamco fugiat occaecat proident dolore incididunt eu pariatur officia.'],
         ];
     @endphp
 
@@ -168,7 +169,7 @@
                                 <p class="text-[11px] font-semibold text-gray-500">{{ $akt['month'] }}</p>
                             </div>
                         </div>
-                        <p class="text-[13px] text-gray-500 leading-relaxed text-justify line-clamp-3">
+                        <p class="text-[13px] text-gray-500 leading-relaxed text-left line-clamp-3">
                             {{ $akt['desc'] }}
                         </p>
                     </div>
@@ -205,7 +206,7 @@
             </div>
 
             {{-- Pagination (Letakkan tepat di bawah penutup div content-aktivitas) --}}
-            <div class="flex justify-end items-center gap-1 mt-8 mb-4 text-sm font-medium text-gray-600">
+            <div id="paginationContainer" class="flex justify-end items-center gap-1 mt-8 mb-4 text-sm font-medium text-gray-600">
                 <button class="p-1 hover:text-[#1a3675] transition-colors focus:outline-none">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
@@ -243,80 +244,159 @@
             <p class="absolute bottom-10 text-white/60 text-sm tracking-wide font-medium">Klik di mana saja untuk menutup</p>
     </div>
 
-    {{-- Script Interaktif: Tab, Carousel, Search & Modal --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             
-            // --- 1. LOGIKA TAB TOGGLE ---
+            // --- STATE GLOBAL ---
+            const itemsPerPage = 3; // Tampilkan 2 item per halaman (Ubah sesuai kebutuhan)
+            let currentPubPage = 1;
+            let currentAktPage = 1;
+            let activeTab = 'publikasi'; // Default tab yang aktif
+            let searchQuery = '';
+
+            // --- ELEMEN DOM ---
             const btnPublikasi = document.getElementById('btn-tab-publikasi');
             const btnAktivitas = document.getElementById('btn-tab-aktivitas');
             const contentPublikasi = document.getElementById('content-publikasi');
             const contentAktivitas = document.getElementById('content-aktivitas');
-
-            const activeClasses = ['text-[#1a3675]', 'font-bold', 'border-[#1a3675]'];
-            const inactiveClasses = ['text-gray-500', 'font-medium', 'border-transparent'];
-
-            function switchTab(showPublikasi) {
-                if (showPublikasi) {
-                    contentPublikasi.classList.remove('hidden');
-                    contentAktivitas.classList.add('hidden');
-                    
-                    btnPublikasi.classList.remove(...inactiveClasses);
-                    btnPublikasi.classList.add(...activeClasses);
-                    
-                    btnAktivitas.classList.remove(...activeClasses);
-                    btnAktivitas.classList.add(...inactiveClasses);
-                } else {
-                    contentAktivitas.classList.remove('hidden');
-                    contentPublikasi.classList.add('hidden');
-                    
-                    btnAktivitas.classList.remove(...inactiveClasses);
-                    btnAktivitas.classList.add(...activeClasses);
-                    
-                    btnPublikasi.classList.remove(...activeClasses);
-                    btnPublikasi.classList.add(...inactiveClasses);
-                }
-            }
-            btnPublikasi.addEventListener('click', () => switchTab(true));
-            btnAktivitas.addEventListener('click', () => switchTab(false));
-
-            
-            // --- 2. LOGIKA SEARCH INPUT ---
             const searchInput = document.getElementById('detailSearchInput');
             const pubRows = document.querySelectorAll('.publikasi-row');
             const noResultPub = document.getElementById('noResultPublikasi');
             const aktItems = document.querySelectorAll('.aktivitas-item');
             const noResultAkt = document.getElementById('noResultAktivitas');
+            const paginationContainer = document.getElementById('paginationContainer');
 
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                let pubFound = false;
-                let aktFound = false;
+            // --- 1. LOGIKA TAB TOGGLE ---
+            const activeClasses = ['text-[#1a3675]', 'font-bold', 'border-[#1a3675]'];
+            const inactiveClasses = ['text-gray-500', 'font-medium', 'border-transparent'];
 
+            function switchTab(isPublikasi) {
+                activeTab = isPublikasi ? 'publikasi' : 'aktivitas';
+                
+                if (isPublikasi) {
+                    contentPublikasi.classList.remove('hidden');
+                    contentAktivitas.classList.add('hidden');
+                    btnPublikasi.classList.remove(...inactiveClasses);
+                    btnPublikasi.classList.add(...activeClasses);
+                    btnAktivitas.classList.remove(...activeClasses);
+                    btnAktivitas.classList.add(...inactiveClasses);
+                } else {
+                    contentAktivitas.classList.remove('hidden');
+                    contentPublikasi.classList.add('hidden');
+                    btnAktivitas.classList.remove(...inactiveClasses);
+                    btnAktivitas.classList.add(...activeClasses);
+                    btnPublikasi.classList.remove(...activeClasses);
+                    btnPublikasi.classList.add(...inactiveClasses);
+                }
+                
+                // Render ulang pagination untuk tab yang dipilih
+                applySearchAndPagination();
+            }
+            btnPublikasi.addEventListener('click', () => switchTab(true));
+            btnAktivitas.addEventListener('click', () => switchTab(false));
+
+            // --- 2. LOGIKA SEARCH & PAGINATION TERINTEGRASI ---
+            function applySearchAndPagination() {
+                // Saring Publikasi
+                let pubMatched = [];
                 pubRows.forEach(row => {
-                    if (row.getAttribute('data-search').includes(query)) {
-                        row.style.display = '';
-                        pubFound = true;
+                    if (row.getAttribute('data-search').includes(searchQuery)) {
+                        pubMatched.push(row);
                     } else {
                         row.style.display = 'none';
                     }
                 });
 
+                // Hitung total halaman Publikasi
+                const totalPubPages = Math.ceil(pubMatched.length / itemsPerPage);
+                if (currentPubPage > totalPubPages) currentPubPage = totalPubPages || 1;
+
+                // Tampilkan hanya item Publikasi pada halaman saat ini
+                pubMatched.forEach((row, index) => {
+                    const start = (currentPubPage - 1) * itemsPerPage;
+                    const end = start + itemsPerPage;
+                    row.style.display = (index >= start && index < end) ? '' : 'none';
+                });
+                noResultPub.classList.toggle('hidden', pubMatched.length > 0);
+
+                // Saring Aktivitas
+                let aktMatched = [];
                 aktItems.forEach(item => {
-                    if (item.getAttribute('data-search').includes(query)) {
-                        item.style.display = '';
-                        aktFound = true;
+                    if (item.getAttribute('data-search').includes(searchQuery)) {
+                        aktMatched.push(item);
                     } else {
                         item.style.display = 'none';
                     }
                 });
 
-                noResultPub.classList.toggle('hidden', pubFound || pubRows.length === 0);
-                noResultAkt.classList.toggle('hidden', aktFound || aktItems.length === 0);
+                // Hitung total halaman Aktivitas
+                const totalAktPages = Math.ceil(aktMatched.length / itemsPerPage);
+                if (currentAktPage > totalAktPages) currentAktPage = totalAktPages || 1;
+
+                // Tampilkan hanya item Aktivitas pada halaman saat ini
+                aktMatched.forEach((item, index) => {
+                    const start = (currentAktPage - 1) * itemsPerPage;
+                    const end = start + itemsPerPage;
+                    item.style.display = (index >= start && index < end) ? '' : 'none';
+                });
+                noResultAkt.classList.toggle('hidden', aktMatched.length > 0);
+
+                // Render Tombol Pagination berdasarkan Tab Aktif
+                const currentTotalPages = activeTab === 'publikasi' ? totalPubPages : totalAktPages;
+                const currentPage = activeTab === 'publikasi' ? currentPubPage : currentAktPage;
+                renderPagination(currentTotalPages, currentPage);
+            }
+
+            function renderPagination(totalPages, currentPage) {
+                paginationContainer.innerHTML = ''; 
+                if (totalPages <= 1) return; // Sembunyikan pagination jika hanya 1 halaman
+
+                let html = '';
+
+                // Tombol Prev
+                const prevDisabled = currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:text-[#1a3675] hover:bg-gray-200';
+                html += `<button class="p-1 rounded-full transition-colors focus:outline-none ${prevDisabled}" onclick="if(${currentPage} > 1) window.changePage(${currentPage - 1})">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                         </button>`;
+
+                // Nomor Halaman
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentPage) {
+                        html += `<button class="w-7 h-7 flex items-center justify-center rounded-full bg-[#1a3675] text-white focus:outline-none">${i}</button>`;
+                    } else {
+                        html += `<button class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors focus:outline-none text-gray-700" onclick="window.changePage(${i})">${i}</button>`;
+                    }
+                }
+
+                // Tombol Next
+                const nextDisabled = currentPage === totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:text-[#1a3675] hover:bg-gray-200';
+                html += `<button class="p-1 rounded-full transition-colors focus:outline-none ${nextDisabled}" onclick="if(${currentPage} < ${totalPages}) window.changePage(${currentPage + 1})">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                         </button>`;
+
+                paginationContainer.innerHTML = html;
+            }
+
+            // Fungsi Global untuk dipanggil dari atribut onclick di HTML
+            window.changePage = function(newPage) {
+                if (activeTab === 'publikasi') {
+                    currentPubPage = newPage;
+                } else {
+                    currentAktPage = newPage;
+                }
+                applySearchAndPagination();
+            };
+
+            // Event Ketik Search
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                currentPubPage = 1; // Reset ke halaman 1 saat mencari
+                currentAktPage = 1;
+                applySearchAndPagination();
             });
 
 
-            // --- 3. LOGIKA CAROUSEL FOTO ---
+            // --- 3. LOGIKA CAROUSEL FOTO & POPUP ---
             const carousels = document.querySelectorAll('.carousel-wrapper');
             const stateClasses = [
                 "w-16 h-12 opacity-50 scale-90 -translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80".split(" "), // Kiri
@@ -337,29 +417,19 @@
                         img.classList.add(...stateClasses[currentPos]);
                     });
                 }
-                btnNext.addEventListener('click', () => {
-                    positions = positions.map(p => (p - 1 + 3) % 3);
-                    updateCarousel();
-                });
-                btnPrev.addEventListener('click', () => {
-                    positions = positions.map(p => (p + 1) % 3);
-                    updateCarousel();
-                });
+                btnNext.addEventListener('click', () => { positions = positions.map(p => (p - 1 + 3) % 3); updateCarousel(); });
+                btnPrev.addEventListener('click', () => { positions = positions.map(p => (p + 1) % 3); updateCarousel(); });
             });
 
-
-            // --- 4. LOGIKA MODAL / POPUP GAMBAR ---
+            // Modal
             const imageModal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
             const closeModalBtn = document.getElementById('closeModalBtn');
             const carouselClickableDivs = document.querySelectorAll('.carousel-img');
 
-            // Fungsi Buka Modal
             function openModal(imageSrc) {
                 modalImage.src = imageSrc;
                 imageModal.classList.remove('hidden');
-                
-                // Sedikit jeda agar transisi CSS berjalan (efek fade & zoom in)
                 setTimeout(() => {
                     imageModal.classList.remove('opacity-0');
                     modalImage.classList.remove('scale-95');
@@ -367,39 +437,28 @@
                 }, 10);
             }
 
-            // Fungsi Tutup Modal
             function closeModal() {
                 imageModal.classList.add('opacity-0');
                 modalImage.classList.remove('scale-100');
                 modalImage.classList.add('scale-95');
-                
-                // Tunggu animasi selesai baru sembunyikan elemennya
                 setTimeout(() => {
                     imageModal.classList.add('hidden');
                     modalImage.src = '';
                 }, 300);
             }
 
-            // Pasang event klik pada semua foto di dalam carousel
             carouselClickableDivs.forEach(div => {
-                div.addEventListener('click', (e) => {
-                    // Cari tag <img> di dalam div yang diklik, lalu ambil link gambarnya
+                div.addEventListener('click', () => {
                     const imgTag = div.querySelector('img');
-                    if(imgTag) {
-                        openModal(imgTag.src);
-                    }
+                    if(imgTag) openModal(imgTag.src);
                 });
             });
 
-            // Pasang event klik untuk tombol tutup dan area background gelap
             closeModalBtn.addEventListener('click', closeModal);
-            imageModal.addEventListener('click', (e) => {
-                // Pastikan yang diklik adalah background gelapnya, bukan gambar itu sendiri
-                if (e.target === imageModal) {
-                    closeModal();
-                }
-            });
+            imageModal.addEventListener('click', (e) => { if (e.target === imageModal) closeModal(); });
 
+            // Inisialisasi awal
+            applySearchAndPagination();
         });
     </script>
 </x-layouts.main>
