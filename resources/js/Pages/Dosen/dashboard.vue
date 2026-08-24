@@ -26,10 +26,11 @@ const currentLecturer = {
 };
 
 const stats = [
-	{ label: 'Total Aktivitas', value: '14', detail: '3 kegiatan bulan ini', color: 'bg-[#183669]' },
 	{ label: 'Seminar', value: '5', detail: '2 sebagai pemateri', color: 'bg-[#7c72ff]' },
 	{ label: 'Lokakarya', value: '4', detail: '1 skala nasional', color: 'bg-[#ff8b85]' },
 	{ label: 'Workshop', value: '5', detail: '2 instansi luar', color: 'bg-[#56d4f8]' },
+	{ label: 'Lainnya', value: '3', detail: 'Kegiatan penunjang', color: 'bg-[#ffbb66]' },
+	{ label: 'Total Aktivitas', value: '17', detail: 'Total seluruh kegiatan', color: 'bg-[#183669]' },
 ];
 
 const years = ['2023', '2024', '2025', '2026'];
@@ -283,31 +284,32 @@ const deleteActivity = (activity) => {
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div class="space-y-1.5">
 						<h1 class="mt-1 text-[32px] font-bold leading-[1.02] tracking-[-0.03em] text-[#173a63] sm:text-[40px] lg:text-[44px]">
-							Selamat Datang, {{ currentLecturer.name }}
+							Selamat Datang, {{ currentLecturer.name }} !
 						</h1>
-						<p class="font-inter text-[14px] font-medium text-[#4d6786] sm:text-[16px]">
-							{{ currentLecturer.division }} • NIP: {{ currentLecturer.nip }}
+						<p class="font-inter text-[14px] font-medium leading-tight text-[#4d6786] sm:text-[16px]">
+							Pantau ringkasan statistik, perkembangan dan kelola seluruh aktivitas Anda
 						</p>
 					</div>
-
-					<button
-						type="button"
-						@click="openAddModal"
-						class="flex h-[46px] shrink-0 items-center justify-center rounded-[10px] bg-[#183669] px-6 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54]"
-					>
-						+ Tambah Aktivitas
-					</button>
 				</div>
 
-				<!-- Stats Cards Grid -->
-				<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-					<article v-for="stat in stats" :key="stat.label" class="rounded-[12px] bg-white p-5 shadow-sm ring-1 ring-[#d6e0ee]">
-						<div class="flex items-start justify-between gap-3">
-							<p class="font-inter text-[14px] font-semibold text-[#6f84a3]">{{ stat.label }}</p>
-							<span :class="['h-3 w-3 rounded-full', stat.color]" aria-hidden="true"></span>
+				<!-- Stats Cards Grid (5 Cards - Responsive: 2 cols on mobile, 3 on tablet, 5 on desktop) -->
+				<div class="grid grid-cols-2 gap-2.5 sm:gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
+					<article
+						v-for="(stat, index) in stats"
+						:key="stat.label"
+						:class="[
+							'flex flex-col justify-between rounded-[12px] bg-white p-3.5 sm:p-4 shadow-sm ring-1 ring-[#d6e0ee] transition hover:shadow-md',
+							index === 4 ? 'col-span-2 sm:col-span-1' : ''
+						]"
+					>
+						<div class="flex items-center justify-between gap-2">
+							<p class="font-inter text-[12px] font-semibold text-[#6f84a3] sm:text-[13px] truncate">{{ stat.label }}</p>
+							<span :class="['h-2 w-2 shrink-0 rounded-full sm:h-2.5 sm:w-2.5', stat.color]" aria-hidden="true"></span>
 						</div>
-						<p class="mt-2 text-[38px] font-bold leading-none text-[#173a63]">{{ stat.value }}</p>
-						<p class="mt-1.5 font-inter text-[13px] font-medium text-[#1b9d6f]">{{ stat.detail }}</p>
+						<div class="my-1 sm:my-1.5">
+							<p class="text-[26px] font-bold leading-none text-[#173a63] sm:text-[32px]">{{ stat.value }}</p>
+						</div>
+						<p class="font-inter text-[11px] font-medium leading-tight text-[#1b9d6f] sm:text-[12px] truncate">{{ stat.detail }}</p>
 					</article>
 				</div>
 
@@ -330,7 +332,7 @@ const deleteActivity = (activity) => {
 				<!-- Recent Activities Table Section -->
 				<div>
 					<div class="mb-4 flex items-center justify-between gap-3">
-						<h2 class="text-[20px] font-bold leading-none text-[#173a63]">Aktivitas Saya Terbaru</h2>
+						<h2 class="text-[20px] font-bold leading-none text-[#173a63]">Aktivitas Terbaru Saya</h2>
 						<Link
 							href="/dosen/aktivitas"
 							class="group inline-flex items-center gap-1.5 font-inter text-[14px] font-semibold text-[#183669] transition hover:text-[#122b54] hover:underline"
@@ -404,7 +406,7 @@ const deleteActivity = (activity) => {
 									<td class="px-3 py-2.5 text-left" :title="activity.role">
 										<span class="block truncate">{{ activity.role }}</span>
 									</td>
-									<td class="px-3 py-2.5 text-center" :title="activity.date">
+									<td class="px-3 py-2.5 text-left" :title="activity.date">
 										<span class="block truncate">{{ activity.date }}</span>
 									</td>
 									<td class="px-3 py-2.5 text-center">

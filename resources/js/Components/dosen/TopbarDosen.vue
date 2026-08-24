@@ -55,7 +55,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 			<!-- Dropdown Menu (2 Options: Profile & Logout) -->
 			<div
 				v-if="showingAccountMenu"
-				class="absolute right-0 top-[48px] z-40 w-48 rounded-xl border border-[#d6e0ee] bg-white p-1.5 shadow-xl font-poppins space-y-1"
+				class="absolute right-0 top-[48px] z-40 w-48 rounded-xl border border-[#d6e0ee] bg-white p-1.5 shadow-xl font-poppins space-y-0.5"
 			>
 				<!-- Profile Option -->
 				<Link
@@ -63,7 +63,9 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-[#173653] transition-colors hover:bg-[#e8eef8]"
 					@click="showingAccountMenu = false"
 				>
-					<img src="/assets/icons/teacher-profile.svg" alt="Profile icon" class="h-4 w-4 shrink-0 object-contain text-[#173653]" />
+					<svg class="h-4 w-4 shrink-0 text-[#173653]" viewBox="0 0 17 20" fill="currentColor">
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M15.105 0H0.355V1.5H3.855V3.5H12.855V1.5H14.855V7H16.355V1.25C16.355 0.56 15.795 0 15.105 0ZM3.855 5V6.5C3.855 8.98 5.875 11 8.355 11C10.835 11 12.855 8.98 12.855 6.5V5H3.855ZM15.435 15.86L16.7 20H0L1.265 15.86C1.55923 14.8849 2.16068 14.031 2.9797 13.4255C3.79873 12.82 4.79148 12.4954 5.81 12.5H10.89C12.995 12.5 14.82 13.85 15.435 15.86Z" />
+					</svg>
 					<span>Profile</span>
 				</Link>
 
@@ -77,7 +79,11 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-[#c93b2b] transition-colors hover:bg-[#feeceb]"
 					@click="showingAccountMenu = false"
 				>
-					<img src="/assets/icons/logout.svg" alt="Logout icon" class="h-4 w-4 shrink-0 object-contain" />
+					<svg class="h-4 w-4 shrink-0 text-[#c93b2b]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+						<polyline points="16 17 21 12 16 7" />
+						<line x1="21" y1="12" x2="9" y2="12" />
+					</svg>
 					<span>Logout</span>
 				</Link>
 			</div>

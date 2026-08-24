@@ -17,7 +17,7 @@ defineEmits(['navigate']);
 const menuItems = [
 	{ label: 'Dashboard', href: '/dosen/dashboard', pattern: 'dosen.dashboard*', icon: 'home' },
 	{ label: 'Aktivitas', href: '/dosen/aktivitas', pattern: 'dosen.aktivitas*', icon: 'activity' },
-	{ label: 'Profile', href: '/dosen/profile', pattern: 'dosen.profile*', icon: 'teacher-profile' },
+	{ label: 'Profile', href: '/dosen/profile', pattern: 'dosen.profile*', icon: 'teacher' },
 ];
 
 const isActive = (item) => {

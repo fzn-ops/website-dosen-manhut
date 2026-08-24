@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
+import DatePicker from '@/Components/DatePicker.vue';
 
 const props = defineProps({
 	show: {
@@ -432,12 +433,13 @@ const handleSubmit = () => {
 									Tanggal Mulai<span class="text-red-500">*</span>
 								</label>
 								<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Tanggal mulai aktivitas</p>
-								<input
-									v-model="form.startDate"
-									type="date"
-									required
-									class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] focus:border-[#183669] focus:outline-none focus:ring-0"
-								/>
+								<div class="mt-1.5">
+									<DatePicker
+										v-model="form.startDate"
+										placeholder="Pilih tanggal mulai"
+										required
+									/>
+								</div>
 							</div>
 
 							<!-- Tanggal Selesai -->
@@ -446,11 +448,12 @@ const handleSubmit = () => {
 									Tanggal Selesai
 								</label>
 								<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Tanggal batas selesai</p>
-								<input
-									v-model="form.endDate"
-									type="date"
-									class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] focus:border-[#183669] focus:outline-none focus:ring-0"
-								/>
+								<div class="mt-1.5">
+									<DatePicker
+										v-model="form.endDate"
+										placeholder="Pilih tanggal selesai"
+									/>
+								</div>
 							</div>
 						</div>
 

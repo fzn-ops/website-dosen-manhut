@@ -596,7 +596,7 @@ const confirmImport = () => {
 					@click="handleClose"
 					class="h-[44px] min-w-[140px] px-6 rounded-[10px] border-2 border-[#d6e0ee] bg-white font-poppins text-[14px] font-bold text-[#183669] transition hover:border-[#183669] hover:bg-slate-50 focus:border-[#183669] focus:outline-none active:border-[#183669]"
 				>
-					Kembali
+					Batal
 				</button>
 				<button
 					type="button"

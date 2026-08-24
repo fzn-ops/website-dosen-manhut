@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
+import DatePicker from '@/Components/DatePicker.vue';
 
 const props = defineProps({
 	show: {
@@ -531,12 +532,13 @@ const handleSubmit = () => {
 									</label>
 									<p class="font-inter text-[11px] text-[#7188a3] leading-tight">Masukkan tanggal mulai aktivitas</p>
 								</div>
-								<input
-									v-model="form.startDate"
-									type="date"
-									required
-									class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] focus:border-[#183669] focus:outline-none focus:ring-0"
-								/>
+								<div class="mt-1.5">
+									<DatePicker
+										v-model="form.startDate"
+										placeholder="Pilih tanggal mulai"
+										required
+									/>
+								</div>
 							</div>
 
 							<!-- Tanggal Selesai -->
@@ -547,11 +549,12 @@ const handleSubmit = () => {
 									</label>
 									<p class="font-inter text-[11px] text-[#7188a3] leading-tight">Masukkan batas selesai aktivitas</p>
 								</div>
-								<input
-									v-model="form.endDate"
-									type="date"
-									class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] focus:border-[#183669] focus:outline-none focus:ring-0"
-								/>
+								<div class="mt-1.5">
+									<DatePicker
+										v-model="form.endDate"
+										placeholder="Pilih tanggal selesai"
+									/>
+								</div>
 							</div>
 						</div>
 
@@ -603,13 +606,13 @@ const handleSubmit = () => {
 						@click="handleClose"
 						class="h-[46px] min-w-[150px] px-6 rounded-[10px] border-2 border-[#d6e0ee] bg-white font-poppins text-[15px] font-bold text-[#183669] transition hover:border-[#183669] hover:bg-slate-50 focus:border-[#183669] focus:outline-none active:border-[#183669]"
 					>
-						Kembali
+						Batal
 					</button>
 					<button
 						type="submit"
 						class="h-[46px] min-w-[150px] px-6 rounded-[10px] bg-[#183669] font-poppins text-[15px] font-bold text-white transition hover:bg-[#122b54]"
 					>
-						Simpan
+						{{ isEditing ? 'Simpan Perubahan' : 'Tambah Aktivitas' }}
 					</button>
 				</div>
 			</form>
