@@ -21,6 +21,34 @@ const emit = defineEmits(['update:modelValue']);
 const editorRef = ref(null);
 const containerRef = ref(null);
 
+// Resizing height state
+const editorHeight = ref(props.minHeight || '130px');
+const isResizing = ref(false);
+
+const startResize = (e) => {
+	e.preventDefault();
+	e.stopPropagation();
+	isResizing.value = true;
+	const startY = e.clientY;
+	const startHeight = editorRef.value ? editorRef.value.offsetHeight : 130;
+
+	const onMouseMove = (moveEvent) => {
+		if (!isResizing.value) return;
+		const newHeight = Math.max(90, Math.min(500, startHeight + (moveEvent.clientY - startY)));
+		editorHeight.value = `${newHeight}px`;
+	};
+
+	const onMouseUp = (upEvent) => {
+		upEvent.stopPropagation();
+		isResizing.value = false;
+		window.removeEventListener('mousemove', onMouseMove);
+		window.removeEventListener('mouseup', onMouseUp);
+	};
+
+	window.addEventListener('mousemove', onMouseMove);
+	window.addEventListener('mouseup', onMouseUp);
+};
+
 // Formats State
 const activeFormats = ref({
 	bold: false,
@@ -106,7 +134,7 @@ const showPlaceholder = computed(() => {
 });
 
 const checkLinkState = () => {
-	if (!editorRef.value || typeof window === 'undefined') return false;
+	if (typeof window === 'undefined') return false;
 	const sel = window.getSelection();
 	if (!sel.rangeCount) return false;
 	let node = sel.anchorNode;
@@ -117,29 +145,40 @@ const checkLinkState = () => {
 	return false;
 };
 
+const isSelectionInsideEditor = () => {
+	if (typeof window === 'undefined' || !editorRef.value) return false;
+	const sel = window.getSelection();
+	if (!sel || !sel.rangeCount || sel.rangeCount === 0) return false;
+	const node = sel.anchorNode;
+	return node && (node === editorRef.value || editorRef.value.contains(node));
+};
+
 const updateActiveFormats = () => {
-	if (typeof document === 'undefined') return;
+	if (typeof document === 'undefined' || !editorRef.value) return;
 
-	try {
-		activeFormats.value.bold = document.queryCommandState('bold');
-		activeFormats.value.italic = document.queryCommandState('italic');
-		activeFormats.value.underline = document.queryCommandState('underline');
-		activeFormats.value.strikeThrough = document.queryCommandState('strikeThrough');
-		activeFormats.value.insertUnorderedList = document.queryCommandState('insertUnorderedList');
-		activeFormats.value.insertOrderedList = document.queryCommandState('insertOrderedList');
-		activeFormats.value.justifyLeft = document.queryCommandState('justifyLeft');
-		activeFormats.value.justifyCenter = document.queryCommandState('justifyCenter');
-		activeFormats.value.justifyRight = document.queryCommandState('justifyRight');
-		activeFormats.value.justifyFull = document.queryCommandState('justifyFull');
+	// Only query active formats if user is actively focused/selecting inside the editor
+	if (isSelectionInsideEditor()) {
+		try {
+			activeFormats.value.bold = document.queryCommandState('bold');
+			activeFormats.value.italic = document.queryCommandState('italic');
+			activeFormats.value.underline = document.queryCommandState('underline');
+			activeFormats.value.strikeThrough = document.queryCommandState('strikeThrough');
+			activeFormats.value.insertUnorderedList = document.queryCommandState('insertUnorderedList');
+			activeFormats.value.insertOrderedList = document.queryCommandState('insertOrderedList');
+			activeFormats.value.justifyLeft = document.queryCommandState('justifyLeft');
+			activeFormats.value.justifyCenter = document.queryCommandState('justifyCenter');
+			activeFormats.value.justifyRight = document.queryCommandState('justifyRight');
+			activeFormats.value.justifyFull = document.queryCommandState('justifyFull');
 
-		const block = (document.queryCommandValue('formatBlock') || '').toLowerCase();
-		activeFormats.value.h1 = block === 'h1';
-		activeFormats.value.h2 = block === 'h2';
-		activeFormats.value.h3 = block === 'h3';
-		activeFormats.value.blockquote = block === 'blockquote';
-		activeFormats.value.isLink = checkLinkState();
-	} catch (e) {
-		// Ignore command state query errors
+			const block = (document.queryCommandValue('formatBlock') || '').toLowerCase();
+			activeFormats.value.h1 = block === 'h1';
+			activeFormats.value.h2 = block === 'h2';
+			activeFormats.value.h3 = block === 'h3';
+			activeFormats.value.blockquote = block === 'blockquote';
+			activeFormats.value.isLink = checkLinkState();
+		} catch (e) {
+			// Ignore command state query errors
+		}
 	}
 
 	updateEmptyState();
@@ -573,7 +612,7 @@ onUnmounted(() => {
 			</div>
 		</div>
 
-		<!-- Contenteditable Text Area (Vertically Resizable) -->
+		<!-- Contenteditable Text Area with Controlled Height -->
 		<div class="relative w-full">
 			<div
 				ref="editorRef"
@@ -582,8 +621,8 @@ onUnmounted(() => {
 				@keyup="updateActiveFormats"
 				@mouseup="updateActiveFormats"
 				@focus="updateActiveFormats"
-				:style="{ minHeight }"
-				class="editor-content w-full resize-y overflow-y-auto p-3.5 font-inter text-[14px] leading-relaxed text-[#1e3456] focus:outline-none max-h-[500px]"
+				:style="{ height: editorHeight, minHeight }"
+				class="editor-content w-full overflow-y-auto p-3.5 pb-5 font-inter text-[14px] leading-relaxed text-[#1e3456] focus:outline-none max-h-[500px] rounded-b-[9px]"
 			></div>
 
 			<!-- Floating Placeholder -->
@@ -592,6 +631,19 @@ onUnmounted(() => {
 				class="pointer-events-none absolute left-3.5 top-3.5 font-inter text-[14px] text-[#a6b7cb] select-none"
 			>
 				{{ placeholder }}
+			</div>
+
+			<!-- Bottom-Right Custom Corner Resize Handle -->
+			<div
+				@mousedown="startResize"
+				class="absolute bottom-1 right-1 flex h-4 w-4 cursor-se-resize items-center justify-center text-[#a6b7cb] hover:text-[#183669] transition select-none"
+				title="Tarik untuk mengatur ukuran tinggi deskripsi"
+			>
+				<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+					<line x1="21" y1="9" x2="9" y2="21" />
+					<line x1="21" y1="15" x2="15" y2="21" />
+					<line x1="21" y1="21" x2="21" y2="21" />
+				</svg>
 			</div>
 		</div>
 

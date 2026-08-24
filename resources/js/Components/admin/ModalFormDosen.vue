@@ -108,13 +108,27 @@ const handleSubmit = () => {
 
 	handleClose();
 };
+
+const isBackdropClick = ref(false);
+
+const handleBackdropMouseDown = (e) => {
+	isBackdropClick.value = e.target === e.currentTarget;
+};
+
+const handleBackdropMouseUp = (e) => {
+	if (isBackdropClick.value && e.target === e.currentTarget) {
+		handleClose();
+	}
+	isBackdropClick.value = false;
+};
 </script>
 
 <template>
 	<div
 		v-if="show"
 		class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4 transition-all"
-		@click.self="handleClose"
+		@mousedown="handleBackdropMouseDown"
+		@mouseup="handleBackdropMouseUp"
 	>
 		<div class="w-full max-w-[500px] max-h-[92vh] overflow-y-auto transform rounded-[10px] bg-white p-7 shadow-2xl transition-all sm:p-9 font-poppins">
 			<h2 class="text-center text-[22px] font-bold text-[#183669]">

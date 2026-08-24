@@ -278,13 +278,27 @@ const confirmImport = () => {
 	emit('import', formattedLecturers);
 	handleClose();
 };
+
+const isBackdropClick = ref(false);
+
+const handleBackdropMouseDown = (e) => {
+	isBackdropClick.value = e.target === e.currentTarget;
+};
+
+const handleBackdropMouseUp = (e) => {
+	if (isBackdropClick.value && e.target === e.currentTarget) {
+		handleClose();
+	}
+	isBackdropClick.value = false;
+};
 </script>
 
 <template>
 	<div
 		v-if="show"
 		class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4 transition-all"
-		@click.self="handleClose"
+		@mousedown="handleBackdropMouseDown"
+		@mouseup="handleBackdropMouseUp"
 	>
 		<div class="w-full max-w-[720px] transform rounded-[12px] bg-white p-6 shadow-2xl transition-all sm:p-8 font-poppins">
 			<!-- Modal Header -->
