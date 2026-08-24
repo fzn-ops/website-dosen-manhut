@@ -15,9 +15,9 @@ const props = defineProps({
 		type: Object,
 		default: () => null,
 	},
-	availableProfiles: {
-		type: Array,
-		default: () => [],
+	lecturerName: {
+		type: String,
+		default: 'Farhan Hakim',
 	},
 });
 
@@ -27,7 +27,6 @@ const categoryOptions = ['Lokakarya', 'Seminar', 'Workshop', 'Lainnya'];
 
 const form = ref({
 	title: '',
-	lecturerName: '',
 	description: '',
 	role: '',
 	startDate: '',
@@ -50,36 +49,6 @@ const openImagePreview = (imgUrl) => {
 };
 const closeImagePreview = () => {
 	previewingImage.value = null;
-};
-
-// Searchable Dropdown for Lecturer Name
-const isNameDropdownOpen = ref(false);
-const lecturerSearchQuery = ref('');
-const lecturerSearchInputRef = ref(null);
-
-const filteredLecturers = computed(() => {
-	const q = lecturerSearchQuery.value.toLowerCase().trim();
-	if (!q) return props.availableProfiles;
-
-	return props.availableProfiles.filter((p) =>
-		p.name.toLowerCase().includes(q)
-	);
-});
-
-const toggleNameDropdown = () => {
-	isNameDropdownOpen.value = !isNameDropdownOpen.value;
-	if (isNameDropdownOpen.value) {
-		lecturerSearchQuery.value = '';
-		nextTick(() => {
-			lecturerSearchInputRef.value?.focus();
-		});
-	}
-};
-
-const selectLecturer = (lec) => {
-	form.value.lecturerName = lec.name;
-	isNameDropdownOpen.value = false;
-	lecturerSearchQuery.value = '';
 };
 
 // Category Toggle (can check/uncheck freely)
@@ -110,8 +79,6 @@ watch(
 	(isOpen) => {
 		if (isOpen) {
 			formError.value = '';
-			isNameDropdownOpen.value = false;
-			lecturerSearchQuery.value = '';
 
 			if (props.isEditing && props.initialData) {
 				let cats = [];
@@ -122,36 +89,36 @@ watch(
 				}
 
 				form.value = {
-					title: props.initialData.title || props.initialData.name || '',
-					lecturerName: props.initialData.lecturerName || props.initialData.lecturer || '',
+					title: props.initialData.name || props.initialData.title || '',
 					description: props.initialData.description || '',
 					role: props.initialData.role || '',
 					startDate: props.initialData.startDate || '',
-					endDate: props.initialData.endDate || '',
-					images: props.initialData.images || [],
-					imagePreviews: props.initialData.imagePreviews || (props.initialData.image ? [props.initialData.image] : []),
-					lecturerQuote: props.initialData.lecturerQuote !== '-' ? (props.initialData.lecturerQuote || '') : '',
+					endDate: props.initialData.endDate || props.initialData.startDate || '',
+					images: props.initialData.images ? [...props.initialData.images] : [],
+					imagePreviews: props.initialData.imagePreviews
+						? [...props.initialData.imagePreviews]
+						: props.initialData.images ? [...props.initialData.images] : [],
+					lecturerQuote: props.initialData.lecturerQuote !== '-' ? props.initialData.lecturerQuote || '' : '',
 					categories: cats,
-					releaseDate: props.initialData.date || props.initialData.releaseDate || getFormattedToday(),
+					releaseDate: props.initialData.date || getFormattedToday(),
 				};
 			} else {
+				// Reset on Create Mode - Categories completely EMPTY by default
 				form.value = {
 					title: '',
-					lecturerName: '',
 					description: '',
 					role: '',
-					startDate: '',
-					endDate: '',
+					startDate: new Date().toISOString().split('T')[0],
+					endDate: new Date().toISOString().split('T')[0],
 					images: [],
 					imagePreviews: [],
 					lecturerQuote: '',
-					categories: [], // Kosong default untuk tambah data baru
+					categories: [],
 					releaseDate: getFormattedToday(),
 				};
 			}
 		}
 	},
-	{ immediate: true }
 );
 
 const handleFiles = (files) => {
@@ -209,24 +176,18 @@ const triggerFileInput = () => {
 
 const handleClose = () => {
 	formError.value = '';
-	isNameDropdownOpen.value = false;
 	emit('close');
 };
 
 const handleSubmit = () => {
 	formError.value = '';
 	const title = form.value.title.trim();
-	const lecturerName = form.value.lecturerName.trim();
 	const rawDescription = form.value.description || '';
 	const cleanDesc = rawDescription.replace(/<[^>]*>/g, '').trim();
 	const role = form.value.role.trim();
 
 	if (!title) {
 		formError.value = 'Judul Aktivitas wajib diisi.';
-		return;
-	}
-	if (!lecturerName) {
-		formError.value = 'Nama Dosen wajib dipilih.';
 		return;
 	}
 	if (!cleanDesc) {
@@ -249,8 +210,8 @@ const handleSubmit = () => {
 	emit('submit', {
 		name: title,
 		title: title,
-		lecturer: lecturerName,
-		lecturerName: lecturerName,
+		lecturer: props.lecturerName,
+		lecturerName: props.lecturerName,
 		description: rawDescription,
 		role: role,
 		startDate: form.value.startDate,
@@ -275,11 +236,10 @@ const handleSubmit = () => {
 	>
 		<div
 			class="w-full max-w-[1240px] transform rounded-[10px] bg-white p-7 shadow-2xl transition-all sm:p-10 lg:p-12 font-poppins max-h-[92vh] overflow-y-auto"
-			@click="isNameDropdownOpen = false"
 		>
 			<!-- Header Title -->
 			<h2 class="text-left text-[24px] font-bold text-[#183669]">
-				{{ isEditing ? 'Form Edit Aktivitas' : 'Form Tambah Aktivitas' }}
+				{{ isEditing ? 'Form Edit Aktivitas Saya' : 'Form Tambah Aktivitas Saya' }}
 			</h2>
 
 			<!-- Error Alert Message -->
@@ -292,87 +252,6 @@ const handleSubmit = () => {
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10 xl:gap-12">
 					<!-- ================= LEFT COLUMN ================= -->
 					<div class="space-y-4">
-						<!-- Nama Dosen (Searchable Dropdown from Profile Dosen) -->
-						<div class="relative flex flex-col" @click.stop>
-							<div>
-								<label class="block text-[14px] font-bold text-[#183669]">
-									Nama Dosen<span class="text-red-500">*</span>
-								</label>
-								<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Pilih nama dosen berdasarkan profile dosen</p>
-							</div>
-
-							<!-- Dropdown Trigger Button -->
-							<button
-								type="button"
-								@click="toggleNameDropdown"
-								class="mt-1.5 flex h-[44px] w-full items-center justify-between rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[13px] transition focus:border-[#183669] focus:outline-none focus:ring-0"
-								:class="{ 'border-[#183669] ring-1 ring-[#183669]/20': isNameDropdownOpen }"
-							>
-								<span :class="form.lecturerName ? 'font-medium text-[#1e3456] truncate' : 'text-[#a6b7cb] truncate'">
-									{{ form.lecturerName || 'Pilih / Cari Nama Dosen' }}
-								</span>
-								<svg
-									:class="['h-4 w-4 shrink-0 text-[#8ca1b9] transition-transform duration-200', isNameDropdownOpen ? 'rotate-180 text-[#183669]' : '']"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									viewBox="0 0 24 24"
-								>
-									<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-								</svg>
-							</button>
-
-							<!-- Searchable Dropdown Menu Popover -->
-							<div
-								v-if="isNameDropdownOpen"
-								class="absolute left-0 right-0 top-full z-40 mt-1.5 rounded-[10px] border border-[#d6e0ee] bg-white p-2 shadow-2xl font-inter"
-							>
-								<!-- Search Input Field inside dropdown -->
-								<div class="relative mb-2">
-									<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-										<svg class="h-3.5 w-3.5 text-[#8ca1b9]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-										</svg>
-									</div>
-									<input
-										v-model="lecturerSearchQuery"
-										type="text"
-										placeholder="Ketik untuk mencari nama dosen..."
-										class="h-[36px] w-full rounded-[8px] border border-[#d6e0ee] bg-[#fafcff] pl-8 pr-3 text-xs text-[#1e3456] placeholder-[#8ca1b9] focus:border-[#183669] focus:outline-none focus:ring-0"
-										ref="lecturerSearchInputRef"
-										@click.stop
-									/>
-								</div>
-
-								<!-- Options List -->
-								<div class="max-h-52 overflow-y-auto space-y-1">
-									<button
-										v-for="lec in filteredLecturers"
-										:key="lec.id"
-										type="button"
-										@click="selectLecturer(lec)"
-										:class="[
-											'flex w-full items-center justify-between rounded-[6px] px-3 py-2 text-left text-xs transition-colors',
-											form.lecturerName === lec.name
-												? 'bg-[#183669] font-bold text-white'
-												: 'text-[#435b76] hover:bg-slate-100'
-										]"
-									>
-										<div class="min-w-0 pr-2">
-											<p class="truncate font-medium">{{ lec.name }}</p>
-											<p :class="form.lecturerName === lec.name ? 'text-white/80' : 'text-[#8ca1b9]'" class="text-[10px]">
-												{{ lec.division || 'Dosen' }}
-											</p>
-										</div>
-									</button>
-
-									<div v-if="filteredLecturers.length === 0" class="py-4 text-center text-xs text-[#8ca1b9]">
-										Tidak ada profile dosen yang cocok
-									</div>
-								</div>
-							</div>
-						</div>
-
 						<!-- Judul Aktivitas -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
@@ -393,7 +272,7 @@ const handleSubmit = () => {
 							<label class="block text-[14px] font-bold text-[#183669]">
 								Peran<span class="text-red-500">*</span>
 							</label>
-							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Masukkan peran dalam kegiatan (e.g. Narasumber)</p>
+							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Masukkan peran dalam kegiatan (e.g. Narasumber, Pemateri)</p>
 							<input
 								v-model="form.role"
 								type="text"
@@ -405,14 +284,14 @@ const handleSubmit = () => {
 
 						<!-- Deskripsi (Rich Text Editor) -->
 						<div>
-							<label class="block text-[14px] font-bold text-[#183669]">
+							<label class="block text-[14px] font-bold text-[#183669]">  
 								Deskripsi<span class="text-red-500">*</span>
 							</label>
 							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5 mb-1.5">Jelaskan gambaran kegiatan ini yah!</p>
 							<RichTextEditor
 								v-model="form.description"
 								placeholder="Pelatihan manajer KDMP..."
-								min-height="125px"
+								min-height="225px"
 							/>
 						</div>
 					</div>
@@ -521,16 +400,38 @@ const handleSubmit = () => {
 							</div>
 						</div>
 
-						<!-- Tanggal Mulai & Tanggal Selesai Subgrid (Aligned pixel-perfect) -->
-						<div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 items-start">
+						<!-- Kategori Checkboxes -->
+						<div>
+							<label class="block text-[14px] font-bold text-[#183669]">
+								Kategori<span class="text-red-500">*</span>
+							</label>
+							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Pilih kategori aktivitas yang sesuai</p>
+							<div class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 font-inter text-[13px] text-[#1e3456]">
+								<label
+									v-for="cat in categoryOptions"
+									:key="cat"
+									class="inline-flex cursor-pointer items-center gap-2 select-none"
+								>
+									<input
+										type="checkbox"
+										:value="cat"
+										:checked="form.categories.includes(cat)"
+										@change="toggleCategory(cat)"
+										class="h-4 w-4 rounded border-[#c3d1e4] text-[#183669] focus:ring-0 focus:ring-offset-0"
+									/>
+									<span class="font-medium text-[#2f4b6e]">{{ cat }}</span>
+								</label>
+							</div>
+						</div>
+
+						<!-- Tanggal Mulai & Tanggal Selesai Subgrid -->
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 items-start">
 							<!-- Tanggal Mulai -->
 							<div class="flex flex-col">
-								<div class="min-h-[38px] flex flex-col justify-start">
-									<label class="block text-[14px] font-bold text-[#183669]">
-										Tanggal Mulai<span class="text-red-500">*</span>
-									</label>
-									<p class="font-inter text-[11px] text-[#7188a3] leading-tight">Masukkan tanggal mulai aktivitas</p>
-								</div>
+								<label class="block text-[14px] font-bold text-[#183669]">
+									Tanggal Mulai<span class="text-red-500">*</span>
+								</label>
+								<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Tanggal mulai aktivitas</p>
 								<input
 									v-model="form.startDate"
 									type="date"
@@ -541,12 +442,10 @@ const handleSubmit = () => {
 
 							<!-- Tanggal Selesai -->
 							<div class="flex flex-col">
-								<div class="min-h-[38px] flex flex-col justify-start">
-									<label class="block text-[14px] font-bold text-[#183669]">
-										Tanggal Selesai
-									</label>
-									<p class="font-inter text-[11px] text-[#7188a3] leading-tight">Masukkan batas selesai aktivitas</p>
-								</div>
+								<label class="block text-[14px] font-bold text-[#183669]">
+									Tanggal Selesai
+								</label>
+								<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Tanggal batas selesai</p>
 								<input
 									v-model="form.endDate"
 									type="date"
@@ -555,61 +454,36 @@ const handleSubmit = () => {
 							</div>
 						</div>
 
-						<!-- Kategori Checkboxes -->
+						<!-- Pesan Singkat Dosen (Kutipan) -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
-								Kategori<span class="text-red-500">*</span>
+								Pesan Singkat Dosen (Quotes)
 							</label>
-							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Masukkan kategori dari aktivitas dosen</p>
-
-							<div class="mt-2 flex flex-wrap items-center gap-4">
-								<label
-									v-for="cat in categoryOptions"
-									:key="cat"
-									class="flex cursor-pointer items-center gap-2 select-none"
-								>
-									<input
-										type="checkbox"
-										:checked="form.categories.includes(cat)"
-										@change="toggleCategory(cat)"
-										class="h-4 w-4 rounded border-[#a6b7cb] text-[#183669] focus:ring-0 focus:ring-offset-0"
-									/>
-									<span class="font-inter text-[13px] font-medium text-[#435b76]">{{ cat }}</span>
-								</label>
-							</div>
-						</div>
-
-						<!-- Kata-kata Dosen -->
-						<div>
-							<label class="block text-[14px] font-bold text-[#183669]">
-								Kata-kata Dosen
-							</label>
-							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Masukkan testimoni atau kutipan dari aktivitas dosen!</p>
+							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Pesan atau kesan Anda mengenai kegiatan ini</p>
 							<textarea
 								v-model="form.lecturerQuote"
 								rows="2"
-								placeholder="Pelatihan ini sangat keren dan hebat, saya merasa berkembang setelah mengikuti kegiatan ini"
-								class="mt-1.5 w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3 font-inter text-[13px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0 resize-y min-h-[64px] max-h-[200px]"
+								placeholder="Pelatihan ini sangat berkesan dan bermanfaat..."
+								class="mt-1.5 w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
 							></textarea>
 						</div>
-
 					</div>
 				</div>
 
-				<!-- Modal Footer Buttons -->
-				<div class="mt-7 flex items-center justify-end gap-3.5 pt-4 border-t border-[#f0f4f9]">
+				<!-- Action Buttons -->
+				<div class="mt-8 flex items-center justify-end gap-3.5 border-t border-[#e2e8f0] pt-6">
 					<button
 						type="button"
 						@click="handleClose"
-						class="h-[46px] min-w-[150px] px-6 rounded-[10px] border-2 border-[#d6e0ee] bg-white font-poppins text-[15px] font-bold text-[#183669] transition hover:border-[#183669] hover:bg-slate-50 focus:border-[#183669] focus:outline-none active:border-[#183669]"
+						class="rounded-[8px] border border-[#d6e0ee] bg-white px-6 py-2.5 font-poppins text-[14px] font-semibold text-[#4d6786] shadow-xs transition hover:bg-slate-100 focus:outline-none"
 					>
-						Kembali
+						Batal
 					</button>
 					<button
 						type="submit"
-						class="h-[46px] min-w-[150px] px-6 rounded-[10px] bg-[#183669] font-poppins text-[15px] font-bold text-white transition hover:bg-[#122b54]"
+						class="rounded-[8px] bg-[#183669] px-7 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-xs transition hover:bg-[#122b54] focus:outline-none"
 					>
-						Simpan
+						{{ isEditing ? 'Simpan Perubahan' : 'Tambah Aktivitas' }}
 					</button>
 				</div>
 			</form>

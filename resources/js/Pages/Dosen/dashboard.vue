@@ -1,10 +1,10 @@
 <script setup>
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import DosenLayout from '@/Layouts/DosenLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
-import ModalFormAktivitasDosen from '@/Components/admin/ModalFormAktivitasDosen.vue';
+import ModalFormAktivitas from '@/Components/dosen/ModalFormAktivitas.vue';
 import { Line } from 'vue-chartjs';
 import {
 	Chart as ChartJS,
@@ -18,12 +18,26 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
+const currentLecturer = {
+	name: 'Dr. John Doe, M.Si',
+	nip: 'J0403231075',
+	division: 'Perencanaan Kehutanan',
+	email: 'johndoe@apps.ipb.ac.id',
+};
+
+const stats = [
+	{ label: 'Total Aktivitas', value: '14', detail: '3 kegiatan bulan ini', color: 'bg-[#183669]' },
+	{ label: 'Seminar', value: '5', detail: '2 sebagai pemateri', color: 'bg-[#7c72ff]' },
+	{ label: 'Lokakarya', value: '4', detail: '1 skala nasional', color: 'bg-[#ff8b85]' },
+	{ label: 'Workshop', value: '5', detail: '2 instansi luar', color: 'bg-[#56d4f8]' },
+];
+
 const years = ['2023', '2024', '2025', '2026'];
 const chartSeries = [
-	{ name: 'Seminar', color: '#7c72ff', values: [100, 50, 30, 5] },
-	{ name: 'Lokakarya', color: '#ff8b85', values: [20, 12, 4, 3] },
-	{ name: 'Workshop', color: '#56d4f8', values: [40, 20, 21, 4] },
-	{ name: 'Lainnya', color: '#ffbb66', values: [30, 24, 43, 4] },
+	{ name: 'Seminar', color: '#7c72ff', values: [2, 3, 4, 1] },
+	{ name: 'Lokakarya', color: '#ff8b85', values: [1, 2, 1, 1] },
+	{ name: 'Workshop', color: '#56d4f8', values: [1, 1, 3, 2] },
+	{ name: 'Lainnya', color: '#ffbb66', values: [0, 1, 2, 1] },
 ];
 
 const chartData = {
@@ -33,11 +47,11 @@ const chartData = {
 		data: series.values,
 		borderColor: series.color,
 		backgroundColor: series.color,
-		pointRadius: 2.5,
-		pointHoverRadius: 4,
+		pointRadius: 3,
+		pointHoverRadius: 5,
 		pointBorderWidth: 1.5,
 		pointBackgroundColor: '#ffffff',
-		tension: 0,
+		tension: 0.2,
 		borderWidth: 2,
 		fill: false,
 	})),
@@ -94,12 +108,12 @@ const chartOptions = {
 		},
 		y: {
 			min: 0,
-			max: 100,
+			max: 6,
 			grid: {
 				color: '#eef2f8',
 			},
 			ticks: {
-				stepSize: 20,
+				stepSize: 1,
 				color: '#7487a2',
 				font: {
 					family: 'Inter',
@@ -113,41 +127,7 @@ const chartOptions = {
 	},
 };
 
-// Available Lecturer Profiles (disinkronkan dengan aktivitasdosen.vue & profiledosen.vue)
-const availableProfiles = [
-	{ id: 1, name: 'Farhan Hakim', division: 'Perencanaan Kehutanan' },
-	{ id: 2, name: 'Fauzan Fuadiansyah', division: 'Perencanaan Kehutanan' },
-	{ id: 3, name: 'Rintan Arufafa Aji', division: 'Pemanfaatan Sumberdaya Hutan' },
-	{ id: 4, name: 'Muhammad Fauzan Fuadiansyah S.Kom., M.Cs.', division: 'Kebijakan Kehutanan' },
-	{ id: 5, name: 'Dakota Johnson', division: 'Pemanfaatan Sumberdaya Hutan' },
-	{ id: 6, name: 'Dr. Ir. Budi Rahardjo M.Sc.', division: 'Perencanaan Kehutanan' },
-	{ id: 7, name: 'Prof. Dr. Sulistyo Handoko', division: 'Kebijakan Kehutanan' },
-	{ id: 8, name: 'Siti Aminah S.Si., M.Kom.', division: 'Pemanfaatan Sumberdaya Hutan' },
-	{ id: 9, name: 'Ahmad Dahlan S.T., M.Eng.', division: 'Perencanaan Kehutanan' },
-	{ id: 10, name: 'Rian Hidayat S.Kom., M.T.', division: 'Perencanaan Kehutanan' },
-	{ id: 11, name: 'Dewi Lestari M.Kom.', division: 'Pemanfaatan Sumberdaya Hutan' },
-	{ id: 12, name: 'Hendra Setiawan Ph.D.', division: 'Kebijakan Kehutanan' },
-];
-
 const initialActivities = [
-	{
-		id: 5,
-		title: 'Rapat Evaluasi Akademik',
-		name: 'Rapat Evaluasi Akademik',
-		lecturer: 'Prof. Dr. Sulistyo Handoko',
-		lecturerName: 'Prof. Dr. Sulistyo Handoko',
-		description: 'Evaluasi capaian semester ganjil dan rencana perbaikan kurikulum.',
-		role: 'Peserta',
-		startDate: '2026-01-22',
-		endDate: '2026-01-22',
-		categories: ['Lainnya'],
-		category: 'Lainnya',
-		date: '22 Januari 2026',
-		dateSort: '2026-01-22',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Diskusi yang sangat produktif untuk kemajuan departemen.',
-	},
 	{
 		id: 4,
 		title: 'Lokakarya Desa Siman',
@@ -168,69 +148,50 @@ const initialActivities = [
 	},
 	{
 		id: 3,
-		title: 'Seminar Kurikulum Merdeka',
-		name: 'Seminar Kurikulum Merdeka',
-		lecturer: 'Dr. Ir. Budi Rahardjo M.Sc.',
-		lecturerName: 'Dr. Ir. Budi Rahardjo M.Sc.',
-		description: 'Pemaparan strategi implementasi kurikulum adaptif di kampus.',
-		role: 'Pemateri Utama',
-		startDate: '2026-01-18',
-		endDate: '2026-01-18',
-		categories: ['Seminar'],
-		category: 'Seminar',
-		date: '18 Januari 2026',
-		dateSort: '2026-01-18',
+		title: 'Konsultasi Perencanaan Hutan Lestari',
+		name: 'Konsultasi Perencanaan Hutan Lestari',
+		lecturer: 'Farhan Hakim',
+		lecturerName: 'Farhan Hakim',
+		description: 'Penyusunan dokumen tata kelola wilayah hutan kemasyarakatan.',
+		role: 'Konsultan Ahli',
+		startDate: '2026-01-10',
+		endDate: '2026-01-11',
+		categories: ['Workshop'],
+		category: 'Workshop',
+		date: '10 Januari 2026',
+		dateSort: '2026-01-10',
 		images: [],
 		imagePreviews: [],
-		lecturerQuote: 'Antusiasme peserta sangat luar biasa dalam menyerap materi.',
+		lecturerQuote: 'Kolaborasi yang baik antara akademisi dan pengelola hutan.',
 	},
 	{
 		id: 2,
-		title: 'Workshop Metodologi Riset',
-		name: 'Workshop Metodologi Riset',
-		lecturer: 'Siti Aminah S.Si., M.Kom.',
-		lecturerName: 'Siti Aminah S.Si., M.Kom.',
-		description: 'Pelatihan teknik sampling dan validasi instrumen penelitian.',
-		role: 'Fasilitator',
-		startDate: '2026-01-15',
-		endDate: '2026-01-15',
-		categories: ['Workshop'],
-		category: 'Workshop',
-		date: '15 Januari 2026',
-		dateSort: '2026-01-15',
+		title: 'Webinar Tata Kelola Kehutanan 4.0',
+		name: 'Webinar Tata Kelola Kehutanan 4.0',
+		lecturer: 'Farhan Hakim',
+		lecturerName: 'Farhan Hakim',
+		description: 'Strategi pemanfaatan drone dan GIS dalam inventarisasi hutan.',
+		role: 'Pemateri',
+		startDate: '2025-12-18',
+		endDate: '2025-12-18',
+		categories: ['Seminar'],
+		category: 'Seminar',
+		date: '18 Desember 2025',
+		dateSort: '2025-12-18',
 		images: [],
 		imagePreviews: [],
-		lecturerQuote: 'Semoga mahasiswa dapat mengaplikasikan metode penelitian dengan tepat.',
-	},
-	{
-		id: 1,
-		title: 'Pelatihan SPSS Dasar',
-		name: 'Pelatihan SPSS Dasar',
-		lecturer: 'Rian Hidayat S.Kom., M.T.',
-		lecturerName: 'Rian Hidayat S.Kom., M.T.',
-		description: 'Praktik olah data kuantitatif untuk tugas akhir mahasiswa.',
-		role: 'Instruktur',
-		startDate: '2026-01-12',
-		endDate: '2026-01-12',
-		categories: ['Workshop'],
-		category: 'Workshop',
-		date: '12 Januari 2026',
-		dateSort: '2026-01-12',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Pemahaman statistik sangat penting dalam penyusunan tugas akhir.',
+		lecturerQuote: 'Teknologi geospasial memudahkan pemetaan wilayah tutupan lahan.',
 	},
 ];
 
 const activities = ref([...initialActivities]);
 
 const columns = [
-	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[24%]' },
-	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, cellAlign: 'left', width: 'w-[18%]' },
-	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[24%]' },
-	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[12%]' },
-	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'left', width: 'w-[12%]' },
-	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[10%]' },
+	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[26%]' },
+	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[32%]' },
+	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[16%]' },
+	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'left', width: 'w-[14%]' },
+	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[12%]' },
 ];
 
 const sortKey = ref('id');
@@ -272,6 +233,12 @@ const isModalOpen = ref(false);
 const isEditing = ref(false);
 const editingActivity = ref(null);
 
+const openAddModal = () => {
+	isEditing.value = false;
+	editingActivity.value = null;
+	isModalOpen.value = true;
+};
+
 const openEditModal = (activity) => {
 	isEditing.value = true;
 	editingActivity.value = JSON.parse(JSON.stringify(activity));
@@ -287,6 +254,15 @@ const handleModalSubmit = (formData) => {
 				...formData,
 			};
 		}
+	} else {
+		const maxId = activities.value.length ? Math.max(...activities.value.map((a) => Number(a.id) || 0)) : 0;
+		activities.value.unshift({
+			id: maxId + 1,
+			...formData,
+			lecturer: currentLecturer.name,
+			lecturerName: currentLecturer.name,
+			dateSort: new Date().toISOString().split('T')[0],
+		});
 	}
 };
 
@@ -298,36 +274,65 @@ const deleteActivity = (activity) => {
 </script>
 
 <template>
-	<Head title="Dashboard Admin" />
+	<Head title="Dashboard Dosen" />
 
-	<AdminLayout>
+	<DosenLayout>
 		<section class="mx-auto w-full max-w-[1520px] px-4 py-6 font-poppins sm:px-6 sm:py-8 lg:px-8">
 			<div class="space-y-6">
-				<div class="space-y-1.5">
-					<h1 class="mt-1 text-[34px] font-bold leading-[1.02] tracking-[-0.03em] text-[#173a63] sm:text-[42px] lg:text-[48px]">Dashboard</h1>
-					<p class="mt-1.5 font-inter text-[14px] font-medium leading-tight text-[#4d6786] sm:text-[16px]">Lihat ringkasan statistik dan aktivitas terbaru dosen</p>
+				<!-- Header Title & Subtitle -->
+				<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+					<div class="space-y-1.5">
+						<h1 class="mt-1 text-[32px] font-bold leading-[1.02] tracking-[-0.03em] text-[#173a63] sm:text-[40px] lg:text-[44px]">
+							Selamat Datang, {{ currentLecturer.name }}
+						</h1>
+						<p class="font-inter text-[14px] font-medium text-[#4d6786] sm:text-[16px]">
+							{{ currentLecturer.division }} • NIP: {{ currentLecturer.nip }}
+						</p>
+					</div>
+
+					<button
+						type="button"
+						@click="openAddModal"
+						class="flex h-[46px] shrink-0 items-center justify-center rounded-[10px] bg-[#183669] px-6 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54]"
+					>
+						+ Tambah Aktivitas
+					</button>
 				</div>
 
-				<div class="rounded-[12px] bg-white px-3 py-4 shadow-sm ring-1 ring-[#d6e0ee] sm:px-5 sm:py-5">
+				<!-- Stats Cards Grid -->
+				<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+					<article v-for="stat in stats" :key="stat.label" class="rounded-[12px] bg-white p-5 shadow-sm ring-1 ring-[#d6e0ee]">
+						<div class="flex items-start justify-between gap-3">
+							<p class="font-inter text-[14px] font-semibold text-[#6f84a3]">{{ stat.label }}</p>
+							<span :class="['h-3 w-3 rounded-full', stat.color]" aria-hidden="true"></span>
+						</div>
+						<p class="mt-2 text-[38px] font-bold leading-none text-[#173a63]">{{ stat.value }}</p>
+						<p class="mt-1.5 font-inter text-[13px] font-medium text-[#1b9d6f]">{{ stat.detail }}</p>
+					</article>
+				</div>
+
+				<!-- Chart Section -->
+				<div class="rounded-[12px] bg-white px-4 py-5 shadow-sm ring-1 ring-[#d6e0ee] sm:px-6 sm:py-6">
 					<div class="flex flex-wrap items-start justify-between gap-3">
-						<div class="w-full text-center">
-							<h2 class="text-[20px] font-bold leading-none text-[#173a63]">Statistik Aktivitas Dosen</h2>
-							<p class="font-inter text-[12px] font-medium text-[#4d6786]">Dalam kurun waktu 4 tahun kebelakang</p>
+						<div>
+							<h2 class="text-[19px] font-bold text-[#173a63]">Statistik Aktivitas Saya</h2>
+							<p class="font-inter text-[13px] font-medium text-[#4d6786]">Perkembangan aktivitas tahun ke tahun</p>
 						</div>
 					</div>
 
 					<div class="mt-4 rounded-[10px] border border-[#dbe4f0] p-2 sm:p-4">
-						<div class="h-[240px] w-full sm:h-[320px] lg:h-[360px]">
-							<Line :data="chartData" :options="chartOptions" aria-label="Grafik aktivitas dosen 2023 sampai 2026" />
+						<div class="h-[240px] w-full sm:h-[300px] lg:h-[320px]">
+							<Line :data="chartData" :options="chartOptions" aria-label="Grafik aktivitas saya" />
 						</div>
 					</div>
 				</div>
 
+				<!-- Recent Activities Table Section -->
 				<div>
 					<div class="mb-4 flex items-center justify-between gap-3">
-						<h2 class="text-[20px] font-bold leading-none text-[#173a63]">Aktivitas Dosen Terbaru</h2>
+						<h2 class="text-[20px] font-bold leading-none text-[#173a63]">Aktivitas Saya Terbaru</h2>
 						<Link
-							href="/aktivitas"
+							href="/dosen/aktivitas"
 							class="group inline-flex items-center gap-1.5 font-inter text-[14px] font-semibold text-[#183669] transition hover:text-[#122b54] hover:underline"
 						>
 							<span>Selengkapnya</span>
@@ -338,7 +343,7 @@ const deleteActivity = (activity) => {
 					</div>
 
 					<div class="overflow-x-auto rounded-[12px] bg-white shadow-sm ring-1 ring-[#d6e0ee]">
-						<table class="w-full min-w-[950px] table-fixed border-collapse text-sm">
+						<table class="w-full min-w-[850px] table-fixed border-collapse text-sm">
 							<thead class="bg-[#183669]">
 								<tr class="h-[48px]">
 									<th class="w-[60px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white">No</th>
@@ -393,9 +398,6 @@ const deleteActivity = (activity) => {
 									<td class="px-4 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name">
 										<span class="block truncate">{{ activity.name }}</span>
 									</td>
-									<td class="px-4 py-2.5 text-left" :title="activity.lecturer">
-										<span class="block truncate">{{ activity.lecturer }}</span>
-									</td>
 									<td class="px-4 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
 										<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
 									</td>
@@ -413,8 +415,8 @@ const deleteActivity = (activity) => {
 									</td>
 								</tr>
 								<tr v-if="sortedActivities.length === 0">
-									<td colspan="7" class="py-8 text-center text-[#7890a8]">
-										Tidak ada data aktivitas yang tersedia.
+									<td colspan="6" class="py-8 text-center text-[#7890a8]">
+										Belum ada aktivitas yang ditambahkan.
 									</td>
 								</tr>
 							</tbody>
@@ -424,14 +426,14 @@ const deleteActivity = (activity) => {
 			</div>
 		</section>
 
-		<!-- MODAL FORM AKTIVITAS DOSEN (COMPONENT) -->
-		<ModalFormAktivitasDosen
+		<!-- MODAL FORM AKTIVITAS SAYA (DOSEN COMPONENT) -->
+		<ModalFormAktivitas
 			:show="isModalOpen"
 			:is-editing="isEditing"
 			:initial-data="editingActivity"
-			:available-profiles="availableProfiles"
+			:lecturer-name="currentLecturer.name"
 			@close="isModalOpen = false"
 			@submit="handleModalSubmit"
 		/>
-	</AdminLayout>
+	</DosenLayout>
 </template>

@@ -1,11 +1,11 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormAktivitasDosen from '@/Components/admin/ModalFormAktivitasDosen.vue';
-import TablePagination from '@/Components/admin/TablePagination.vue';
+import TablePagination from '@/Components/TablePagination.vue';
 
 // Available Lecturer Profiles (12 Dosen yang memiliki profile - disinkronkan dengan profiledosen.vue)
 const availableProfiles = [
@@ -297,9 +297,9 @@ const deleteActivity = (activity) => {
 </script>
 
 <template>
-	<Head title="Daftar Aktivitas" />
+	<Head title="Aktivitas Dosen" />
 
-	<AuthenticatedLayout>
+	<AdminLayout>
 		<section
 			class="mx-auto w-full max-w-[1520px] px-4 py-6 font-poppins sm:px-6 sm:py-8 lg:px-8"
 		>
@@ -468,8 +468,8 @@ const deleteActivity = (activity) => {
 								<td class="px-3 py-2.5 text-left" :title="activity.lecturer || activity.lecturerName">
 									<span class="block truncate">{{ activity.lecturer || activity.lecturerName }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-left" :title="activity.description">
-									<span class="block truncate">{{ activity.description }}</span>
+								<td class="px-3 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
+									<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
 								</td>
 								<td class="px-3 py-2.5 text-left" :title="activity.role">
 									<span class="block truncate">{{ activity.role }}</span>
@@ -513,5 +513,5 @@ const deleteActivity = (activity) => {
 			@close="isModalOpen = false"
 			@submit="handleModalSubmit"
 		/>
-	</AuthenticatedLayout>
+	</AdminLayout>
 </template>

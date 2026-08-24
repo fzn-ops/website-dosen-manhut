@@ -1,12 +1,12 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormDosen from '@/Components/admin/ModalFormDosen.vue';
 import ModalImportDosen from '@/Components/admin/ModalImportDosen.vue';
-import TablePagination from '@/Components/admin/TablePagination.vue';
+import TablePagination from '@/Components/TablePagination.vue';
 
 // Initial Lecturer Data matching design
 const initialLecturers = [
@@ -168,7 +168,7 @@ const deleteLecturer = (lecturer) => {
 <template>
 	<Head title="Daftar Dosen" />
 
-	<AuthenticatedLayout>
+	<AdminLayout>
 		<section class="mx-auto w-full max-w-[1520px] px-4 py-6 font-poppins sm:px-6 sm:py-8 lg:px-8">
 			<div class="space-y-6">
 				<!-- Header Title & Subtitle -->
@@ -343,5 +343,5 @@ const deleteLecturer = (lecturer) => {
 			@close="isImportModalOpen = false"
 			@import="handleImportSubmit"
 		/>
-	</AuthenticatedLayout>
+	</AdminLayout>
 </template>

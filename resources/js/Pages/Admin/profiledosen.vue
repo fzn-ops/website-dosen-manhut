@@ -1,11 +1,11 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormProfileDosen from '@/Components/admin/ModalFormProfileDosen.vue';
-import TablePagination from '@/Components/admin/TablePagination.vue';
+import TablePagination from '@/Components/TablePagination.vue';
 
 // Available Lecturers (from Daftar Dosen)
 const availableLecturers = [
@@ -350,7 +350,7 @@ const deleteProfile = (profile) => {
 <template>
 	<Head title="Profile Dosen" />
 
-	<AuthenticatedLayout>
+	<AdminLayout>
 		<section class="mx-auto w-full max-w-[1520px] px-4 py-6 font-poppins sm:px-6 sm:py-8 lg:px-8">
 			<div class="space-y-6">
 				<!-- Header Title & Subtitle -->
@@ -543,5 +543,5 @@ const deleteProfile = (profile) => {
 			@close="isModalOpen = false"
 			@submit="handleProfileSubmit"
 		/>
-	</AuthenticatedLayout>
+	</AdminLayout>
 </template>
