@@ -99,7 +99,7 @@
 
                     <div class="flex flex-col gap-4">
                         @foreach ($aktivitasLainnya as $item)
-                        <a href="#" class="h-[124px] group bg-white border border-gray-200 rounded-xl p-3 flex gap-4 hover:scale-50 hover:shadow-md transition-all duration-300">
+                        <a href="#" class="h-[124px] group bg-white border border-gray-200 rounded-xl p-3 flex gap-4 hover:scale-105 hover:shadow-md transition-all duration-300">
                             
                             <div class="w-[120px] shrink-0 aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
                                 <img src="{{ $item['img'] }}" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
