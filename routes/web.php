@@ -37,39 +37,21 @@ Route::get('/login', function () {
 /* Admin Panel Routes (Inertia Vue) */
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/dashboard');
-    })->name('dashboard');
-    
-    Route::get('/admin/dashboard', function () {
-        return Inertia::render('Admin/dashboard');
     })->name('admin.dashboard');
-    
+
     Route::get('/dosen', function () {
         return Inertia::render('Admin/dosen');
-    })->name('dosen');
-    
-    Route::get('/admin/dosen', function () {
-        return Inertia::render('Admin/dosen');
     })->name('admin.dosen');
-    
+
     Route::get('/profile-dosen', function () {
         return Inertia::render('Admin/profiledosen');
-    })->name('profiledosen');
-    
-    Route::get('/admin/profile-dosen', function () {
-        return Inertia::render('Admin/profiledosen');
     })->name('admin.profiledosen');
-    
+
     Route::get('/aktivitas', function () {
         return Inertia::render('Admin/aktivitasdosen');
-    })->name('aktivitasdosen');
-    
-    Route::get('/admin/aktivitas', function () {
-        return Inertia::render('Admin/aktivitasdosen');
     })->name('admin.aktivitasdosen');
-
 });
 
 
@@ -83,11 +65,11 @@ Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->group(function () {
     })->name('dosen.dashboard');
 
     Route::get('/aktivitas', function () {
-        return Inertia::render('Dosen/aktivitasdosen');
+        return Inertia::render('Dosen/aktivitas');
     })->name('dosen.aktivitas');
 
     Route::get('/profile', function () {
-        return Inertia::render('Dosen/profiledosen');
+        return Inertia::render('Dosen/profile');
     })->name('dosen.profile');
 
 });

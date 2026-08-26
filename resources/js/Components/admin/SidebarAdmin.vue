@@ -15,11 +15,19 @@ defineProps({
 defineEmits(['navigate']);
 
 const menuItems = [
-	{ label: 'Dashboard', href: route('dashboard'), pattern: 'dashboard', icon: 'home' },
-	{ label: 'Daftar Dosen', href: '/dosen', pattern: 'dosen*', icon: 'teacher' },
-	{ label: 'Profile Dosen', href: '/profile-dosen', pattern: 'profiledosen*', icon: 'teacher-profile' },
-	{ label: 'Aktivitas', href: '/aktivitas', pattern: 'aktivitas*', icon: 'activity' },
+	{ label: 'Dashboard', href: '/admin/dashboard', pattern: 'admin.dashboard*', icon: 'home' },
+	{ label: 'Daftar Dosen', href: '/admin/dosen', pattern: 'admin.dosen*', icon: 'teacher' },
+	{ label: 'Profile Dosen', href: '/admin/profile-dosen', pattern: 'admin.profiledosen*', icon: 'teacher-profile' },
+	{ label: 'Aktivitas', href: '/admin/aktivitas', pattern: 'admin.aktivitasdosen*', icon: 'activity' },
 ];
+
+const isActive = (item) => {
+	try {
+		return route().current(item.pattern) || window.location.pathname.startsWith(item.href);
+	} catch {
+		return window.location.pathname.startsWith(item.href);
+	}
+};
 </script>
 
 <template>
@@ -32,7 +40,7 @@ const menuItems = [
 		<div :class="[
 			'flex h-[70px] shrink-0 items-center justify-center border-b border-white/10 px-4',
 		]">
-			<Link :href="route('dashboard')" class="flex items-center justify-center gap-3.5 focus:outline-none">
+			<Link href="/admin/dashboard" class="flex items-center justify-center gap-3.5 focus:outline-none">
 				<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-base font-black text-[#1d3a7a] shadow-sm">
 				</span>
 				<span v-if="!collapsed" class="text-[24px] font-bold leading-none tracking-tight text-white">
@@ -53,7 +61,7 @@ const menuItems = [
 				:class="[
 					'flex h-11 items-center text-[15px] font-semibold transition-colors focus:outline-none',
 					collapsed ? 'justify-center rounded-full px-0' : 'gap-5 pl-7 pr-4',
-					route().current(item.pattern)
+					isActive(item)
 						? collapsed ? 'bg-[#3c5da1] text-white' : 'ml-6 rounded-l-full bg-[#3c5da1] text-white shadow-sm'
 						: collapsed ? 'text-white/80 hover:bg-[#142e63] hover:text-white' : 'ml-6 rounded-l-full text-white/80 hover:bg-[#142e63] hover:text-white',
 				]"
