@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dashboard\Admin\ProfileDosenController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -45,9 +46,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         return Inertia::render('Admin/dosen');
     })->name('admin.dosen');
 
-    Route::get('/profile-dosen', function () {
-        return Inertia::render('Admin/profiledosen');
-    })->name('admin.profiledosen');
+    // Profile Dosen Routes
+    Route::get('/profile-dosen', [ProfileDosenController::class, 'index'])->name('admin.profiledosen');
+    Route::post('/profile-dosen', [ProfileDosenController::class, 'store'])->name('admin.profiledosen.store');
+    Route::put('/profile-dosen/{id}', [ProfileDosenController::class, 'update'])->name('admin.profiledosen.update');
+    Route::delete('/profile-dosen/{id}', [ProfileDosenController::class, 'destroy'])->name('admin.profiledosen.destroy');
 
     Route::get('/aktivitas', function () {
         return Inertia::render('Admin/aktivitasdosen');

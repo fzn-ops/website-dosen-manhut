@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['username', 'role', 'name', 'email', 'profile_picture', 'password'])]
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
+#[Fillable(['NIP', 'username', 'role', 'name', 'email', 'profile_picture', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,5 +30,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Relasi ke Profil Dosen
+     */
+    public function profileDosen(): HasOne
+    {
+        return $this->hasOne(ProfileDosen::class, 'user_id');
     }
 }

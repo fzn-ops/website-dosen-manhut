@@ -1,197 +1,71 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormProfileDosen from '@/Components/admin/ModalFormProfileDosen.vue';
 import TablePagination from '@/Components/TablePagination.vue';
+import ToastNotification from '@/Components/ToastNotification.vue';
 
-// Available Lecturers (from Daftar Dosen)
-const availableLecturers = [
-	{ id: 1, name: 'Farhan Hakim', nip: 'J0403231075', email: 'farhanhakim123@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
-	{ id: 2, name: 'Fauzan Fuadiansyah', nip: 'J0403231076', email: 'fauzanfuadiansyah@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
-	{ id: 3, name: 'Rintan Arufafa Aji', nip: 'J0403231113', email: 'contohajakaloyangpanjang@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
-	{ id: 4, name: 'Muhammad Fauzan Fuadiansyah S.Kom., M.Cs.', nip: 'J0403231077', email: '-', phone: '-' },
-	{ id: 5, name: 'Dakota Johnson', nip: 'J0403231078', email: '-', phone: '-' },
-	{ id: 6, name: 'Dr. Ir. Budi Rahardjo M.Sc.', nip: 'J0403231080', email: 'budi.rahardjo@apps.ipb.ac.id', phone: '+62 813 9876 5432' },
-	{ id: 7, name: 'Prof. Dr. Sulistyo Handoko', nip: 'J0403231091', email: 'sulistyo.h@apps.ipb.ac.id', phone: '+62 812 8899 0011' },
-	{ id: 8, name: 'Siti Aminah S.Si., M.Kom.', nip: 'J0403231044', email: 'siti_aminah@apps.ipb.ac.id', phone: '+62 856 7788 9900' },
-	{ id: 9, name: 'Ahmad Dahlan S.T., M.Eng.', nip: 'J0403231032', email: 'a.dahlan@apps.ipb.ac.id', phone: '-' },
-	{ id: 10, name: 'Rian Hidayat S.Kom., M.T.', nip: 'J0403231021', email: 'rian.hidayat@apps.ipb.ac.id', phone: '+62 817 6543 2109' },
-	{ id: 11, name: 'Dewi Lestari M.Kom.', nip: 'J0403231015', email: 'dewi.lestari@apps.ipb.ac.id', phone: '+62 812 3344 5566' },
-	{ id: 12, name: 'Hendra Setiawan Ph.D.', nip: 'J0403231055', email: 'hendra.s@apps.ipb.ac.id', phone: '-' },
-	{ id: 13, name: 'Nurul Hidayati S.Pd., M.Pd.', nip: 'J0403231062', email: 'nurul.h@apps.ipb.ac.id', phone: '+62 819 0123 4567' },
-	{ id: 14, name: 'Prof. Bambang Subagyo', nip: 'J0403231070', email: 'bambang.subagyo@apps.ipb.ac.id', phone: '+62 811 2233 4455' },
-	{ id: 15, name: 'Andi Pratama S.Kom., M.M.', nip: 'J0403231088', email: '-', phone: '+62 815 6789 0123' },
-	{ id: 16, name: 'Tri Wahyuni M.Sc.', nip: 'J0403231095', email: 'tri.wahyuni@apps.ipb.ac.id', phone: '-' },
-	{ id: 17, name: 'Agus Susanto S.Si., M.Si.', nip: 'J0403231102', email: 'agus.susanto@apps.ipb.ac.id', phone: '+62 818 7654 3210' },
-	{ id: 18, name: 'Dian Permatasari M.Kom.', nip: 'J0403231110', email: 'dian.permatasari@apps.ipb.ac.id', phone: '+62 813 4567 8901' },
-	{ id: 19, name: 'Eko Prasetyo S.T., M.Kom.', nip: 'J0403231125', email: '-', phone: '-' },
-	{ id: 20, name: 'Fitri Handayani M.Pd.', nip: 'J0403231130', email: 'fitri.handayani@apps.ipb.ac.id', phone: '+62 812 9012 3456' },
-];
+const props = defineProps({
+	profiles: {
+		type: Array,
+		default: () => [],
+	},
+	availableLecturers: {
+		type: Array,
+		default: () => [],
+	},
+});
 
-// Initial Profile Data with official 3 Divisions
-const initialProfiles = [
-	{
-		id: 1,
-		name: 'Farhan Hakim',
-		division: 'Perencanaan Kehutanan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'farhanhakim123@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 2,
-		name: 'Fauzan Fuadiansyah',
-		division: 'Perencanaan Kehutanan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'fauzanfuadiansyah@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 3,
-		name: 'Rintan Arufafa Aji',
-		division: 'Pemanfaatan Sumberdaya Hutan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'contohajakaloyangpanjang@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 4,
-		name: 'Muhammad Fauzan Fuadiansyah S.Kom., M.Cs.',
-		division: 'Kebijakan Kehutanan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'fauzan.cs@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 5,
-		name: 'Dakota Johnson',
-		division: 'Pemanfaatan Sumberdaya Hutan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'dakota.j@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 6,
-		name: 'Dr. Ir. Budi Rahardjo M.Sc.',
-		division: 'Perencanaan Kehutanan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'budi.rahardjo@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 7,
-		name: 'Prof. Dr. Sulistyo Handoko',
-		division: 'Kebijakan Kehutanan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'sulistyo.h@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 8,
-		name: 'Siti Aminah S.Si., M.Kom.',
-		division: 'Pemanfaatan Sumberdaya Hutan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'siti_aminah@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 9,
-		name: 'Ahmad Dahlan S.T., M.Eng.',
-		division: 'Perencanaan Kehutanan',
-		educations: [
-			{ university: 'IPB University', major: 'Pendidikan Hutan', graduationYear: '2026' },
-		],
-		educationSummary: 'Pendidikan Hutan - IPB University - 2026',
-		research: 'Kayu Jati Luhur',
-		contact: 'a.dahlan@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 10,
-		name: 'Rian Hidayat S.Kom., M.T.',
-		division: 'Perencanaan Kehutanan',
-		educations: [
-			{ university: 'Universitas Gadjah Mada', major: 'Kehutanan Tropika', graduationYear: '2020' },
-		],
-		educationSummary: 'Kehutanan Tropika - Universitas Gadjah Mada - 2020',
-		research: 'Perencanaan Hutan Lestari',
-		contact: 'rian.hidayat@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 11,
-		name: 'Dewi Lestari M.Kom.',
-		division: 'Pemanfaatan Sumberdaya Hutan',
-		educations: [
-			{ university: 'IPB University', major: 'Silvikultur Tropika', graduationYear: '2022' },
-		],
-		educationSummary: 'Silvikultur Tropika - IPB University - 2022',
-		research: 'Agroforestri Berkelanjutan',
-		contact: 'dewi.lestari@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-	{
-		id: 12,
-		name: 'Hendra Setiawan Ph.D.',
-		division: 'Kebijakan Kehutanan',
-		educations: [
-			{ university: 'Kyoto University', major: 'Forest Ecology', graduationYear: '2019' },
-		],
-		educationSummary: 'Forest Ecology - Kyoto University - 2019',
-		research: 'Ekologi Satwa Liar',
-		contact: 'hendra.s@apps.ipb.ac.id',
-		scholarLink: 'https://scholar.google.com',
-		linkedinLink: 'https://linkedin.com',
-	},
-];
+const page = usePage();
 
-const profiles = ref([...initialProfiles]);
+// Toast State
+const toast = ref({
+	show: false,
+	type: 'success',
+	title: '',
+	message: '',
+});
+
+const showToast = (type, title, message) => {
+	toast.value = {
+		show: true,
+		type,
+		title,
+		message,
+	};
+};
+
+const closeToast = () => {
+	toast.value.show = false;
+};
+
+// Watch for flash session messages from Laravel
+watch(
+	() => page.props.flash,
+	(flash) => {
+		if (flash?.success) {
+			showToast('success', 'Berhasil', flash.success);
+		} else if (flash?.error) {
+			showToast('error', 'Gagal', flash.error);
+		}
+	},
+	{ deep: true, immediate: true }
+);
+
+const lecturers = computed(() => props.availableLecturers || []);
+
+const profiles = ref(props.profiles || []);
+
+watch(
+	() => props.profiles,
+	(newProfiles) => {
+		profiles.value = newProfiles || [];
+	},
+	{ deep: true }
+);
 
 // Search & Filter Query
 const searchQuery = ref('');
@@ -323,26 +197,64 @@ const openEditModal = (profile) => {
 };
 
 const handleProfileSubmit = (formData) => {
-	if (isEditing.value) {
-		const index = profiles.value.findIndex((p) => p.id === editingId.value);
-		if (index !== -1) {
-			profiles.value[index] = {
-				...profiles.value[index],
-				...formData,
-			};
-		}
+	const payload = {
+		division: formData.division,
+		research: formData.research !== '-' ? formData.research : null,
+		educations: formData.educations,
+		scholar_link: formData.scholar_link || (formData.scholarLink !== '-' ? formData.scholarLink : null),
+		linkedin_link: formData.linkedin_link || (formData.linkedinLink !== '-' ? formData.linkedinLink : null),
+	};
+
+	if (isEditing.value && editingId.value) {
+		router.put(`/admin/profile-dosen/${editingId.value}`, payload, {
+			preserveScroll: true,
+			onSuccess: () => {
+				isModalOpen.value = false;
+				showToast('success', 'Berhasil Diperbarui', 'Data profil dosen berhasil diperbarui.');
+			},
+			onError: (errors) => {
+				const firstError = Object.values(errors)[0] || 'Terjadi kesalahan saat memperbarui profil.';
+				showToast('error', 'Gagal Memperbarui', firstError);
+			},
+		});
 	} else {
-		const newId = profiles.value.length ? Math.max(...profiles.value.map((p) => p.id)) + 1 : 1;
-		profiles.value.unshift({
-			id: newId,
-			...formData,
+		let userId = formData.user_id;
+		if (!userId) {
+			const found = lecturers.value.find(
+				(l) => l.name.toLowerCase().trim() === formData.name.toLowerCase().trim()
+			);
+			userId = found?.id;
+		}
+
+		router.post('/admin/profile-dosen', {
+			user_id: userId,
+			...payload,
+		}, {
+			preserveScroll: true,
+			onSuccess: () => {
+				isModalOpen.value = false;
+				showToast('success', 'Berhasil Ditambahkan', 'Data profil dosen baru berhasil ditambahkan.');
+			},
+			onError: (errors) => {
+				const firstError = Object.values(errors)[0] || 'Terjadi kesalahan saat menambahkan profil.';
+				showToast('error', 'Gagal Menambahkan', firstError);
+			},
 		});
 	}
 };
 
 const deleteProfile = (profile) => {
-	if (confirm(`Apakah Anda yakin ingin menghapus profile dosen ${profile.name}?`)) {
-		profiles.value = profiles.value.filter((p) => p.id !== profile.id);
+	if (confirm(`Apakah Anda yakin ingin menghapus profile dosen "${profile.name}"?`)) {
+		router.delete(`/admin/profile-dosen/${profile.id}`, {
+			preserveScroll: true,
+			onSuccess: () => {
+				showToast('success', 'Berhasil Dihapus', `Data profil dosen "${profile.name}" berhasil dihapus.`);
+			},
+			onError: (errors) => {
+				const firstError = Object.values(errors)[0] || 'Gagal menghapus profil dosen.';
+				showToast('error', 'Gagal Menghapus', firstError);
+			},
+		});
 	}
 };
 </script>
@@ -501,10 +413,10 @@ const deleteProfile = (profile) => {
 								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="profile.name">
 									<span class="block truncate">{{ profile.name }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-left" :title="profile.division">
+								<td class="px-3 py-2.5 text-center" :title="profile.division">
 									<span class="block truncate">{{ profile.division }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-left" :title="profile.research">
+								<td class="px-3 py-2.5 text-center" :title="profile.research">
 									<span class="block truncate">{{ profile.research }}</span>
 								</td>
 								<td :class="['px-3 py-2.5', profile.contact && profile.contact !== '-' ? 'text-left' : 'text-center']" :title="profile.contact">
@@ -550,10 +462,19 @@ const deleteProfile = (profile) => {
 			:show="isModalOpen"
 			:is-editing="isEditing"
 			:initial-data="selectedProfile"
-			:available-lecturers="availableLecturers"
+			:available-lecturers="lecturers"
 			:existing-profiles="profiles"
 			@close="isModalOpen = false"
 			@submit="handleProfileSubmit"
+		/>
+
+		<!-- TOAST NOTIFICATION -->
+		<ToastNotification
+			:show="toast.show"
+			:type="toast.type"
+			:title="toast.title"
+			:message="toast.message"
+			@close="closeToast"
 		/>
 	</AdminLayout>
 </template>

@@ -32,11 +32,21 @@ const divisiOptions = [
 	'Kebijakan Kehutanan',
 ];
 
+const degreeOptions = ['D4', 'S1', 'S2', 'S3', 'Profesi'];
+
+const getDegreeByIndex = (index) => {
+	if (index === 0) return 'S1';
+	if (index === 1) return 'S2';
+	if (index === 2) return 'S3';
+	return 'S1';
+};
+
 const form = ref({
+	user_id: null,
 	name: '',
 	division: '',
 	educations: [
-		{ university: '', major: '', graduationYear: '' },
+		{ degree: 'S1', university: '', major: '', graduationYear: '' },
 	],
 	research: '',
 	contact: '',
@@ -53,6 +63,7 @@ const imageInputRef = ref(null);
 // Custom Dropdowns State
 const isNameDropdownOpen = ref(false);
 const isDivisionDropdownOpen = ref(false);
+const openDegreeDropdownIndex = ref(null);
 const lecturerSearchQuery = ref('');
 const lecturerSearchInputRef = ref(null);
 
@@ -100,6 +111,7 @@ const toggleNameDropdown = () => {
 
 const selectLecturer = (lec) => {
 	if (lec.isTaken) return;
+	form.value.user_id = lec.id;
 	form.value.name = lec.name;
 	if (lec.email && lec.email !== '-') {
 		form.value.contact = lec.email;
@@ -122,15 +134,22 @@ watch(
 			formError.value = '';
 			isNameDropdownOpen.value = false;
 			isDivisionDropdownOpen.value = false;
+			openDegreeDropdownIndex.value = null;
 			lecturerSearchQuery.value = '';
 
 			if (props.isEditing && props.initialData) {
 				form.value = {
+					user_id: props.initialData.user_id || null,
 					name: props.initialData.name || '',
 					division: props.initialData.division || divisiOptions[0],
 					educations: props.initialData.educations && props.initialData.educations.length > 0
-						? JSON.parse(JSON.stringify(props.initialData.educations))
-						: [{ university: '', major: '', graduationYear: '' }],
+						? props.initialData.educations.map((e, idx) => ({
+							degree: e.degree || getDegreeByIndex(idx),
+							university: e.university || '',
+							major: e.major || '',
+							graduationYear: e.graduationYear || '',
+						}))
+						: [{ degree: 'S1', university: '', major: '', graduationYear: '' }],
 					research: props.initialData.research !== '-' ? props.initialData.research : '',
 					contact: props.initialData.contact !== '-' ? props.initialData.contact : '',
 					image: props.initialData.image || null,
@@ -140,10 +159,11 @@ watch(
 				};
 			} else {
 				form.value = {
+					user_id: null,
 					name: '',
 					division: '',
 					educations: [
-						{ university: '', major: '', graduationYear: '' },
+						{ degree: 'S1', university: '', major: '', graduationYear: '' },
 					],
 					research: '',
 					contact: '',
@@ -161,7 +181,8 @@ watch(
 // Education Dynamic Rows (Min 1, Max 3)
 const addEducationRow = () => {
 	if (form.value.educations.length < 3) {
-		form.value.educations.push({ university: '', major: '', graduationYear: '' });
+		const nextDegree = getDegreeByIndex(form.value.educations.length);
+		form.value.educations.push({ degree: nextDegree, university: '', major: '', graduationYear: '' });
 	}
 };
 
@@ -217,6 +238,7 @@ const handleClose = () => {
 	formError.value = '';
 	isNameDropdownOpen.value = false;
 	isDivisionDropdownOpen.value = false;
+	openDegreeDropdownIndex.value = null;
 	emit('close');
 };
 
@@ -265,6 +287,7 @@ const handleSubmit = () => {
 		.join(' | ') || '-';
 
 	emit('submit', {
+		user_id: form.value.user_id,
 		name: selectedName,
 		lecturerName: selectedName,
 		nip: form.value.nip,
@@ -281,6 +304,8 @@ const handleSubmit = () => {
 		imagePreview: form.value.imagePreview,
 		scholarLink: form.value.scholarLink.trim() || '-',
 		linkedinLink: form.value.linkedinLink.trim() || '-',
+		scholar_link: form.value.scholarLink.trim() || null,
+		linkedin_link: form.value.linkedinLink.trim() || null,
 	});
 
 	handleClose();
@@ -309,7 +334,7 @@ const handleBackdropMouseUp = (e) => {
 	>
 		<div
 			class="w-full max-w-[1220px] transform rounded-[10px] bg-white p-7 shadow-2xl transition-all sm:p-10 lg:p-12 font-poppins max-h-[92vh] overflow-y-auto"
-			@click="isNameDropdownOpen = false; isDivisionDropdownOpen = false"
+			@click="isNameDropdownOpen = false; isDivisionDropdownOpen = false; openDegreeDropdownIndex = null"
 		>
 			<!-- Header Title -->
 			<h2 class="text-left text-[24px] font-bold text-[#183669]">
@@ -485,8 +510,53 @@ const handleBackdropMouseUp = (e) => {
 								<div
 									v-for="(edu, idx) in form.educations"
 									:key="idx"
-									class="flex items-center gap-2.5"
+									class="flex items-center gap-2"
 								>
+									<!-- Custom Jenjang / Tingkat Dropdown (D4, S1, S2, S3, Profesi) -->
+									<div class="relative w-[105px] shrink-0" @click.stop>
+										<button
+											type="button"
+											@click="openDegreeDropdownIndex = openDegreeDropdownIndex === idx ? null : idx; isNameDropdownOpen = false; isDivisionDropdownOpen = false"
+											class="flex h-[42px] w-full items-center justify-between rounded-[10px] border border-[#d6e0ee] bg-white px-2.5 font-poppins text-[13px] font-bold text-[#183669] transition focus:border-[#183669] focus:outline-none focus:ring-0"
+											:class="{ 'border-[#183669] ring-1 ring-[#183669]/20': openDegreeDropdownIndex === idx }"
+										>
+											<span class="truncate">{{ edu.degree }}</span>
+											<svg
+												:class="['h-3.5 w-3.5 shrink-0 text-[#8ca1b9] transition-transform duration-200', openDegreeDropdownIndex === idx ? 'rotate-180 text-[#183669]' : '']"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+												viewBox="0 0 24 24"
+											>
+												<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+											</svg>
+										</button>
+
+										<!-- Dropdown Menu Popover -->
+										<div
+											v-if="openDegreeDropdownIndex === idx"
+											class="absolute left-0 z-40 mt-1.5 w-full rounded-[10px] border border-[#d6e0ee] bg-white p-1.5 shadow-2xl font-inter space-y-1"
+										>
+											<button
+												v-for="deg in degreeOptions"
+												:key="deg"
+												type="button"
+												@click="edu.degree = deg; openDegreeDropdownIndex = null"
+												:class="[
+													'flex h-7 w-full items-center justify-between rounded-[7px] px-2 text-[12px] transition-colors',
+													edu.degree === deg
+														? 'bg-[#183669] text-white font-medium'
+														: 'text-[#1e3456] hover:bg-[#f0f4f9]'
+												]"
+											>
+												<span>{{ deg }}</span>
+												<svg v-if="edu.degree === deg" class="h-3 w-3 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+												</svg>
+											</button>
+										</div>
+									</div>
+
 									<!-- Universitas -->
 									<input
 										v-model="edu.university"
@@ -505,8 +575,8 @@ const handleBackdropMouseUp = (e) => {
 									<input
 										v-model="edu.graduationYear"
 										type="text"
-										placeholder="Tahun Lulus"
-										class="h-[42px] w-24 shrink-0 rounded-[10px] border border-[#d6e0ee] bg-white px-2 text-center font-inter text-[13px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+										placeholder="Tahun"
+										class="h-[42px] w-20 shrink-0 rounded-[10px] border border-[#d6e0ee] bg-white px-2 text-center font-inter text-[13px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
 									/>
 
 									<!-- Plus Button for Row 0 (only if < 3), Minus Button for others -->
@@ -647,7 +717,7 @@ const handleBackdropMouseUp = (e) => {
 							<input
 								v-model="form.scholarLink"
 								type="text"
-								placeholder="www.scholar.google.com"
+								placeholder="https://www.scholar.google.com"
 								class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
 							/>
 						</div>
@@ -661,7 +731,7 @@ const handleBackdropMouseUp = (e) => {
 							<input
 								v-model="form.linkedinLink"
 								type="text"
-								placeholder="www.linkedin.com"
+								placeholder="https://www.linkedin.com"
 								class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
 							/>
 						</div>
