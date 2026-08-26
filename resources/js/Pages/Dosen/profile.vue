@@ -80,6 +80,8 @@ const toggleEditEmail = () => {
 		nextTick(() => {
 			emailInputRef.value?.focus();
 		});
+	} else {
+		emailInputRef.value?.blur();
 	}
 };
 
@@ -89,6 +91,8 @@ const toggleEditPhone = () => {
 		nextTick(() => {
 			phoneInputRef.value?.focus();
 		});
+	} else {
+		phoneInputRef.value?.blur();
 	}
 };
 
@@ -590,12 +594,26 @@ const savePassword = () => {
 	border-style: solid;
 	border-width: 1.5px;
 }
-.custom-input:not([readonly]):focus {
+
+.custom-input:focus,
+.custom-input:focus-visible,
+.custom-input:focus-within,
+.custom-input:not([readonly]):focus,
+.custom-input[readonly]:focus {
 	outline: none !important;
 	box-shadow: none !important;
 	--tw-ring-shadow: none !important;
+	--tw-ring-offset-shadow: none !important;
 	--tw-ring-color: transparent !important;
-	border-color: #183669 !important;
+	--tw-ring-offset-color: transparent !important;
 	border-width: 1.5px !important;
+}
+
+.custom-input:not([readonly]):focus {
+	border-color: #183669 !important;
+}
+
+.custom-input[readonly]:focus {
+	border-color: #d6e0ee !important;
 }
 </style>
