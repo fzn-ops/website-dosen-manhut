@@ -226,10 +226,10 @@ const activities = ref([...initialActivities]);
 
 const columns = [
 	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[24%]' },
-	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, cellAlign: 'left', width: 'w-[18%]' },
-	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[24%]' },
-	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[12%]' },
-	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'left', width: 'w-[12%]' },
+	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, cellAlign: 'left', width: 'w-[20%]' },
+	{ key: 'category', label: 'Kategori', sortable: true, cellAlign: 'left', width: 'w-[16%]' },
+	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[15%]' },
+	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'left', width: 'w-[15%]' },
 	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[10%]' },
 ];
 
@@ -249,6 +249,11 @@ const sortedActivities = computed(() => {
 	return [...activities.value].sort((a, b) => {
 		let left = a[sortKey.value] ?? '';
 		let right = b[sortKey.value] ?? '';
+
+		if (sortKey.value === 'category') {
+			left = Array.isArray(a.categories) && a.categories.length > 0 ? a.categories.join(', ') : (a.category || '');
+			right = Array.isArray(b.categories) && b.categories.length > 0 ? b.categories.join(', ') : (b.category || '');
+		}
 
 		if (typeof left === 'number' && typeof right === 'number') {
 			return sortDirection.value === 'asc' ? left - right : right - left;
@@ -396,8 +401,8 @@ const deleteActivity = (activity) => {
 									<td class="px-4 py-2.5 text-left" :title="activity.lecturer">
 										<span class="block truncate">{{ activity.lecturer }}</span>
 									</td>
-									<td class="px-4 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
-										<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
+									<td class="px-4 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
+										<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
 									</td>
 									<td class="px-3 py-2.5 text-left" :title="activity.role">
 										<span class="block truncate">{{ activity.role }}</span>

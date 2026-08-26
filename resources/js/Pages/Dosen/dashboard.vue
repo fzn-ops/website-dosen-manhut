@@ -188,11 +188,12 @@ const initialActivities = [
 const activities = ref([...initialActivities]);
 
 const columns = [
-	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[26%]' },
-	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[32%]' },
-	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[16%]' },
+	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[23%]' },
+	{ key: 'category', label: 'Kategori', sortable: true, cellAlign: 'left', width: 'w-[14%]' },
+	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[13%]' },
+	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[26%]' },
 	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'left', width: 'w-[14%]' },
-	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[12%]' },
+	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[10%]' },
 ];
 
 const sortKey = ref('id');
@@ -400,11 +401,14 @@ const deleteActivity = (activity) => {
 									<td class="px-4 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name">
 										<span class="block truncate">{{ activity.name }}</span>
 									</td>
-									<td class="px-4 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
-										<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
+									<td class="px-3 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
+										<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
 									</td>
 									<td class="px-3 py-2.5 text-left" :title="activity.role">
 										<span class="block truncate">{{ activity.role }}</span>
+									</td>
+									<td class="px-4 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
+										<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
 									</td>
 									<td class="px-3 py-2.5 text-left" :title="activity.date">
 										<span class="block truncate">{{ activity.date }}</span>
@@ -417,7 +421,7 @@ const deleteActivity = (activity) => {
 									</td>
 								</tr>
 								<tr v-if="sortedActivities.length === 0">
-									<td colspan="6" class="py-8 text-center text-[#7890a8]">
+									<td colspan="7" class="py-8 text-center text-[#7890a8]">
 										Belum ada aktivitas yang ditambahkan.
 									</td>
 								</tr>

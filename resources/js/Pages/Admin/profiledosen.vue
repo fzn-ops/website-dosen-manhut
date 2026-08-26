@@ -385,10 +385,22 @@ const deleteProfile = (profile) => {
 						<button
 							type="button"
 							@click="isFilterOpen = !isFilterOpen"
-							class="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 border-[#d6e0ee] bg-transparent text-[#183669] transition hover:border-[#183669] hover:bg-[#183669]/5 focus:border-[#183669] focus:outline-none active:border-[#183669]"
+							class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition focus:outline-none"
+							:class="isFilterOpen || selectedDivisionFilter !== ''
+								? 'border-[#183669]'
+								: 'border-[#d6e0ee] hover:border-[#183669] hover:bg-[#183669]/5'"
 							title="Filter Divisi Dosen"
 						>
-							<img src="/assets/icons/filter.svg" alt="Filter Icon" class="h-5 w-5 object-contain" />
+							<img
+								src="/assets/icons/filter.svg"
+								alt="Filter Icon"
+								class="h-5 w-5 object-contain"
+							/>
+							<!-- Red active indicator dot -->
+							<span
+								v-if="selectedDivisionFilter !== ''"
+								class="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#ef4444] ring-2 ring-[#eef2f7]"
+							></span>
 						</button>
 
 						<!-- Filter Dropdown Menu -->

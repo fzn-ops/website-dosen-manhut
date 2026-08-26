@@ -403,6 +403,30 @@ const handleSubmit = () => {
 							/>
 						</div>
 
+						<!-- Kategori Checkboxes -->
+						<div>
+							<label class="block text-[14px] font-bold text-[#183669]">
+								Kategori<span class="text-red-500">*</span>
+							</label>
+							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Masukkan kategori dari aktivitas dosen</p>
+
+							<div class="mt-2 flex flex-wrap items-center gap-4">
+								<label
+									v-for="cat in categoryOptions"
+									:key="cat"
+									class="flex cursor-pointer items-center gap-2 select-none"
+								>
+									<input
+										type="checkbox"
+										:checked="form.categories.includes(cat)"
+										@change="toggleCategory(cat)"
+										class="h-4 w-4 rounded border-[#a6b7cb] text-[#183669] focus:ring-0 focus:ring-offset-0"
+									/>
+									<span class="font-inter text-[13px] font-medium text-[#435b76]">{{ cat }}</span>
+								</label>
+							</div>
+						</div>
+
 						<!-- Peran -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
@@ -452,7 +476,7 @@ const handleSubmit = () => {
 								@dragleave.prevent="isDragging = false"
 								@drop.prevent="handleImageDrop"
 								:class="[
-									'mt-1.5 flex flex-col items-center justify-center rounded-[12px] border-2 border-dashed p-3.5 text-center transition-colors min-h-[145px]',
+									'mt-1.5 flex flex-col items-center justify-center rounded-[12px] border-2 border-dashed p-3.5 text-center transition-colors min-h-[235px]',
 									isDragging ? 'border-[#183669] bg-[#183669]/5' : 'border-[#183669]/30 bg-[#fafcff] hover:border-[#183669]/60'
 								]"
 							>
@@ -572,41 +596,17 @@ const handleSubmit = () => {
 							</div>
 						</div>
 
-						<!-- Kategori Checkboxes -->
-						<div>
-							<label class="block text-[14px] font-bold text-[#183669]">
-								Kategori<span class="text-red-500">*</span>
-							</label>
-							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Masukkan kategori dari aktivitas dosen</p>
-
-							<div class="mt-2 flex flex-wrap items-center gap-4">
-								<label
-									v-for="cat in categoryOptions"
-									:key="cat"
-									class="flex cursor-pointer items-center gap-2 select-none"
-								>
-									<input
-										type="checkbox"
-										:checked="form.categories.includes(cat)"
-										@change="toggleCategory(cat)"
-										class="h-4 w-4 rounded border-[#a6b7cb] text-[#183669] focus:ring-0 focus:ring-offset-0"
-									/>
-									<span class="font-inter text-[13px] font-medium text-[#435b76]">{{ cat }}</span>
-								</label>
-							</div>
-						</div>
-
 						<!-- Kata-kata Dosen -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
-								Kata-kata Dosen
+								Pesan Singkat Dosen<span class="text-red-500">*</span>
 							</label>
 							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Masukkan testimoni atau kutipan dari aktivitas dosen!</p>
 							<textarea
 								v-model="form.lecturerQuote"
-								rows="2"
+								rows="5"
 								placeholder="Pelatihan ini sangat keren dan hebat, saya merasa berkembang setelah mengikuti kegiatan ini"
-								class="mt-1.5 w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3 font-inter text-[13px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0 resize-y min-h-[64px] max-h-[200px]"
+								class="mt-1.5 w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3 font-inter text-[13px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0 resize-y min-h-[160px] max-h-[250px]"
 							></textarea>
 						</div>
 

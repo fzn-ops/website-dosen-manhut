@@ -120,17 +120,17 @@ const initialActivities = [
 const activities = ref([...initialActivities]);
 const searchQuery = ref('');
 const selectedLecturerFilter = ref('');
+const selectedCategories = ref([]);
 const isFilterOpen = ref(false);
 const filterSearchQuery = ref('');
 const filterSearchInputRef = ref(null);
+
+const categoryOptions = ['Seminar', 'Lokakarya', 'Workshop', 'Lainnya'];
 
 const toggleFilterDropdown = () => {
 	isFilterOpen.value = !isFilterOpen.value;
 	if (isFilterOpen.value) {
 		filterSearchQuery.value = '';
-		nextTick(() => {
-			filterSearchInputRef.value?.focus();
-		});
 	}
 };
 
@@ -158,7 +158,22 @@ const filteredLecturerFilterList = computed(() => {
 
 const setLecturerFilter = (lec) => {
 	selectedLecturerFilter.value = lec === 'Semua Dosen' ? '' : lec;
-	isFilterOpen.value = false;
+	currentPage.value = 1;
+};
+
+const toggleCategoryFilter = (cat) => {
+	const idx = selectedCategories.value.indexOf(cat);
+	if (idx > -1) {
+		selectedCategories.value.splice(idx, 1);
+	} else {
+		selectedCategories.value.push(cat);
+	}
+	currentPage.value = 1;
+};
+
+const resetAllFilters = () => {
+	selectedCategories.value = [];
+	selectedLecturerFilter.value = '';
 	filterSearchQuery.value = '';
 	currentPage.value = 1;
 };
@@ -166,10 +181,10 @@ const setLecturerFilter = (lec) => {
 // Table Columns Config
 const columns = [
 	{ key: 'name', label: 'Nama Aktivitas', sortable: true, align: 'left', width: 'w-[24%]' },
-	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, align: 'left', width: 'w-[18%]' },
-	{ key: 'description', label: 'Deskripsi', sortable: true, align: 'left', width: 'w-[24%]' },
-	{ key: 'role', label: 'Peran', sortable: true, align: 'left', width: 'w-[12%]' },
-	{ key: 'dateSort', label: 'Tanggal', sortable: true, align: 'left', width: 'w-[12%]' },
+	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, align: 'left', width: 'w-[20%]' },
+	{ key: 'category', label: 'Kategori', sortable: true, align: 'left', width: 'w-[16%]' },
+	{ key: 'role', label: 'Peran', sortable: true, align: 'left', width: 'w-[15%]' },
+	{ key: 'dateSort', label: 'Tanggal', sortable: true, align: 'left', width: 'w-[15%]' },
 	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
 
@@ -189,12 +204,22 @@ const toggleSort = (key) => {
 const filteredAndSortedActivities = computed(() => {
 	let list = [...activities.value];
 
-	// Filter by Lecturer Name
+	// 1. Filter by Lecturer Name
 	if (selectedLecturerFilter.value) {
 		list = list.filter((a) => a.lecturer === selectedLecturerFilter.value || a.lecturerName === selectedLecturerFilter.value);
 	}
 
-	// Search Query
+	// 2. Filter by Category (Multi-select)
+	if (selectedCategories.value.length > 0) {
+		list = list.filter((a) => {
+			const cats = Array.isArray(a.categories) && a.categories.length > 0
+				? a.categories
+				: (a.category ? [a.category] : []);
+			return cats.some((cat) => selectedCategories.value.includes(cat));
+		});
+	}
+
+	// 3. Search Query
 	if (searchQuery.value.trim()) {
 		const q = searchQuery.value.toLowerCase().trim();
 		list = list.filter(
@@ -204,15 +229,22 @@ const filteredAndSortedActivities = computed(() => {
 				(a.lecturer && a.lecturer.toLowerCase().includes(q)) ||
 				(a.description && a.description.toLowerCase().includes(q)) ||
 				(a.role && a.role.toLowerCase().includes(q)) ||
-				(a.date && a.date.toLowerCase().includes(q))
+				(a.date && a.date.toLowerCase().includes(q)) ||
+				(a.category && a.category.toLowerCase().includes(q)) ||
+				(Array.isArray(a.categories) && a.categories.some((c) => c.toLowerCase().includes(q)))
 		);
 	}
 
-	// Sorting
+	// 4. Sorting
 	if (sortKey.value) {
 		list.sort((a, b) => {
 			let valA = a[sortKey.value] ?? '';
 			let valB = b[sortKey.value] ?? '';
+
+			if (sortKey.value === 'category') {
+				valA = Array.isArray(a.categories) && a.categories.length > 0 ? a.categories.join(', ') : (a.category || '');
+				valB = Array.isArray(b.categories) && b.categories.length > 0 ? b.categories.join(', ') : (b.category || '');
+			}
 
 			if (typeof valA === 'number' && typeof valB === 'number') {
 				return sortDirection.value === 'asc' ? valA - valB : valB - valA;
@@ -246,9 +278,9 @@ const paginatedActivities = computed(() => {
 	return filteredAndSortedActivities.value.slice(start, start + rowsPerPage.value);
 });
 
-watch([rowsPerPage, searchQuery, selectedLecturerFilter], () => {
+watch([rowsPerPage, searchQuery, selectedLecturerFilter, selectedCategories], () => {
 	currentPage.value = 1;
-});
+}, { deep: true });
 
 // Modal State & Handlers
 const isModalOpen = ref(false);
@@ -314,7 +346,7 @@ const deleteActivity = (activity) => {
 					</p>
 				</div>
 
-				<!-- Action Bar (Search, Filter, Tambah Button - 100% Matching profiledosen.vue) -->
+				<!-- Action Bar (Search, Unified Filter, Tambah Button) -->
 				<div class="flex items-center gap-3">
 					<!-- Search Input -->
 					<div class="relative flex-1">
@@ -331,64 +363,123 @@ const deleteActivity = (activity) => {
 						/>
 					</div>
 
-					<!-- Filter Button with /assets/icons/filter.svg -->
+					<!-- Single Filter Button with Unified Dropdown -->
 					<div class="relative" @click.stop @keydown.escape="isFilterOpen = false">
 						<button
 							type="button"
 							@click="toggleFilterDropdown"
-							class="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition focus:outline-none"
-							:class="isFilterOpen
+							class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition focus:outline-none"
+							:class="isFilterOpen || selectedCategories.length > 0 || selectedLecturerFilter !== ''
 								? 'border-[#183669]'
 								: 'border-[#d6e0ee] hover:border-[#183669] hover:bg-[#183669]/5'"
-							title="Filter Berdasarkan Nama Dosen"
+							title="Filter Aktivitas"
 						>
-							<img src="/assets/icons/filter.svg" alt="Filter Icon" class="h-5 w-5 object-contain" />
+							<img
+								src="/assets/icons/filter.svg"
+								alt="Filter Icon"
+								class="h-5 w-5 object-contain"
+							/>
+							<!-- Red active indicator dot -->
+							<span
+								v-if="selectedCategories.length > 0 || selectedLecturerFilter !== ''"
+								class="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#ef4444] ring-2 ring-[#eef2f7]"
+							></span>
 						</button>
 
-						<!-- Filter Dropdown Menu (Searchable) -->
+						<!-- Unified Filter Dropdown Menu (Kategori + Dosen) -->
 						<div
 							v-if="isFilterOpen"
-							class="absolute right-0 z-30 mt-2 w-72 rounded-[10px] border border-[#d6e0ee] bg-white p-2 shadow-xl"
+							class="absolute right-0 z-30 mt-2 w-72 rounded-[10px] border border-[#d6e0ee] bg-white p-3 shadow-xl font-inter"
 						>
-							<p class="px-3 py-1.5 font-poppins text-xs font-bold text-[#183669] border-b border-[#f0f4f9]">
-								Filter Berdasarkan Dosen:
-							</p>
-
-							<!-- Search Box inside Filter Dropdown -->
-							<div class="relative my-1.5 px-1">
-								<div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-									<svg class="h-3.5 w-3.5 text-[#8ca1b9]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-									</svg>
-								</div>
-								<input
-									v-model="filterSearchQuery"
-									type="text"
-									placeholder="Ketik untuk mencari nama dosen..."
-									class="h-[34px] w-full rounded-[6px] border border-[#d6e0ee] bg-[#fafcff] pl-8 pr-2.5 text-xs text-[#1e3456] placeholder-[#8ca1b9] focus:border-[#183669] focus:outline-none focus:ring-0"
-									ref="filterSearchInputRef"
-									@click.stop
-								/>
+							<!-- Header with Reset All -->
+							<div class="flex items-center justify-between border-b border-[#f0f4f9] pb-2">
+								<p class="font-poppins text-xs font-bold text-[#183669]">
+									Filter Aktivitas
+								</p>
+								<button
+									v-if="selectedCategories.length > 0 || selectedLecturerFilter !== ''"
+									type="button"
+									@click="resetAllFilters"
+									class="font-inter text-[11px] font-semibold text-[#dc2626] hover:underline"
+								>
+									Reset Semua
+								</button>
 							</div>
 
-							<!-- Filter Options List -->
-							<div class="mt-1 max-h-52 overflow-y-auto space-y-1">
-								<button
-									v-for="lec in filteredLecturerFilterList"
-									:key="lec"
-									type="button"
-									@click="setLecturerFilter(lec)"
-									:class="[
-										'w-full rounded-[6px] px-3 py-1.5 text-left font-inter text-xs transition-colors truncate',
-										(selectedLecturerFilter === '' && lec === 'Semua Dosen') || selectedLecturerFilter === lec
-											? 'bg-[#183669] font-bold text-white'
-											: 'text-[#435b76] hover:bg-slate-100'
-									]"
-								>
-									{{ lec }}
-								</button>
-								<div v-if="filteredLecturerFilterList.length === 0" class="py-3 text-center text-xs text-[#8ca1b9]">
-									Tidak ada dosen yang cocok
+							<!-- 1. Kategori Section (Multi-select Checkboxes) -->
+							<div class="mt-2.5">
+								<p class="font-poppins text-[11px] font-bold text-[#183669] mb-1.5">
+									Kategori:
+								</p>
+								<div class="grid grid-cols-2 gap-1.5">
+									<label
+										v-for="cat in categoryOptions"
+										:key="cat"
+										class="flex cursor-pointer items-center gap-2 rounded-[6px] px-2 py-1.5 text-left font-inter text-xs transition-colors select-none"
+										:class="selectedCategories.includes(cat)
+											? 'bg-[#183669]/10 font-bold text-[#183669]'
+											: 'text-[#435b76] hover:bg-slate-100'"
+									>
+										<input
+											type="checkbox"
+											:value="cat"
+											:checked="selectedCategories.includes(cat)"
+											@change="toggleCategoryFilter(cat)"
+											class="h-3.5 w-3.5 rounded border-[#c3d1e4] text-[#183669] focus:ring-0 focus:ring-offset-0 cursor-pointer"
+										/>
+										<span class="truncate">{{ cat }}</span>
+									</label>
+								</div>
+							</div>
+
+							<div class="my-2.5 border-t border-[#f0f4f9]"></div>
+
+							<!-- 2. Dosen Section (Searchable List) -->
+							<div>
+								<div class="flex items-center justify-between mb-1.5">
+									<p class="font-poppins text-[11px] font-bold text-[#183669]">
+										Dosen:
+									</p>
+									<span v-if="selectedLecturerFilter" class="text-[11px] text-[#183669] font-medium truncate max-w-[130px]" :title="selectedLecturerFilter">
+										{{ selectedLecturerFilter }}
+									</span>
+								</div>
+
+								<!-- Search Box inside Filter Dropdown -->
+								<div class="relative mb-1.5">
+									<div class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center">
+										<svg class="h-3.5 w-3.5 text-[#8ca1b9]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+										</svg>
+									</div>
+									<input
+										v-model="filterSearchQuery"
+										type="text"
+										placeholder="Ketik untuk mencari nama dosen..."
+										class="h-[32px] w-full rounded-[6px] border border-[#d6e0ee] bg-[#fafcff] pl-7 pr-2.5 text-xs text-[#1e3456] placeholder-[#8ca1b9] focus:border-[#183669] focus:outline-none focus:ring-0"
+										@click.stop
+									/>
+								</div>
+
+								<!-- Filter Options List -->
+								<div class="max-h-36 overflow-y-auto space-y-0.5 pr-0.5">
+									<button
+										v-for="lec in filteredLecturerFilterList"
+										:key="lec"
+										type="button"
+										@click="setLecturerFilter(lec)"
+										:class="[
+											'w-full rounded-[6px] px-2.5 py-1 text-left font-inter text-xs transition-colors truncate',
+											(selectedLecturerFilter === '' && lec === 'Semua Dosen') || selectedLecturerFilter === lec
+												? 'bg-[#183669] font-bold text-white'
+												: 'text-[#435b76] hover:bg-slate-100'
+										]"
+									>
+										{{ lec }}
+									</button>
+									<div v-if="filteredLecturerFilterList.length === 0" class="py-2 text-center text-xs text-[#8ca1b9]">
+										Tidak ada dosen yang cocok
+									</div>
 								</div>
 							</div>
 						</div>
@@ -468,8 +559,8 @@ const deleteActivity = (activity) => {
 								<td class="px-3 py-2.5 text-left" :title="activity.lecturer || activity.lecturerName">
 									<span class="block truncate">{{ activity.lecturer || activity.lecturerName }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
-									<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
+								<td class="px-3 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
+									<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
 								</td>
 								<td class="px-3 py-2.5 text-left" :title="activity.role">
 									<span class="block truncate">{{ activity.role }}</span>

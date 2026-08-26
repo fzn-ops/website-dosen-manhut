@@ -282,6 +282,30 @@ const handleSubmit = () => {
 							/>
 						</div>
 
+						<!-- Kategori Checkboxes -->
+						<div>
+							<label class="block text-[14px] font-bold text-[#183669]">
+								Kategori<span class="text-red-500">*</span>
+							</label>
+							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Pilih kategori aktivitas yang sesuai</p>
+							<div class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 font-inter text-[13px] text-[#1e3456]">
+								<label
+									v-for="cat in categoryOptions"
+									:key="cat"
+									class="inline-flex cursor-pointer items-center gap-2 select-none"
+								>
+									<input
+										type="checkbox"
+										:value="cat"
+										:checked="form.categories.includes(cat)"
+										@change="toggleCategory(cat)"
+										class="h-4 w-4 rounded border-[#c3d1e4] text-[#183669] focus:ring-0 focus:ring-offset-0"
+									/>
+									<span class="font-medium text-[#2f4b6e]">{{ cat }}</span>
+								</label>
+							</div>
+						</div>
+
 						<!-- Peran -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
@@ -415,30 +439,6 @@ const handleSubmit = () => {
 							</div>
 						</div>
 
-						<!-- Kategori Checkboxes -->
-						<div>
-							<label class="block text-[14px] font-bold text-[#183669]">
-								Kategori<span class="text-red-500">*</span>
-							</label>
-							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Pilih kategori aktivitas yang sesuai</p>
-							<div class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 font-inter text-[13px] text-[#1e3456]">
-								<label
-									v-for="cat in categoryOptions"
-									:key="cat"
-									class="inline-flex cursor-pointer items-center gap-2 select-none"
-								>
-									<input
-										type="checkbox"
-										:value="cat"
-										:checked="form.categories.includes(cat)"
-										@change="toggleCategory(cat)"
-										class="h-4 w-4 rounded border-[#c3d1e4] text-[#183669] focus:ring-0 focus:ring-offset-0"
-									/>
-									<span class="font-medium text-[#2f4b6e]">{{ cat }}</span>
-								</label>
-							</div>
-						</div>
-
 						<!-- Tanggal Mulai & Tanggal Selesai Subgrid -->
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 items-start">
 							<!-- Tanggal Mulai -->
@@ -474,14 +474,13 @@ const handleSubmit = () => {
 						<!-- Pesan Singkat Dosen (Kutipan) -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
-								Pesan Singkat Dosen (Quotes)
+								Pesan Singkat Dosen<span class="text-red-500">*</span>
 							</label>
 							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">Pesan atau kesan Anda mengenai kegiatan ini</p>
 							<textarea
 								v-model="form.lecturerQuote"
-								rows="2"
-								placeholder="Pelatihan ini sangat berkesan dan bermanfaat..."
-								class="mt-1.5 w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+								placeholder="Pelatihan ini sangat berkesan dan bermanfaat, saya merasa berkembang setelah mengikuti kegiatan ini..."
+								class="mt-1.5 h-[245px] min-h-[230px] max-h-[360px] w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0 resize-y leading-relaxed"
 							></textarea>
 						</div>
 					</div>
