@@ -4,7 +4,7 @@
     </x-slot>
 
     {{-- Data Dummy (Pastikan ada 'date_raw' format YYYY-MM-DD) --}}
-    @php
+<!--     @php
         $aktivitasList = [
             ['kategori' => 'Tutor', 'dosen' => 'Prof. Fulani Fulano', 'tanggal' => '10 Juni 2029', 'date_raw' => '2029-06-10', 'judul' => 'Penguatan Kapasitas Kelompok Tani Hutan', 'desc' => 'Kegiatan pengabdian kepada masyarakat dalam rangka penguatan kapasitas kelompok tani hutan menuju pengelolaan hutan rakyat lestari.', 'slug' => 'penguatan-kapasitas-kelompok-tani-hutan'],
             ['kategori' => 'Pembicara', 'dosen' => 'Dr. Budi Santoso', 'tanggal' => '12 Juni 2029', 'date_raw' => '2029-06-12', 'judul' => 'Seminar Nasional Perencanaan Kehutanan', 'desc' => 'Seminar nasional membahas strategi perencanaan kehutanan di era perubahan iklim dan dampaknya terhadap ekosistem.', 'slug' => 'seminar-nasional-perencanaan-kehutanan'],
@@ -13,7 +13,7 @@
             ['kategori' => 'Seminar', 'dosen' => 'Ir. Rudi Hermawan', 'tanggal' => '22 Juni 2029', 'date_raw' => '2029-06-22', 'judul' => 'Kebijakan Resolusi Konflik Tenurial Kehutanan', 'desc' => 'Diskusi panel mengenai kebijakan terbaru dalam penyelesaian konflik tenurial di kawasan hutan negara dan hutan adat.', 'slug' => 'kebijakan-resolusi-konflik-tenurial-kehutanan'],
             ['kategori' => 'Lomba', 'dosen' => 'Dr. Fitri Ani', 'tanggal' => '25 Juni 2029', 'date_raw' => '2029-06-25', 'judul' => 'Lomba Karya Tulis Ilmiah Kehutanan Nasional', 'desc' => 'Pendampingan mahasiswa dalam penyusunan karya tulis ilmiah tingkat nasional dengan tema inovasi pengelolaan hutan lestari.', 'slug' => 'lomba-karya-tulis-ilmiah-kehutanan-nasional']
         ];
-    @endphp
+    @endphp -->
 
     <div class="bg-[#fafafc] w-full min-h-screen py-12 md:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,34 +91,41 @@
             {{-- 3. Grid Daftar Aktivitas --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="aktivitasGrid">
                 
-                @foreach ($aktivitasList as $item)
-                {{-- Ubah <div> menjadi <a> dan tambahkan href serta class 'block' --}}
-                <a href="{{ url('/activity/' . $item['slug']) }}" 
-                   class="aktivitas-card block bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer text-left" 
-                     data-judul="{{ strtolower($item['judul']) }}" 
-                     data-dosen="{{ strtolower($item['dosen']) }}"
-                     data-kategori="{{ strtolower($item['kategori']) }}"
-                     data-date="{{ $item['date_raw'] }}">
-                    
-                    <div class="w-full h-48 md:h-[220px] rounded-xl mb-4 overflow-hidden bg-gray-100">
-                        <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-105"></div>
-                    </div>
-                    
-                    <div class="flex flex-wrap justify-between items-center text-[10px] md:text-xs text-[#1a3675] font-bold mb-2">
-                        <span>{{ $item['kategori'] }} &bull; {{ $item['dosen'] }}</span>
-                        <span>{{ $item['tanggal'] }}</span>
-                    </div>
-                    
-                    <h3 class="text-lg md:text-xl font-bold text-[#1a3675] mb-2 group-hover:text-blue-700 transition-colors line-clamp-2">
-                        {{ $item['judul'] }}
-                    </h3>
-                    
-                    <p class="text-xs text-gray-500 leading-relaxed line-clamp-3">
-                        {{ $item['desc'] }}
-                    </p>
-                    
-                </a>
-                @endforeach
+            {{-- Ganti $aktivitasList menjadi $activities (sesuai nama variabel dari Controller) --}}
+            @foreach ($activities as $item)
+            <a href="{{ route('activity.show', $item->id) }}" 
+               class="aktivitas-card block bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer text-left" 
+                 data-judul="{{ strtolower($item->activity_name) }}" 
+                 data-dosen="{{ strtolower($item->user->name ?? 'Nama Dosen') }}"
+                 data-kategori="{{ strtolower(is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type) }}"
+                 data-date="{{ $item->activity_date_start->format('Y-m-d') }}">
+                
+                <div class="w-full h-48 md:h-[220px] rounded-xl mb-4 overflow-hidden bg-gray-100 relative">
+                    {{-- Tampilkan gambar utama jika ada, jika tidak pakai warna abu-abu default --}}
+                    @if($item->primaryPicture)
+                        <img src="{{ asset('storage/' . $item->primaryPicture->path) }}" 
+                             alt="{{ $item->activity_name }}" 
+                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                    @else
+                        <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-105 flex items-center justify-center text-gray-400">
+                            <span>No Image</span>
+                        </div>
+                    @endif
+                </div>
+                
+                <div class="flex flex-wrap justify-between items-center text-[10px] md:text-xs text-[#1a3675] font-bold mb-2">
+                    <span>{{ is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type }} &bull; {{$item->user->name ?? 'Nama Dosen' }}</span>
+                    <span>{{ $item->activity_date_start->translatedFormat('d F Y') }}</span>
+                </div>
+                
+                <h3 class="text-lg md:text-xl font-bold text-[#1a3675] mb-2 group-hover:text-blue-700 transition-colors line-clamp-2">
+                    {{ $item->activity_name }}
+                </h3>
+                <p class="text-xs text-gray-500 leading-relaxed line-clamp-3">
+                    {{ $item->description }}
+                </p>
+            </a>
+            @endforeach
 
             </div>
 

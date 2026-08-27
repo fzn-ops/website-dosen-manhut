@@ -4,6 +4,7 @@ use App\Http\Controllers\Dashboard\Admin\ProfileDosenController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LandingPage\ActivityController;
 use Inertia\Inertia;
 
 /* Landing Page Routes (Blade Views) */
@@ -20,9 +21,11 @@ Route::get('/lecturers', function () {
     return view('pages.lecturer.lecturers');
 })->name('lecturers');
 
-Route::get('/activities', function () {
-    return view('pages.activity.activities');
-})->name('activities');
+
+
+Route::get('/activities', [ActivityController::class, 'index'])->name('activities.index');
+
+Route::get('/activities/{id}', [ActivityController::class, 'show'])->name('activity.show');
 
 /* Route Auth */
 
@@ -89,9 +92,7 @@ Route::get('/dosen/{slug}', function ($slug) {
 })->where('slug', '^(?!dashboard|aktivitas|profile).*$')->name('lecturer.show');
 
 
-Route::get('/activity/{slug}', function ($slug) {
-    return view('pages.activity.show', compact('slug'));
-})->where('slug', '^(?!dashboard|aktivitas|profile).*$')->name('activity.show');
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated Profile Routes (Gatau apaan kaga dipake kayaknya)
