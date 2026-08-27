@@ -45,35 +45,84 @@ const handleClose = () => {
 	emit('close');
 };
 
-// Revalidate all parsed rows for duplicates & completeness
+// Revalidate all parsed rows for duplicates & completeness (only NIP and Username cannot be duplicated)
 const revalidateParsedData = () => {
-	const seenNipsInBatch = new Set();
-	const existingSystemNips = new Set(props.existingLecturers.map((l) => (l.nip || '').toLowerCase().trim()));
+	const nipCounts = {};
+	const usernameCounts = {};
 
+	const existingSystemNips = new Set(
+		props.existingLecturers
+			.map((l) => (l.nip || '').toString().toLowerCase().trim())
+			.filter((n) => n && n !== '-')
+	);
+	const existingSystemUsernames = new Set(
+		props.existingLecturers
+			.map((l) => (l.username || '').toString().toLowerCase().trim())
+			.filter((u) => u && u !== '-')
+	);
+
+	// First pass: count occurrences within the batch so all duplicate rows get flagged
 	parsedData.value.forEach((item) => {
-		const nipClean = (item.nip || '').trim();
-		const nipLower = nipClean.toLowerCase();
+		const nipClean = (item.nip || '').toString().trim().toLowerCase();
+		const usernameClean = (item.username || '').toString().trim().toLowerCase();
 
-		if (!nipClean || nipClean === '-' || !item.name || item.name === 'Tanpa Nama') {
-			item.isDuplicate = false;
-			item.duplicateReason = '';
-			item.isValid = false;
+		if (nipClean && nipClean !== '-') {
+			nipCounts[nipClean] = (nipCounts[nipClean] || 0) + 1;
+		}
+		if (usernameClean && usernameClean !== '-') {
+			usernameCounts[usernameClean] = (usernameCounts[usernameClean] || 0) + 1;
+		}
+	});
+
+	// Second pass: mark duplicates and validity
+	parsedData.value.forEach((item) => {
+		const nipClean = (item.nip || '').toString().trim();
+		const nameClean = (item.name || '').toString().trim();
+		const usernameClean = (item.username || '').toString().trim();
+		const nipLower = nipClean.toLowerCase();
+		const usernameLower = usernameClean.toLowerCase();
+
+		item.isNipDuplicate = false;
+		item.isUsernameDuplicate = false;
+		item.isDuplicate = false;
+		item.duplicateReason = '';
+		item.isValid = false;
+
+		if (!nipClean || nipClean === '-' || !nameClean || nameClean === 'Tanpa Nama') {
 			return;
 		}
 
+		// Cek NIP duplikat (ke sistem atau sesama baris tabel)
 		if (existingSystemNips.has(nipLower)) {
+			item.isNipDuplicate = true;
+			item.nipDuplicateReason = 'NIP sudah terdaftar di sistem';
+		} else if (nipCounts[nipLower] > 1) {
+			item.isNipDuplicate = true;
+			item.nipDuplicateReason = 'NIP duplikat dengan baris lain di tabel';
+		}
+
+		// Cek Username duplikat (ke sistem atau sesama baris tabel)
+		if (usernameClean && usernameClean !== '-') {
+			if (existingSystemUsernames.has(usernameLower)) {
+				item.isUsernameDuplicate = true;
+				item.usernameDuplicateReason = 'Username sudah terdaftar di sistem';
+			} else if (usernameCounts[usernameLower] > 1) {
+				item.isUsernameDuplicate = true;
+				item.usernameDuplicateReason = 'Username duplikat dengan baris lain di tabel';
+			}
+		}
+
+		if (item.isNipDuplicate && item.isUsernameDuplicate) {
 			item.isDuplicate = true;
-			item.duplicateReason = 'NIP sudah terdaftar di sistem';
-			item.isValid = false;
-		} else if (seenNipsInBatch.has(nipLower)) {
+			item.duplicateReason = 'NIP & Username duplikat';
+		} else if (item.isNipDuplicate) {
 			item.isDuplicate = true;
-			item.duplicateReason = 'NIP duplikat di dalam file';
-			item.isValid = false;
+			item.duplicateReason = item.nipDuplicateReason || 'NIP duplikat';
+		} else if (item.isUsernameDuplicate) {
+			item.isDuplicate = true;
+			item.duplicateReason = item.usernameDuplicateReason || 'Username duplikat';
 		} else {
-			item.isDuplicate = false;
-			item.duplicateReason = '';
 			item.isValid = true;
-			seenNipsInBatch.add(nipLower);
 		}
 	});
 };
@@ -82,6 +131,9 @@ const duplicateCount = computed(() => parsedData.value.filter((p) => p.isDuplica
 const incompleteCount = computed(() => parsedData.value.filter((p) => !p.isValid && !p.isDuplicate).length);
 const validCount = computed(() => parsedData.value.filter((p) => p.isValid && !p.isDuplicate).length);
 
+const hasNipDuplicate = computed(() => parsedData.value.some((p) => p.isNipDuplicate));
+const hasUsernameDuplicate = computed(() => parsedData.value.some((p) => p.isUsernameDuplicate));
+
 // Download Real Excel (.xlsx) Template
 const downloadExcelTemplate = () => {
 	const sampleData = [
@@ -89,7 +141,7 @@ const downloadExcelTemplate = () => {
 			'NIP': 'J0403231088',
 			'Nama Dosen': 'Dr. Ir. Budi Santoso M.Sc.',
 			'Username': 'budisantoso',
-			'Password': '',
+			'Password': 'J0403231088',
 			'Email': 'budi.santoso@apps.ipb.ac.id',
 			'Nomor Handphone': '+62 812-3456-7890',
 		},
@@ -97,7 +149,7 @@ const downloadExcelTemplate = () => {
 			'NIP': 'J0403231099',
 			'Nama Dosen': 'Siti Aminah M.Kom.',
 			'Username': 'sitiaminah',
-			'Password': '',
+			'Password': 'J0403231099',
 			'Email': 'siti.aminah@apps.ipb.ac.id',
 			'Nomor Handphone': '+62 813-9876-5432',
 		},
@@ -105,7 +157,7 @@ const downloadExcelTemplate = () => {
 			'NIP': 'J0403231105',
 			'Nama Dosen': 'Hendra Setiawan Ph.D.',
 			'Username': 'hendrasetiawan',
-			'Password': '',
+			'Password': 'J0403231105',
 			'Email': 'hendra.s@apps.ipb.ac.id',
 			'Nomor Handphone': '+62 815-6789-0123',
 		},
@@ -432,11 +484,12 @@ const handleBackdropMouseUp = (e) => {
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
 						</svg>
 						<span>
-							<template v-if="duplicateCount > 0 && incompleteCount > 0">
-								Terdeteksi <strong>{{ duplicateCount }} NIP duplikat</strong> dan <strong>{{ incompleteCount }} data tidak lengkap</strong>.
-							</template>
-							<template v-else-if="duplicateCount > 0">
-								Terdeteksi <strong>{{ duplicateCount }} data dengan NIP duplikat</strong>.
+							<template v-if="duplicateCount > 0">
+								Terdeteksi
+								<strong v-if="hasNipDuplicate && hasUsernameDuplicate"> {{ duplicateCount }} data dengan NIP & Username duplikat</strong>
+								<strong v-else-if="hasNipDuplicate"> {{ duplicateCount }} data dengan NIP duplikat</strong>
+								<strong v-else-if="hasUsernameDuplicate"> {{ duplicateCount }} data dengan Username duplikat</strong>
+								<strong v-else> {{ duplicateCount }} data duplikat</strong><template v-if="incompleteCount > 0"> dan <strong>{{ incompleteCount }} data tidak lengkap</strong></template>.
 							</template>
 							<template v-else>
 								Terdeteksi <strong>{{ incompleteCount }} data tidak lengkap</strong> (NIP/Nama kosong).
@@ -468,16 +521,17 @@ const handleBackdropMouseUp = (e) => {
 					</div>
 
 					<div class="max-h-[290px] overflow-auto rounded-[10px] border border-[#d6e0ee] shadow-sm">
-						<table class="w-full min-w-[780px] border-separate border-spacing-0 text-left text-xs">
+						<table class="w-full min-w-[880px] border-separate border-spacing-0 text-left text-xs">
 							<thead class="sticky top-0 z-20 bg-[#183669] font-poppins text-white shadow-sm">
 								<tr>
 									<th class="w-10 px-3 py-2.5 text-center">No</th>
 									<th class="min-w-[150px] px-3.5 py-2.5">Nama Dosen</th>
 									<th class="min-w-[120px] px-3 py-2.5 text-center">NIP</th>
 									<th class="min-w-[110px] px-3 py-2.5">Username</th>
+									<th class="min-w-[120px] px-3 py-2.5">Password</th>
 									<th class="min-w-[160px] px-3.5 py-2.5">Email</th>
 									<th class="min-w-[145px] px-3.5 py-2.5 text-center whitespace-nowrap">No. HP</th>
-									<th class="min-w-[90px] px-2.5 py-2.5 text-center">Status</th>
+									<th class="min-w-[100px] px-2.5 py-2.5 text-center">Status</th>
 									<th class="sticky right-0 z-30 w-28 bg-[#183669] px-3 py-2.5 text-center shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.18)]">Aksi</th>
 								</tr>
 							</thead>
@@ -502,6 +556,9 @@ const handleBackdropMouseUp = (e) => {
 										<td class="px-3 py-2 text-[#5a718d] border-b border-[#d6e0ee]" :title="item.username">
 											<span class="block truncate max-w-[110px]">{{ item.username }}</span>
 										</td>
+										<td class="px-3 py-2 text-[#5a718d] border-b border-[#d6e0ee]" :title="item.password || item.nip">
+											<span class="block truncate max-w-[110px]">{{ item.password || item.nip }}</span>
+										</td>
 										<td class="px-3.5 py-2 text-[#5a718d] border-b border-[#d6e0ee]" :title="item.email">
 											<span class="block truncate max-w-[160px]">{{ item.email }}</span>
 										</td>
@@ -512,9 +569,9 @@ const handleBackdropMouseUp = (e) => {
 											<span
 												v-if="item.isDuplicate"
 												:title="item.duplicateReason"
-												class="inline-block rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700"
+												class="inline-block rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 cursor-help"
 											>
-												Duplikat
+												{{ item.isNipDuplicate && item.isUsernameDuplicate ? 'NIP & User Duplikat' : item.isNipDuplicate ? 'NIP Duplikat' : item.isUsernameDuplicate ? 'Username Duplikat' : 'Duplikat' }}
 											</span>
 											<span
 												v-else-if="item.isValid"
@@ -574,6 +631,14 @@ const handleBackdropMouseUp = (e) => {
 												type="text"
 												placeholder="Username"
 												class="h-8 w-full rounded-[6px] border border-[#d6e0ee] px-2.5 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
+											/>
+										</td>
+										<td class="px-2 py-1.5 border-b border-[#d6e0ee] bg-amber-50/40">
+											<input
+												v-model="editRowForm.password"
+												type="text"
+												placeholder="Password (default NIP)"
+												class="h-8 w-full min-w-[110px] rounded-[6px] border border-[#d6e0ee] px-2.5 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
 										<td class="px-2 py-1.5 border-b border-[#d6e0ee] bg-amber-50/40">

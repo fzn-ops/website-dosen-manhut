@@ -69,7 +69,7 @@
                             <h2 class="text-sm font-bold tracking-wide">Research Interest</h2>
                         </div>
                         <div class="bg-white p-4">
-                            <p class="text-sm text-gray-700"><span class="font-semibold text-gray-900 w-35 inline-block">Ketertarikan Bidang</span> : {{ $lecturer->research}}</p>
+                            <p class="text-sm text-gray-700"><span class="font-semibold text-gray-900 w-35 inline-block">{{ $lecturer->research}}
                         </div>
                     </div>
 

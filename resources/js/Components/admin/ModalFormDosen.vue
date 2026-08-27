@@ -120,12 +120,25 @@ const handleSubmit = () => {
 	// Validate duplicate NIP against existingLecturers
 	const isNipDuplicate = props.existingLecturers.some((l) => {
 		if (props.isEditing && l.id === props.editingId) return false;
-		return l.nip.toLowerCase() === inputNip.toLowerCase();
+		return (l.nip || '').toLowerCase().trim() === inputNip.toLowerCase().trim();
 	});
 
 	if (isNipDuplicate) {
 		formError.value = `NIP "${inputNip}" sudah terdaftar. NIP tidak boleh duplikat.`;
 		return;
+	}
+
+	// Validate duplicate Username against existingLecturers
+	if (inputUsername) {
+		const isUsernameDuplicate = props.existingLecturers.some((l) => {
+			if (props.isEditing && l.id === props.editingId) return false;
+			return (l.username || '').toLowerCase().trim() === inputUsername.toLowerCase().trim();
+		});
+
+		if (isUsernameDuplicate) {
+			formError.value = `Username "${inputUsername}" sudah digunakan oleh akun lain.`;
+			return;
+		}
 	}
 
 	emit('submit', {

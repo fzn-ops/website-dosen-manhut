@@ -68,9 +68,10 @@ const searchQuery = ref('');
 
 // Sorting
 const columns = [
-	{ key: 'name', label: 'Nama Dosen', sortable: true, align: 'center', width: 'w-[20%]' },
-	{ key: 'nip', label: 'NIP', sortable: true, align: 'center', width: 'w-[20%]' },
-	{ key: 'email', label: 'Email', sortable: true, align: 'center', width: 'w-[27%]' },
+	{ key: 'nip', label: 'NIP', sortable: true, align: 'center', width: 'w-[15%]' },
+	{ key: 'name', label: 'Nama Dosen', sortable: true, align: 'center', width: 'w-[25%]' },
+	{ key: 'username', label: 'Username', sortable: true, align: 'center', width: 'w-[15%]' },
+	{ key: 'email', label: 'Email', sortable: true, align: 'center', width: 'w-[25%]' },
 	{ key: 'phone', label: 'Nomor Handphone', sortable: true, align: 'center', width: 'w-[18%]' },
 	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
@@ -329,12 +330,17 @@ const deleteLecturer = (lecturer) => {
 								:key="lecturer.id"
 								class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
 							>
-								<td class="px-3 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
+								<td class="px-3 py-2.5 text-center font-medium">
+									{{ (currentPage - 1) * rowsPerPage + idx + 1 }}
+								</td>
+								<td class="px-3 py-2.5 text-left" :title="lecturer.nip">
+									<span class="block truncate">{{ lecturer.nip }}</span>
+								</td>
 								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="lecturer.name">
 									<span class="block truncate">{{ lecturer.name }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-center" :title="lecturer.nip">
-									<span class="block truncate">{{ lecturer.nip }}</span>
+								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="lecturer.username">
+									<span class="block truncate">{{ lecturer.username }}</span>
 								</td>
 								<td :class="['px-3 py-2.5', lecturer.email && lecturer.email !== '-' ? 'text-left' : 'text-center']" :title="lecturer.email">
 									<a

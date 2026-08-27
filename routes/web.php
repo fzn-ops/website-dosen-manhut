@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dashboard\Admin\DosenController;
 use App\Http\Controllers\Dashboard\Admin\ProfileDosenController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -44,9 +45,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         return Inertia::render('Admin/dashboard');
     })->name('admin.dashboard');
 
-    Route::get('/dosen', function () {
-        return Inertia::render('Admin/dosen');
-    })->name('admin.dosen');
+    // Dosen Account Routes (CRUD User role: dosen)
+    Route::get('/dosen', [DosenController::class, 'index'])->name('admin.dosen');
+    Route::post('/dosen', [DosenController::class, 'store'])->name('admin.dosen.store');
+    Route::put('/dosen/{id}', [DosenController::class, 'update'])->name('admin.dosen.update');
+    Route::delete('/dosen/{id}', [DosenController::class, 'destroy'])->name('admin.dosen.destroy');
+    Route::post('/dosen/import', [DosenController::class, 'import'])->name('admin.dosen.import');
 
     // Profile Dosen Routes
     Route::get('/profile-dosen', [ProfileDosenController::class, 'index'])->name('admin.profiledosen');

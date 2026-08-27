@@ -433,7 +433,7 @@ const deleteProfile = (profile) => {
 								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="profile.name">
 									<span class="block truncate">{{ profile.name }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-center" :title="profile.division">
+								<td class="px-3 py-2.5 text-left" :title="profile.division">
 									<span class="block truncate">{{ profile.division }}</span>
 								</td>
 								<td class="px-3 py-2.5 text-center" :title="profile.research">
