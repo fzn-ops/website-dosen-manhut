@@ -3,7 +3,7 @@
         Detail Dosen | Si Fulan
     </x-slot>
 
-    {{-- Data Dummy --}}
+<!--     {{-- Data Dummy --}}
     @php
         $educationList = [
             ['degree' => 'Bachelor', 'major' => 'Ilmu Hutan Rakyat', 'univ' => 'Universitas Indonesia', 'year' => '2001'],
@@ -24,38 +24,42 @@
             ['nama' => 'Konferensi Perubahan Iklim', 'role' => 'Keynote Speaker', 'year' => '2025', 'month' => 'Desember', 'desc' => 'Lorem ipsum dolor sit amet, cupidatat eiusmod duis ut. Magna dolore dolor ex elit sed non cillum do aliqua adipiscing ad. Ullamco fugiat occaecat proident dolore incididunt eu pariatur officia.'],
             ['nama' => 'Konferensi Perubahan Iklim', 'role' => 'Keynote Speaker', 'year' => '2025', 'month' => 'Desember', 'desc' => 'Lorem ipsum dolor sit amet, cupidatat eiusmod duis ut. Magna dolore dolor ex elit sed non cillum do aliqua adipiscing ad. Ullamco fugiat occaecat proident dolore incididunt eu pariatur officia.'],
         ];
-    @endphp
+    @endphp -->
 
     <div class="bg-[#fafafc] w-full min-h-screen py-8 md:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             {{-- Breadcrumb --}}
             <nav class="text-sm font-medium text-gray-500 mb-6">
-                <a href="{{ url('/dosen') }}" class="hover:text-[#1a3675]">Dosen</a>
+                <a href="{{ url('/lecturers') }}" class="hover:text-[#1a3675]">Dosen</a>
                 <span class="mx-1">/</span>
-                <span class="text-[#1a3675] underline decoration-[#1a3675]/30 underline-offset-4">Si Fulan</span>
+                <span class="text-[#1a3675] underline decoration-[#1a3675]/30 underline-offset-4">{{ $lecturer->user->name }}</span>
             </nav>
 
             {{-- BAGIAN ATAS (Profil & Info Akademik) --}}
             <div class="flex flex-col md:flex-row gap-8 mb-12">
                 <div class="w-full md:w-1/3 lg:w-1/4 shrink-0">
                     <div class="w-full aspect-[3/4.2] bg-gray-200 rounded-2xl overflow-hidden shadow-md">
-                        <div class="w-full h-full bg-[#cbd5e1]"></div>
+                        <div class="w-full h-full bg-[#cbd5e1]">
+                            <img src="{{ asset('storage/' . $lecturer->image) }}" 
+                                alt="{{ $lecturer->user->name }}"
+                                class="w-full h-full object-cover">
+                        </div>
                     </div>
                 </div>
 
                 <div class="w-full md:w-2/3 lg:w-3/4 flex flex-col">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-8 gap-4">
                         <div>
-                            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1">Si Fulan</h1>
-                            <p class="text-sm text-gray-600 font-medium">Divisi Hasil Hutan dan Sosial</p>
+                            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1">{{ $lecturer->user->name }}</h1>
+                            <p class="text-sm text-gray-600 font-medium">{{ $lecturer->division }}</p>
                         </div>
                         <div class="text-left sm:text-right text-xs text-gray-600">
                             <div class="flex sm:justify-end gap-3 mb-1">
-                                <a href="#" class="text-[#1a3675] underline hover:text-blue-800">Scholar</a>
-                                <a href="#" class="text-[#1a3675] underline hover:text-blue-800">Scopus</a>
+                                <a href="{{ $lecturer->scholar_link }}" class="text-[#1a3675] underline hover:text-blue-800">Scholar</a>
+                                <a href="{{ $lecturer->linkedin_link }}" class="text-[#1a3675] underline hover:text-blue-800">LinkedIn</a>
                             </div>
-                            <p>Contact: fulan@gmail.com</p>
+                            <p>Contact: {{ $lecturer->user->email }}</p>
                         </div>
                     </div>
 
@@ -65,7 +69,7 @@
                             <h2 class="text-sm font-bold tracking-wide">Research Interest</h2>
                         </div>
                         <div class="bg-white p-4">
-                            <p class="text-sm text-gray-700"><span class="font-semibold text-gray-900 w-35 inline-block">Ketertarikan Bidang</span> : Kayu Jati</p>
+                            <p class="text-sm text-gray-700"><span class="font-semibold text-gray-900 w-35 inline-block">Ketertarikan Bidang</span> : {{ $lecturer->research}}</p>
                         </div>
                     </div>
 
@@ -85,14 +89,23 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($educationList as $edu)
-                                    <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition">
-                                        <td class="px-4 py-3">{{ $edu['degree'] }}</td>
-                                        <td class="px-4 py-3">{{ $edu['major'] }}</td>
-                                        <td class="px-4 py-3">{{ $edu['univ'] }}</td>
-                                        <td class="px-4 py-3 text-center">{{ $edu['year'] }}</td>
-                                    </tr>
-                                    @endforeach
+                                    @if(!empty($lecturer['educations']) && is_array($lecturer['educations']))
+                                        @foreach ($lecturer['educations'] as $edu)
+                                        <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition">
+                                            {{-- Karena sudah di-cast jadi array, kita pakai gaya kurung siku --}}
+                                            <td class="px-4 py-3">{{ $edu['degree'] ?? '-' }}</td>
+                                            <td class="px-4 py-3">{{ $edu['major'] ?? '-' }}</td>
+                                            <td class="px-4 py-3">{{ $edu['university'] ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-center">{{ $edu['graduationYear'] ?? '-' }}</td>
+                                        </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="4" class="px-4 py-3 text-center text-gray-500">
+            Belum ada riwayat pendidikan.
+                                            </td>
+                                        </tr>
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
