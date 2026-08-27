@@ -1,6 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import * as XLSX from 'xlsx';
+import EditButtonTable from '@/Components/EditButtonTable.vue';
+import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 
 const props = defineProps({
 	show: {
@@ -23,7 +25,7 @@ const fileInputRef = ref(null);
 
 // Inline edit in preview table
 const editingRowIndex = ref(null);
-const editRowForm = ref({ nip: '', name: '', email: '', phone: '' });
+const editRowForm = ref({ nip: '', name: '', username: '', password: '', email: '', phone: '' });
 
 // Reset state when modal is opened or closed
 watch(
@@ -46,7 +48,7 @@ const handleClose = () => {
 // Revalidate all parsed rows for duplicates & completeness
 const revalidateParsedData = () => {
 	const seenNipsInBatch = new Set();
-	const existingSystemNips = new Set(props.existingLecturers.map((l) => l.nip.toLowerCase().trim()));
+	const existingSystemNips = new Set(props.existingLecturers.map((l) => (l.nip || '').toLowerCase().trim()));
 
 	parsedData.value.forEach((item) => {
 		const nipClean = (item.nip || '').trim();
@@ -86,20 +88,26 @@ const downloadExcelTemplate = () => {
 		{
 			'NIP': 'J0403231088',
 			'Nama Dosen': 'Dr. Ir. Budi Santoso M.Sc.',
+			'Username': 'budisantoso',
+			'Password': '',
 			'Email': 'budi.santoso@apps.ipb.ac.id',
-			'Nomor Handphone': '+62 812 3456 7890',
+			'Nomor Handphone': '+62 812-3456-7890',
 		},
 		{
 			'NIP': 'J0403231099',
 			'Nama Dosen': 'Siti Aminah M.Kom.',
+			'Username': 'sitiaminah',
+			'Password': '',
 			'Email': 'siti.aminah@apps.ipb.ac.id',
-			'Nomor Handphone': '+62 813 9876 5432',
+			'Nomor Handphone': '+62 813-9876-5432',
 		},
 		{
 			'NIP': 'J0403231105',
 			'Nama Dosen': 'Hendra Setiawan Ph.D.',
+			'Username': 'hendrasetiawan',
+			'Password': '',
 			'Email': 'hendra.s@apps.ipb.ac.id',
-			'Nomor Handphone': '+62 815 6789 0123',
+			'Nomor Handphone': '+62 815-6789-0123',
 		},
 	];
 
@@ -108,6 +116,8 @@ const downloadExcelTemplate = () => {
 	worksheet['!cols'] = [
 		{ wch: 18 }, // NIP
 		{ wch: 32 }, // Nama Dosen
+		{ wch: 20 }, // Username
+		{ wch: 20 }, // Password
 		{ wch: 32 }, // Email
 		{ wch: 22 }, // Nomor Handphone
 	];
@@ -158,6 +168,8 @@ const processFile = async (file) => {
 		const headers = rawRows[0].map((h) => String(h).toLowerCase().trim());
 		const nipIdx = headers.findIndex((h) => h.includes('nip'));
 		const nameIdx = headers.findIndex((h) => h.includes('nama') || h.includes('name') || h.includes('dosen'));
+		const usernameIdx = headers.findIndex((h) => h.includes('username') || h.includes('user'));
+		const passwordIdx = headers.findIndex((h) => h.includes('password') || h.includes('sandi') || h.includes('pass'));
 		const emailIdx = headers.findIndex((h) => h.includes('email') || h.includes('surel'));
 		const phoneIdx = headers.findIndex((h) => h.includes('hp') || h.includes('handphone') || h.includes('phone') || h.includes('telp') || h.includes('nomor') || h.includes('wa'));
 
@@ -168,13 +180,17 @@ const processFile = async (file) => {
 
 			const nip = nipIdx !== -1 ? String(row[nipIdx]).trim() : (row[0] ? String(row[0]).trim() : '');
 			const name = nameIdx !== -1 ? String(row[nameIdx]).trim() : (row[1] ? String(row[1]).trim() : '');
-			const email = emailIdx !== -1 ? String(row[emailIdx]).trim() : (row[2] ? String(row[2]).trim() : '-');
-			const phone = phoneIdx !== -1 ? String(row[phoneIdx]).trim() : (row[3] ? String(row[3]).trim() : '-');
+			const username = usernameIdx !== -1 ? String(row[usernameIdx]).trim() : '';
+			const password = passwordIdx !== -1 ? String(row[passwordIdx]).trim() : '';
+			const email = emailIdx !== -1 ? String(row[emailIdx]).trim() : (row[4] ? String(row[4]).trim() : '');
+			const phone = phoneIdx !== -1 ? String(row[phoneIdx]).trim() : (row[5] ? String(row[5]).trim() : '');
 
 			if (nip || name) {
 				rows.push({
 					nip: nip || '-',
 					name: name || 'Tanpa Nama',
+					username: username || '-',
+					password: password || '',
 					email: email || '-',
 					phone: phone || '-',
 					isDuplicate: false,
@@ -227,6 +243,8 @@ const startEditPreviewRow = (idx) => {
 	editRowForm.value = {
 		nip: row.nip !== '-' ? row.nip : '',
 		name: row.name !== 'Tanpa Nama' ? row.name : '',
+		username: row.username !== '-' ? row.username : '',
+		password: row.password || '',
 		email: row.email !== '-' ? row.email : '',
 		phone: row.phone !== '-' ? row.phone : '',
 	};
@@ -237,6 +255,8 @@ const saveEditPreviewRow = (idx) => {
 		...parsedData.value[idx],
 		nip: editRowForm.value.nip.trim() || '-',
 		name: editRowForm.value.name.trim() || 'Tanpa Nama',
+		username: editRowForm.value.username.trim() || '-',
+		password: editRowForm.value.password.trim() || '',
 		email: editRowForm.value.email.trim() || '-',
 		phone: editRowForm.value.phone.trim() || '-',
 	};
@@ -271,8 +291,10 @@ const confirmImport = () => {
 		id: Date.now() + idx,
 		nip: item.nip,
 		name: item.name,
-		email: item.email,
-		phone: item.phone,
+		username: item.username && item.username !== '-' ? item.username : null,
+		password: item.password && item.password !== '-' ? item.password : item.nip,
+		email: item.email && item.email !== '-' ? item.email : null,
+		phone: item.phone && item.phone !== '-' ? item.phone : null,
 	}));
 
 	emit('import', formattedLecturers);
@@ -300,7 +322,7 @@ const handleBackdropMouseUp = (e) => {
 		@mousedown="handleBackdropMouseDown"
 		@mouseup="handleBackdropMouseUp"
 	>
-		<div class="w-full max-w-[720px] transform rounded-[12px] bg-white p-6 shadow-2xl transition-all sm:p-8 font-poppins">
+		<div class="w-full max-w-[880px] transform rounded-[12px] bg-white p-6 shadow-2xl transition-all sm:p-8 font-poppins">
 			<!-- Modal Header -->
 			<div class="text-center">
 				<h2 class="text-[22px] font-bold text-[#183669]">Import Data Dosen</h2>
@@ -321,8 +343,8 @@ const handleBackdropMouseUp = (e) => {
 						</svg>
 					</div>
 					<div>
-						<p class="font-poppins text-[13px] font-semibold text-[#183669]">Template Format Excel</p>
-						<p class="font-inter text-[11px] text-[#7188a3]">Kolom: NIP (Unik), Nama Dosen, Email, Nomor Handphone</p>
+						<p class="font-poppins text-[13px] font-semibold text-[#183669]">Template Format Excel (Dengan Contoh)</p>
+						<p class="font-inter text-[11px] text-[#7188a3]">Kolom: NIP (Wajib), Nama Dosen (Wajib), Username, Password, Email, No. HP</p>
 					</div>
 				</div>
 				<button
@@ -400,18 +422,18 @@ const handleBackdropMouseUp = (e) => {
 					</button>
 				</div>
 
-				<!-- Data Issue Detection Alert Banner (Duplikat & Tidak Lengkap) -->
+				<!-- Validation Summary Banner (If any invalid/duplicate items) -->
 				<div
 					v-if="duplicateCount > 0 || incompleteCount > 0"
-					class="flex flex-col gap-2 rounded-[10px] border border-amber-300 bg-amber-50 p-3 sm:flex-row sm:items-center sm:justify-between font-inter text-[12px] text-amber-900"
+					class="flex items-center justify-between rounded-[10px] border border-amber-300 bg-amber-50/80 p-3 font-inter text-[12px] text-amber-900"
 				>
 					<div class="flex items-center gap-2">
-						<svg class="h-4 w-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<svg class="h-5 w-5 shrink-0 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
 						</svg>
 						<span>
 							<template v-if="duplicateCount > 0 && incompleteCount > 0">
-								Terdeteksi <strong>{{ duplicateCount }} data duplikat</strong> dan <strong>{{ incompleteCount }} data tidak lengkap</strong>.
+								Terdeteksi <strong>{{ duplicateCount }} NIP duplikat</strong> dan <strong>{{ incompleteCount }} data tidak lengkap</strong>.
 							</template>
 							<template v-else-if="duplicateCount > 0">
 								Terdeteksi <strong>{{ duplicateCount }} data dengan NIP duplikat</strong>.
@@ -445,17 +467,18 @@ const handleBackdropMouseUp = (e) => {
 						</span>
 					</div>
 
-					<div class="max-h-[260px] overflow-y-auto rounded-[8px] border border-[#d6e0ee]">
-						<table class="w-full text-left text-xs">
-							<thead class="sticky top-0 bg-[#183669] font-poppins text-white">
+					<div class="max-h-[290px] overflow-auto rounded-[10px] border border-[#d6e0ee] shadow-sm">
+						<table class="w-full min-w-[780px] border-separate border-spacing-0 text-left text-xs">
+							<thead class="sticky top-0 z-20 bg-[#183669] font-poppins text-white shadow-sm">
 								<tr>
-									<th class="w-8 px-2.5 py-2 text-center">No</th>
-									<th class="px-3 py-2">Nama Dosen</th>
-									<th class="px-3 py-2 text-center">NIP</th>
-									<th class="px-3 py-2">Email</th>
-									<th class="px-3 py-2 text-center">No. HP</th>
-									<th class="w-24 px-2 py-2 text-center">Status</th>
-									<th class="w-20 px-2 py-2 text-center">Aksi</th>
+									<th class="w-10 px-3 py-2.5 text-center">No</th>
+									<th class="min-w-[150px] px-3.5 py-2.5">Nama Dosen</th>
+									<th class="min-w-[120px] px-3 py-2.5 text-center">NIP</th>
+									<th class="min-w-[110px] px-3 py-2.5">Username</th>
+									<th class="min-w-[160px] px-3.5 py-2.5">Email</th>
+									<th class="min-w-[145px] px-3.5 py-2.5 text-center whitespace-nowrap">No. HP</th>
+									<th class="min-w-[90px] px-2.5 py-2.5 text-center">Status</th>
+									<th class="sticky right-0 z-30 w-28 bg-[#183669] px-3 py-2.5 text-center shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.18)]">Aksi</th>
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-[#d6e0ee] bg-white font-inter text-[#435b76]">
@@ -469,116 +492,120 @@ const handleBackdropMouseUp = (e) => {
 								>
 									<!-- Row In Normal Mode -->
 									<template v-if="editingRowIndex !== idx">
-										<td class="px-2.5 py-2 text-center font-medium">{{ idx + 1 }}</td>
-										<td class="px-3 py-2 font-medium text-[#2f4b6e]" :title="item.name">
-											<span class="block truncate max-w-[150px]">{{ item.name }}</span>
+										<td class="px-3 py-2 text-center font-medium border-b border-[#d6e0ee]">{{ idx + 1 }}</td>
+										<td class="px-3.5 py-2 font-medium text-[#1e3456] border-b border-[#d6e0ee]" :title="item.name">
+											<span class="block truncate max-w-[170px]">{{ item.name }}</span>
 										</td>
-										<td class="px-3 py-2 text-center font-mono font-medium" :title="item.nip">
+										<td class="px-3 py-2 text-center font-medium text-[#2f4b6e] border-b border-[#d6e0ee]" :title="item.nip">
 											{{ item.nip }}
 										</td>
-										<td class="px-3 py-2" :title="item.email">
-											<span class="block truncate max-w-[140px]">{{ item.email }}</span>
+										<td class="px-3 py-2 text-[#5a718d] border-b border-[#d6e0ee]" :title="item.username">
+											<span class="block truncate max-w-[110px]">{{ item.username }}</span>
 										</td>
-										<td class="px-3 py-2 text-center">
+										<td class="px-3.5 py-2 text-[#5a718d] border-b border-[#d6e0ee]" :title="item.email">
+											<span class="block truncate max-w-[160px]">{{ item.email }}</span>
+										</td>
+										<td class="px-3.5 py-2 text-center text-[#5a718d] whitespace-nowrap border-b border-[#d6e0ee]">
 											{{ item.phone }}
 										</td>
-										<td class="px-2 py-2 text-center">
+										<td class="px-2.5 py-2 text-center border-b border-[#d6e0ee]">
 											<span
 												v-if="item.isDuplicate"
 												:title="item.duplicateReason"
-												class="inline-block rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700"
+												class="inline-block rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700"
 											>
 												Duplikat
 											</span>
 											<span
 												v-else-if="item.isValid"
-												class="inline-block rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700"
+												class="inline-block rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700"
 											>
 												Valid
 											</span>
 											<span
 												v-else
-												class="inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-bold text-gray-600"
+												class="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600"
 											>
 												Tidak Lengkap
 											</span>
 										</td>
-										<td class="px-2 py-2 text-center">
+										<!-- Sticky Aksi Column -->
+										<td
+											class="sticky right-0 z-10 w-28 px-3 py-2 text-center border-b border-[#d6e0ee] transition-colors shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)]"
+											:class="item.isDuplicate ? 'bg-[#fff5f5]' : 'bg-white'"
+										>
 											<div class="flex items-center justify-center gap-1.5">
 												<!-- Edit Row Button -->
-												<button
-													type="button"
+												<EditButtonTable
+													label="Edit baris data ini"
 													@click="startEditPreviewRow(idx)"
-													title="Edit baris data ini"
-													class="rounded bg-[#ffd56a] p-1 text-[#b57a00] hover:bg-[#ffcc54] transition"
-												>
-													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-													</svg>
-												</button>
+												/>
 												<!-- Delete Row Button -->
-												<button
-													type="button"
+												<DeleteButtonTable
+													label="Hapus baris data ini"
 													@click="removePreviewRow(idx)"
-													title="Hapus baris data ini"
-													class="rounded bg-[#ff9ca1] p-1 text-[#d61f25] hover:bg-[#ff888e] transition"
-												>
-													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-													</svg>
-												</button>
+												/>
 											</div>
 										</td>
 									</template>
 
 									<!-- Row In Inline Edit Mode -->
 									<template v-else>
-										<td class="px-2.5 py-1 text-center font-medium">{{ idx + 1 }}</td>
-										<td class="px-2 py-1">
+										<td class="px-3 py-1.5 text-center font-medium border-b border-[#d6e0ee] bg-amber-50/40">{{ idx + 1 }}</td>
+										<td class="px-2 py-1.5 border-b border-[#d6e0ee] bg-amber-50/40">
 											<input
 												v-model="editRowForm.name"
 												type="text"
 												placeholder="Nama"
-												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
+												class="h-8 w-full rounded-[6px] border border-[#d6e0ee] px-2.5 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
-										<td class="px-2 py-1">
+										<td class="px-2 py-1.5 border-b border-[#d6e0ee] bg-amber-50/40">
 											<input
 												v-model="editRowForm.nip"
 												type="text"
 												placeholder="NIP"
-												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs font-mono transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
+												class="h-8 w-full rounded-[6px] border border-[#d6e0ee] px-2.5 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
-										<td class="px-2 py-1">
+										<td class="px-2 py-1.5 border-b border-[#d6e0ee] bg-amber-50/40">
+											<input
+												v-model="editRowForm.username"
+												type="text"
+												placeholder="Username"
+												class="h-8 w-full rounded-[6px] border border-[#d6e0ee] px-2.5 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
+											/>
+										</td>
+										<td class="px-2 py-1.5 border-b border-[#d6e0ee] bg-amber-50/40">
 											<input
 												v-model="editRowForm.email"
 												type="text"
 												placeholder="Email"
-												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
+												class="h-8 w-full rounded-[6px] border border-[#d6e0ee] px-2.5 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
-										<td class="px-2 py-1">
+										<td class="px-2 py-1.5 border-b border-[#d6e0ee] bg-amber-50/40">
 											<input
 												v-model="editRowForm.phone"
 												type="text"
 												placeholder="No. HP"
-												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
+												class="h-8 w-full min-w-[130px] rounded-[6px] border border-[#d6e0ee] px-2.5 text-xs whitespace-nowrap transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
-										<td class="px-1 py-1 text-center text-[10px] text-[#7188a3]">
-											Mengedit
+										<td class="px-2.5 py-1.5 text-center text-[10px] font-semibold text-[#b57a00] border-b border-[#d6e0ee] bg-amber-50/40">
+											Mengedit...
 										</td>
-										<td class="px-1 py-1 text-center">
-											<div class="flex items-center justify-center gap-1">
+										<!-- Sticky Aksi Column Edit Mode -->
+										<td class="sticky right-0 z-10 w-28 px-2 py-1.5 text-center border-b border-[#d6e0ee] bg-amber-50/90 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)]">
+											<div class="flex items-center justify-center gap-1.5">
 												<!-- Save Button -->
 												<button
 													type="button"
 													@click="saveEditPreviewRow(idx)"
 													title="Simpan perubahan"
-													class="rounded bg-green-500 p-1 text-white hover:bg-green-600 transition"
+													class="inline-flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[8px] bg-green-500 text-white hover:bg-green-600 transition shadow-sm"
 												>
-													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+													<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 														<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
 													</svg>
 												</button>
@@ -587,9 +614,9 @@ const handleBackdropMouseUp = (e) => {
 													type="button"
 													@click="cancelEditPreviewRow"
 													title="Batal edit"
-													class="rounded bg-gray-300 p-1 text-gray-700 hover:bg-gray-400 transition"
+													class="inline-flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[8px] bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
 												>
-													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+													<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
 													</svg>
 												</button>

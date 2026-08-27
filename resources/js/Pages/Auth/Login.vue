@@ -74,7 +74,7 @@ const togglePassword = () => {
                             id="username"
                             type="text" 
                             v-model="form.username" 
-                            placeholder="Username" 
+                            placeholder="Username atau NIP" 
                             class="w-full bg-transparent outline-none border-none ring-0 focus:ring-0 text-gray-700 placeholder-gray-400 text-sm font-medium p-0"
                             required
                             autofocus

@@ -109,7 +109,7 @@ const config = computed(() => {
 			>
 				<div
 					:class="[
-						'pointer-events-auto flex w-full items-start gap-3 rounded-[12px] border p-4 shadow-xl shadow-slate-900/10 backdrop-blur-sm transition-all',
+						'pointer-events-auto flex w-full items-center gap-3.5 rounded-[12px] border p-4 shadow-xl shadow-slate-900/10 backdrop-blur-sm transition-all',
 						config.bg,
 						config.border,
 					]"
@@ -118,21 +118,21 @@ const config = computed(() => {
 					<!-- Icon -->
 					<div :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-full', config.iconBg]">
 						<!-- Success Check Icon -->
-						<svg v-if="type === 'success'" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+						<svg v-if="type === 'success'" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 						</svg>
 						<!-- Error Alert Icon -->
-						<svg v-else-if="type === 'error'" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+						<svg v-else-if="type === 'error'" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
 						</svg>
 						<!-- Info Icon -->
-						<svg v-else class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+						<svg v-else class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
 						</svg>
 					</div>
 
 					<!-- Content -->
-					<div class="flex-1 pt-0.5">
+					<div class="flex-1 min-w-0">
 						<p :class="['text-[14px] font-bold leading-tight', config.text]">
 							{{ config.title }}
 						</p>

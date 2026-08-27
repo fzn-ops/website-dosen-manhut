@@ -1,38 +1,67 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormDosen from '@/Components/admin/ModalFormDosen.vue';
 import ModalImportDosen from '@/Components/admin/ModalImportDosen.vue';
 import TablePagination from '@/Components/TablePagination.vue';
+import ToastNotification from '@/Components/ToastNotification.vue';
 
-// Initial Lecturer Data matching design
-const initialLecturers = [
-	{ id: 1, name: 'Farhan Hakim', nip: 'J0403231075', email: 'farhanhakim123@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
-	{ id: 2, name: 'Fauzan Fuadiansyah', nip: 'J0403231076', email: 'fauzanfuadiansyah@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
-	{ id: 3, name: 'Rintan Arufafa Aji', nip: 'J0403231113', email: 'contohajakaloyangpanjang@apps.ipb.ac.id', phone: '+62 812 1234 1234' },
-	{ id: 4, name: 'Muhammad Fauzan Fuadiansyah S.Kom., M.Cs.', nip: 'J0403231077', email: '-', phone: '-' },
-	{ id: 5, name: 'Dakota Johnson', nip: 'J0403231078', email: '-', phone: '-' },
-	{ id: 6, name: 'Dr. Ir. Budi Rahardjo M.Sc.', nip: 'J0403231080', email: 'budi.rahardjo@apps.ipb.ac.id', phone: '+62 813 9876 5432' },
-	{ id: 7, name: 'Prof. Dr. Sulistyo Handoko', nip: 'J0403231091', email: 'sulistyo.h@apps.ipb.ac.id', phone: '+62 812 8899 0011' },
-	{ id: 8, name: 'Siti Aminah S.Si., M.Kom.', nip: 'J0403231044', email: 'siti_aminah@apps.ipb.ac.id', phone: '+62 856 7788 9900' },
-	{ id: 9, name: 'Ahmad Dahlan S.T., M.Eng.', nip: 'J0403231032', email: 'a.dahlan@apps.ipb.ac.id', phone: '-' },
-	{ id: 10, name: 'Rian Hidayat S.Kom., M.T.', nip: 'J0403231021', email: 'rian.hidayat@apps.ipb.ac.id', phone: '+62 817 6543 2109' },
-	{ id: 11, name: 'Dewi Lestari M.Kom.', nip: 'J0403231015', email: 'dewi.lestari@apps.ipb.ac.id', phone: '+62 812 3344 5566' },
-	{ id: 12, name: 'Hendra Setiawan Ph.D.', nip: 'J0403231055', email: 'hendra.s@apps.ipb.ac.id', phone: '-' },
-	{ id: 13, name: 'Nurul Hidayati S.Pd., M.Pd.', nip: 'J0403231062', email: 'nurul.h@apps.ipb.ac.id', phone: '+62 819 0123 4567' },
-	{ id: 14, name: 'Prof. Bambang Subagyo', nip: 'J0403231070', email: 'bambang.subagyo@apps.ipb.ac.id', phone: '+62 811 2233 4455' },
-	{ id: 15, name: 'Andi Pratama S.Kom., M.M.', nip: 'J0403231088', email: '-', phone: '+62 815 6789 0123' },
-	{ id: 16, name: 'Tri Wahyuni M.Sc.', nip: 'J0403231095', email: 'tri.wahyuni@apps.ipb.ac.id', phone: '-' },
-	{ id: 17, name: 'Agus Susanto S.Si., M.Si.', nip: 'J0403231102', email: 'agus.susanto@apps.ipb.ac.id', phone: '+62 818 7654 3210' },
-	{ id: 18, name: 'Dian Permatasari M.Kom.', nip: 'J0403231110', email: 'dian.permatasari@apps.ipb.ac.id', phone: '+62 813 4567 8901' },
-	{ id: 19, name: 'Eko Prasetyo S.T., M.Kom.', nip: 'J0403231125', email: '-', phone: '-' },
-	{ id: 20, name: 'Fitri Handayani M.Pd.', nip: 'J0403231130', email: 'fitri.handayani@apps.ipb.ac.id', phone: '+62 812 9012 3456' },
-];
+const props = defineProps({
+	lecturers: {
+		type: Array,
+		default: () => [],
+	},
+});
 
-const lecturers = ref([...initialLecturers]);
+const page = usePage();
+
+// Toast State
+const toast = ref({
+	show: false,
+	type: 'success',
+	title: '',
+	message: '',
+});
+
+const showToast = (type, title, message) => {
+	toast.value = {
+		show: true,
+		type,
+		title,
+		message,
+	};
+};
+
+const closeToast = () => {
+	toast.value.show = false;
+};
+
+// Flash Session Watcher
+watch(
+	() => page.props.flash,
+	(flash) => {
+		if (flash?.success) {
+			showToast('success', 'Berhasil', flash.success);
+		}
+		if (flash?.error) {
+			showToast('error', 'Gagal', flash.error);
+		}
+	},
+	{ immediate: true, deep: true }
+);
+
+const lecturers = ref([]);
+
+watch(
+	() => props.lecturers,
+	(val) => {
+		lecturers.value = val && val.length > 0 ? [...val] : [];
+	},
+	{ immediate: true, deep: true }
+);
 
 // Search Query
 const searchQuery = ref('');
@@ -128,39 +157,61 @@ const openEditModal = (lecturer) => {
 };
 
 const handleFormSubmit = (formData) => {
-	if (isEditing.value) {
-		const index = lecturers.value.findIndex((l) => l.id === editingId.value);
-		if (index !== -1) {
-			lecturers.value[index] = {
-				...lecturers.value[index],
-				nip: formData.nip,
-				name: formData.name,
-				email: formData.email,
-				phone: formData.phone,
-				password: formData.password || lecturers.value[index].password || formData.nip,
-			};
-		}
+	if (isEditing.value && editingId.value) {
+		router.put(`/admin/dosen/${editingId.value}`, formData, {
+			preserveScroll: true,
+			onSuccess: () => {
+				isFormModalOpen.value = false;
+				showToast('success', 'Berhasil Diperbarui', 'Data akun dosen berhasil diperbarui.');
+			},
+			onError: (errors) => {
+				const firstError = Object.values(errors)[0] || 'Gagal memperbarui data dosen.';
+				showToast('error', 'Gagal Memperbarui', firstError);
+			},
+		});
 	} else {
-		const newId = lecturers.value.length ? Math.max(...lecturers.value.map((l) => l.id)) + 1 : 1;
-		lecturers.value.unshift({
-			id: newId,
-			nip: formData.nip,
-			name: formData.name,
-			email: formData.email,
-			phone: formData.phone,
-			password: formData.password || formData.nip,
+		router.post('/admin/dosen', formData, {
+			preserveScroll: true,
+			onSuccess: () => {
+				isFormModalOpen.value = false;
+				showToast('success', 'Berhasil Ditambahkan', 'Akun dosen baru berhasil ditambahkan.');
+			},
+			onError: (errors) => {
+				const firstError = Object.values(errors)[0] || 'Gagal menambahkan dosen baru.';
+				showToast('error', 'Gagal Menambahkan', firstError);
+			},
 		});
 	}
 };
 
 const handleImportSubmit = (newLecturers) => {
-	lecturers.value.unshift(...newLecturers);
-	currentPage.value = 1;
+	router.post('/admin/dosen/import', {
+		lecturers: newLecturers,
+	}, {
+		preserveScroll: true,
+		onSuccess: () => {
+			isImportModalOpen.value = false;
+			showToast('success', 'Import Berhasil', `Berhasil mengimpor data akun dosen.`);
+		},
+		onError: (errors) => {
+			const firstError = Object.values(errors)[0] || 'Gagal mengimpor data dosen.';
+			showToast('error', 'Gagal Import', firstError);
+		},
+	});
 };
 
 const deleteLecturer = (lecturer) => {
-	if (confirm(`Apakah Anda yakin ingin menghapus data dosen ${lecturer.name}?`)) {
-		lecturers.value = lecturers.value.filter((l) => l.id !== lecturer.id);
+	if (confirm(`Apakah Anda yakin ingin menghapus akun dosen "${lecturer.name}"?`)) {
+		router.delete(`/admin/dosen/${lecturer.id}`, {
+			preserveScroll: true,
+			onSuccess: () => {
+				showToast('success', 'Berhasil Dihapus', `Data dosen "${lecturer.name}" berhasil dihapus.`);
+			},
+			onError: (errors) => {
+				const firstError = Object.values(errors)[0] || 'Gagal menghapus data dosen.';
+				showToast('error', 'Gagal Menghapus', firstError);
+			},
+		});
 	}
 };
 </script>
@@ -342,6 +393,15 @@ const deleteLecturer = (lecturer) => {
 			:existing-lecturers="lecturers"
 			@close="isImportModalOpen = false"
 			@import="handleImportSubmit"
+		/>
+
+		<!-- TOAST NOTIFICATION -->
+		<ToastNotification
+			:show="toast.show"
+			:type="toast.type"
+			:title="toast.title"
+			:message="toast.message"
+			@close="closeToast"
 		/>
 	</AdminLayout>
 </template>

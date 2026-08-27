@@ -29,6 +29,7 @@ const emit = defineEmits(['close', 'submit']);
 const form = ref({
 	nip: '',
 	name: '',
+	username: '',
 	password: '',
 	email: '',
 	phone: '',
@@ -59,12 +60,12 @@ watch(
 			isPasswordManuallyEdited.value = false;
 
 			const currentNip = props.initialData?.nip !== '-' ? (props.initialData?.nip || '') : '';
-			const currentPassword = props.initialData?.password || currentNip;
 
 			form.value = {
 				nip: currentNip,
 				name: props.initialData?.name || '',
-				password: currentPassword,
+				username: props.initialData?.username || '',
+				password: props.isEditing ? '' : (currentNip || ''),
 				email: props.initialData?.email !== '-' ? (props.initialData?.email || '') : '',
 				phone: props.initialData?.phone !== '-' ? (props.initialData?.phone || '') : '',
 			};
@@ -84,7 +85,8 @@ const handleSubmit = () => {
 	errors.value = {};
 	const inputNip = form.value.nip.trim();
 	const inputName = form.value.name.trim();
-	const inputPassword = form.value.password;
+	const inputUsername = form.value.username ? form.value.username.trim() : '';
+	const inputPassword = form.value.password ? form.value.password.trim() : '';
 
 	if (!inputNip) {
 		errors.value.nip = 'NIP wajib diisi.';
@@ -92,8 +94,23 @@ const handleSubmit = () => {
 	if (!inputName) {
 		errors.value.name = 'Nama dosen wajib diisi.';
 	}
-	if (!inputPassword) {
-		errors.value.password = 'Password wajib diisi.';
+
+	let finalPassword = null;
+	if (!props.isEditing) {
+		finalPassword = inputPassword || inputNip;
+		if (!finalPassword) {
+			errors.value.password = 'Password wajib diisi.';
+		} else if (finalPassword.length < 6) {
+			errors.value.password = 'Password minimal 6 karakter.';
+		}
+	} else {
+		if (inputPassword) {
+			if (inputPassword.length < 6) {
+				errors.value.password = 'Password minimal 6 karakter.';
+			} else {
+				finalPassword = inputPassword;
+			}
+		}
 	}
 
 	if (Object.keys(errors.value).length > 0) {
@@ -114,9 +131,10 @@ const handleSubmit = () => {
 	emit('submit', {
 		nip: inputNip,
 		name: inputName,
-		password: inputPassword || inputNip,
-		email: form.value.email.trim() || '-',
-		phone: form.value.phone.trim() || '-',
+		username: inputUsername || null,
+		password: finalPassword,
+		email: form.value.email.trim() ? form.value.email.trim() : null,
+		phone: form.value.phone.trim() ? form.value.phone.trim() : null,
 	});
 
 	handleClose();
@@ -148,22 +166,22 @@ const handleBackdropMouseUp = (e) => {
 				{{ isEditing ? 'Form Edit Dosen' : 'Form Tambah Dosen' }}
 			</h2>
 
-			<!-- Error alert if duplicate NIP or invalid -->
-			<div v-if="formError" class="mt-4 rounded-[8px] bg-red-50 p-3 font-inter text-[12px] text-red-600 border border-red-200">
+			<!-- Error Alert Box -->
+			<div v-if="formError" class="mt-4 rounded-[10px] bg-red-50 p-3 font-inter text-[13px] text-red-600 border border-red-200">
 				{{ formError }}
 			</div>
 
-			<form @submit.prevent="handleSubmit" novalidate class="mt-4 space-y-4 font-poppins">
-				<!-- 1. NIP (Identitas Utama / Akun) -->
+			<form @submit.prevent="handleSubmit" novalidate class="mt-6 space-y-4">
+				<!-- 1. NIP -->
 				<div>
 					<label class="block text-[14px] font-bold text-[#183669]">
 						NIP<span class="text-red-500">*</span>
 					</label>
-					<p class="font-inter text-[11px] text-[#7188a3]">Masukkan Nomor Induk Pegawai (NIP)</p>
+					<p class="font-inter text-[11px] text-[#7188a3]">Masukkan nomor NIP Dosen</p>
 					<input
 						v-model="form.nip"
 						type="text"
-						placeholder="E14XXXXXX"
+						placeholder="J0403231075"
 						@input="errors.nip = ''"
 						class="mt-1.5 h-[42px] w-full rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
 						:class="errors.nip ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
@@ -179,13 +197,13 @@ const handleBackdropMouseUp = (e) => {
 				<!-- 2. Nama Dosen -->
 				<div>
 					<label class="block text-[14px] font-bold text-[#183669]">
-						Nama<span class="text-red-500">*</span>
+						Nama Dosen<span class="text-red-500">*</span>
 					</label>
-					<p class="font-inter text-[11px] text-[#7188a3]">Masukan Nama Lengkap Dosen</p>
+					<p class="font-inter text-[11px] text-[#7188a3]">Masukkan nama lengkap dan gelar Dosen</p>
 					<input
 						v-model="form.name"
 						type="text"
-						placeholder="Prof. Dr. Ir. ..."
+						placeholder="Dr. Ir. John Doe M.Sc."
 						@input="errors.name = ''"
 						class="mt-1.5 h-[42px] w-full rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
 						:class="errors.name ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
@@ -198,20 +216,46 @@ const handleBackdropMouseUp = (e) => {
 					</p>
 				</div>
 
-				<!-- 3. Password (Kredensial Akun) -->
+				<!-- 3. Username (Opsional) -->
+				<div>
+					<label class="block text-[14px] font-bold text-[#183669]">
+						Username
+					</label>
+					<p class="font-inter text-[11px] text-[#7188a3]">Masukkan username akun (optional)</p>
+					<input
+						v-model="form.username"
+						type="text"
+						placeholder="johndoe"
+						@input="errors.username = ''"
+						class="mt-1.5 h-[42px] w-full rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
+						:class="errors.username ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
+					/>
+					<p v-if="errors.username" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+						<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+						</svg>
+						<span>{{ errors.username }}</span>
+					</p>
+				</div>
+
+				<!-- 4. Password (Kredensial Akun) -->
 				<div>
 					<div class="flex items-center justify-between">
 						<label class="block text-[14px] font-bold text-[#183669]">
-							Password<span class="text-red-500">*</span>
+							Password<span v-if="!isEditing" class="text-red-500">*</span>
 						</label>
-						<span class="font-inter text-[11px] font-medium text-[#7188a3]">(Default sesuai NIP)</span>
+						<span v-if="isEditing" class="font-inter text-[11px] font-medium text-[#7188a3]">
+							(Kosongkan jika tidak ingin diubah)
+						</span>
 					</div>
-					<p class="font-inter text-[11px] text-[#7188a3]">Default otomatis terisi sesuai NIP jika tidak diubah</p>
+					<p class="font-inter text-[11px] text-[#7188a3]">
+						{{ isEditing ? 'Isi password baru untuk mengganti password dosen ini' : 'Masukkan password akun dosen ini' }}
+					</p>
 					<div class="relative mt-1.5">
 						<input
 							v-model="form.password"
 							:type="showPassword ? 'text' : 'password'"
-							placeholder="Password dosen"
+							:placeholder="isEditing ? 'Masukkan password baru (opsional)' : 'Password dosen (default NIP)'"
 							@input="isPasswordManuallyEdited = true; errors.password = ''"
 							class="h-[42px] w-full rounded-[10px] border bg-white pl-3.5 pr-11 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
 							:class="errors.password ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
@@ -260,7 +304,7 @@ const handleBackdropMouseUp = (e) => {
 					<input
 						v-model="form.phone"
 						type="text"
-						placeholder="+62 8XX - XXXX - XXXX"
+						placeholder="+62 8XX-XXXX-XXXX"
 						class="mt-1.5 h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 					/>
 				</div>

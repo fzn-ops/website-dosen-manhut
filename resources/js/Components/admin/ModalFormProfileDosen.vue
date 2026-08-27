@@ -248,7 +248,7 @@ const processImageFile = (file) => {
 		return;
 	}
 	if (file.size > 10 * 1024 * 1024) {
-		errors.value.image = 'Ukuran gambar maksimal 10MB.';
+		errors.value.image = 'Ukuran gambar maksimal 5MB.';
 		return;
 	}
 
@@ -800,7 +800,7 @@ const handleBackdropMouseUp = (e) => {
 								</span>
 							</div>
 							<p class="font-inter text-[11px] text-[#7188a3]">
-								Masukan foto terbaik berupa jpg/png/jpeg (MAX 10mb)
+								Masukan foto terbaik berupa jpg/png/jpeg (MAX 5MB)
 							</p>
 
 							<!-- Dropzone Box Container (Fixed 250px Height, Contained Preview matching profile.vue) -->
