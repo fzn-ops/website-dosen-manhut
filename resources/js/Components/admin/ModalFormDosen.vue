@@ -35,15 +35,16 @@ const form = ref({
 });
 
 const formError = ref('');
+const errors = ref({});
 const showPassword = ref(false);
 const isPasswordManuallyEdited = ref(false);
 
-// Auto-sync password with NIP if user hasn't manually edited it
+// Auto-fill password with NIP if not manually modified
 watch(
 	() => form.value.nip,
 	(newNip) => {
-		if (!isPasswordManuallyEdited.value) {
-			form.value.password = (newNip || '').trim();
+		if (!props.isEditing && !isPasswordManuallyEdited.value) {
+			form.value.password = newNip;
 		}
 	}
 );
@@ -53,6 +54,7 @@ watch(
 	(isOpen) => {
 		if (isOpen) {
 			formError.value = '';
+			errors.value = {};
 			showPassword.value = false;
 			isPasswordManuallyEdited.value = false;
 
@@ -73,17 +75,28 @@ watch(
 
 const handleClose = () => {
 	formError.value = '';
+	errors.value = {};
 	emit('close');
 };
 
 const handleSubmit = () => {
 	formError.value = '';
+	errors.value = {};
 	const inputNip = form.value.nip.trim();
 	const inputName = form.value.name.trim();
 	const inputPassword = form.value.password;
 
-	if (!inputNip || !inputName) {
-		formError.value = 'NIP dan Nama Dosen wajib diisi.';
+	if (!inputNip) {
+		errors.value.nip = 'NIP wajib diisi.';
+	}
+	if (!inputName) {
+		errors.value.name = 'Nama dosen wajib diisi.';
+	}
+	if (!inputPassword) {
+		errors.value.password = 'Password wajib diisi.';
+	}
+
+	if (Object.keys(errors.value).length > 0) {
 		return;
 	}
 
@@ -140,7 +153,7 @@ const handleBackdropMouseUp = (e) => {
 				{{ formError }}
 			</div>
 
-			<form @submit.prevent="handleSubmit" class="mt-4 space-y-4 font-poppins">
+			<form @submit.prevent="handleSubmit" novalidate class="mt-4 space-y-4 font-poppins">
 				<!-- 1. NIP (Identitas Utama / Akun) -->
 				<div>
 					<label class="block text-[14px] font-bold text-[#183669]">
@@ -151,9 +164,16 @@ const handleBackdropMouseUp = (e) => {
 						v-model="form.nip"
 						type="text"
 						placeholder="E14XXXXXX"
-						required
-						class="mt-1.5 h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+						@input="errors.nip = ''"
+						class="mt-1.5 h-[42px] w-full rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
+						:class="errors.nip ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
 					/>
+					<p v-if="errors.nip" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+						<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+						</svg>
+						<span>{{ errors.nip }}</span>
+					</p>
 				</div>
 
 				<!-- 2. Nama Dosen -->
@@ -166,9 +186,16 @@ const handleBackdropMouseUp = (e) => {
 						v-model="form.name"
 						type="text"
 						placeholder="Prof. Dr. Ir. ..."
-						required
-						class="mt-1.5 h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+						@input="errors.name = ''"
+						class="mt-1.5 h-[42px] w-full rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
+						:class="errors.name ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
 					/>
+					<p v-if="errors.name" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+						<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+						</svg>
+						<span>{{ errors.name }}</span>
+					</p>
 				</div>
 
 				<!-- 3. Password (Kredensial Akun) -->
@@ -185,9 +212,9 @@ const handleBackdropMouseUp = (e) => {
 							v-model="form.password"
 							:type="showPassword ? 'text' : 'password'"
 							placeholder="Password dosen"
-							@input="isPasswordManuallyEdited = true"
-							required
-							class="h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white pl-3.5 pr-11 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+							@input="isPasswordManuallyEdited = true; errors.password = ''"
+							class="h-[42px] w-full rounded-[10px] border bg-white pl-3.5 pr-11 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
+							:class="errors.password ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
 						/>
 						<button
 							type="button"
@@ -202,6 +229,12 @@ const handleBackdropMouseUp = (e) => {
 							/>
 						</button>
 					</div>
+					<p v-if="errors.password" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+						<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+						</svg>
+						<span>{{ errors.password }}</span>
+					</p>
 				</div>
 
 				<!-- 4. Email (Kontak Opsional) -->
@@ -214,7 +247,7 @@ const handleBackdropMouseUp = (e) => {
 						v-model="form.email"
 						type="email"
 						placeholder="example@email.com"
-						class="mt-1.5 h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+						class="mt-1.5 h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 					/>
 				</div>
 
@@ -228,7 +261,7 @@ const handleBackdropMouseUp = (e) => {
 						v-model="form.phone"
 						type="text"
 						placeholder="+62 8XX - XXXX - XXXX"
-						class="mt-1.5 h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+						class="mt-1.5 h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 					/>
 				</div>
 

@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('division'); // Perencanaan Kehutanan, Pemanfaatan Sumberdaya Hutan, Kebijakan Kehutanan
             $table->text('research')->nullable(); // Ketertarikan penelitian
-            $table->json('educations')->nullable(); // Array riwayat pendidikan [{university, major, graduationYear}]
+            $table->string('image')->nullable(); // Foto profil dosen
+            $table->json('educations')->nullable(); // Array riwayat pendidikan [{degree, university, major, graduationYear}]
             $table->string('scholar_link')->nullable(); // Link Google Scholar
             $table->string('linkedin_link')->nullable(); // Link LinkedIn
             $table->timestamps();

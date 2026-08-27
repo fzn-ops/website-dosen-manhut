@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileDosen extends Model
 {
@@ -16,10 +17,18 @@ class ProfileDosen extends Model
         'user_id',
         'division',
         'research',
+        'image',
         'educations',
         'scholar_link',
         'linkedin_link',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['image_url'];
 
     /**
      * The attributes that should be cast.
@@ -31,6 +40,20 @@ class ProfileDosen extends Model
         return [
             'educations' => 'array',
         ];
+    }
+
+    /**
+     * Accessor untuk mendapatkan URL publik gambar profil
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        if ($this->image && Storage::disk('public')->exists($this->image)) {
+            return asset('storage/' . $this->image);
+        }
+        if (!empty($this->user?->profile_picture) && Storage::disk('public')->exists($this->user->profile_picture)) {
+            return asset('storage/' . $this->user->profile_picture);
+        }
+        return null;
     }
 
     /**

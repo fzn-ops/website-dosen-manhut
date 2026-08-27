@@ -327,7 +327,7 @@ onUnmounted(() => {
 <template>
 	<div
 		ref="containerRef"
-		class="relative flex flex-col rounded-[10px] border border-[#d6e0ee] bg-white transition-colors focus-within:border-[#183669]"
+		class="relative flex flex-col rounded-[10px] border border-[#d6e0ee] bg-white transition-colors duration-150 hover:border-[#a6b7cb] focus-within:border-[#183669]"
 	>
 		<!-- Compact Single-Row Toolbar -->
 		<div class="flex items-center justify-between border-b border-[#e6edf6] bg-[#f8fafc] px-2 py-1 rounded-t-[9px] select-none text-[#435b76]">

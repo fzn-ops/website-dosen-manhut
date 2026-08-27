@@ -201,22 +201,41 @@ const handleProfileSubmit = (formData) => {
 		division: formData.division,
 		research: formData.research !== '-' ? formData.research : null,
 		educations: formData.educations,
+		image: formData.image,
 		scholar_link: formData.scholar_link || (formData.scholarLink !== '-' ? formData.scholarLink : null),
 		linkedin_link: formData.linkedin_link || (formData.linkedinLink !== '-' ? formData.linkedinLink : null),
 	};
 
 	if (isEditing.value && editingId.value) {
-		router.put(`/admin/profile-dosen/${editingId.value}`, payload, {
-			preserveScroll: true,
-			onSuccess: () => {
-				isModalOpen.value = false;
-				showToast('success', 'Berhasil Diperbarui', 'Data profil dosen berhasil diperbarui.');
-			},
-			onError: (errors) => {
-				const firstError = Object.values(errors)[0] || 'Terjadi kesalahan saat memperbarui profil.';
-				showToast('error', 'Gagal Memperbarui', firstError);
-			},
-		});
+		if (formData.image instanceof File) {
+			router.post(`/admin/profile-dosen/${editingId.value}`, {
+				_method: 'PUT',
+				...payload,
+			}, {
+				forceFormData: true,
+				preserveScroll: true,
+				onSuccess: () => {
+					isModalOpen.value = false;
+					showToast('success', 'Berhasil Diperbarui', 'Data profil dosen berhasil diperbarui.');
+				},
+				onError: (errors) => {
+					const firstError = Object.values(errors)[0] || 'Terjadi kesalahan saat memperbarui profil.';
+					showToast('error', 'Gagal Memperbarui', firstError);
+				},
+			});
+		} else {
+			router.put(`/admin/profile-dosen/${editingId.value}`, payload, {
+				preserveScroll: true,
+				onSuccess: () => {
+					isModalOpen.value = false;
+					showToast('success', 'Berhasil Diperbarui', 'Data profil dosen berhasil diperbarui.');
+				},
+				onError: (errors) => {
+					const firstError = Object.values(errors)[0] || 'Terjadi kesalahan saat memperbarui profil.';
+					showToast('error', 'Gagal Memperbarui', firstError);
+				},
+			});
+		}
 	} else {
 		let userId = formData.user_id;
 		if (!userId) {
@@ -230,6 +249,7 @@ const handleProfileSubmit = (formData) => {
 			user_id: userId,
 			...payload,
 		}, {
+			forceFormData: true,
 			preserveScroll: true,
 			onSuccess: () => {
 				isModalOpen.value = false;

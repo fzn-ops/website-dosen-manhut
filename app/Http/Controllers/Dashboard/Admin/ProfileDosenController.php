@@ -38,6 +38,7 @@ class ProfileDosenController extends Controller
             'user_id' => 'required|exists:users,id|unique:profile_dosen,user_id',
             'division' => 'required|string|max:255',
             'research' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:10240',
             'educations' => 'nullable|array',
             'educations.*.degree' => 'nullable|string|max:50',
             'educations.*.university' => 'nullable|string|max:255',
@@ -50,7 +51,13 @@ class ProfileDosenController extends Controller
             'user_id.exists' => 'Akun dosen yang dipilih tidak terdaftar di sistem.',
             'user_id.unique' => 'Dosen ini sudah memiliki data profil.',
             'division.required' => 'Divisi dosen wajib dipilih.',
+            'image.image' => 'File foto harus berupa format gambar yang valid (JPG, PNG, JPEG).',
+            'image.max' => 'Ukuran foto profil maksimal 10MB.',
         ]);
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('profile_pictures', 'public');
+        }
 
         $this->dosenService->createProfile($validated);
 
@@ -65,6 +72,7 @@ class ProfileDosenController extends Controller
         $validated = $request->validate([
             'division' => 'required|string|max:255',
             'research' => 'nullable|string',
+            'image' => 'nullable',
             'educations' => 'nullable|array',
             'educations.*.degree' => 'nullable|string|max:50',
             'educations.*.university' => 'nullable|string|max:255',
@@ -75,6 +83,21 @@ class ProfileDosenController extends Controller
         ], [
             'division.required' => 'Divisi dosen wajib dipilih.',
         ]);
+
+        if ($request->hasFile('image')) {
+            $request->validate([
+                'image' => 'image|mimes:jpeg,png,jpg|max:10240',
+            ], [
+                'image.image' => 'File foto harus berupa format gambar yang valid (JPG, PNG, JPEG).',
+                'image.max' => 'Ukuran foto profil maksimal 10MB.',
+            ]);
+            $validated['image'] = $request->file('image')->store('profile_pictures', 'public');
+        } elseif ($request->input('image') === null || $request->input('image') === '') {
+            $validated['image'] = null;
+        } else {
+            // String URL / path lama yang tidak diubah
+            unset($validated['image']);
+        }
 
         $this->dosenService->updateProfile($id, $validated);
 

@@ -27,6 +27,7 @@ const emit = defineEmits(['close', 'submit']);
 const categoryOptions = ['Lokakarya', 'Seminar', 'Workshop', 'Lainnya'];
 
 const form = ref({
+	name: '',
 	title: '',
 	lecturerName: '',
 	description: '',
@@ -41,6 +42,7 @@ const form = ref({
 });
 
 const formError = ref('');
+const errors = ref({});
 const isDragging = ref(false);
 const imageInputRef = ref(null);
 
@@ -79,17 +81,19 @@ const toggleNameDropdown = () => {
 
 const selectLecturer = (lec) => {
 	form.value.lecturerName = lec.name;
+	errors.value.lecturerName = '';
 	isNameDropdownOpen.value = false;
 	lecturerSearchQuery.value = '';
 };
 
-// Category Toggle (can check/uncheck freely)
+// Categories checkboxes logic
 const toggleCategory = (cat) => {
 	const idx = form.value.categories.indexOf(cat);
-	if (idx > -1) {
-		form.value.categories.splice(idx, 1);
-	} else {
+	if (idx === -1) {
 		form.value.categories.push(cat);
+		errors.value.categories = '';
+	} else {
+		form.value.categories.splice(idx, 1);
 	}
 };
 
@@ -111,18 +115,15 @@ watch(
 	(isOpen) => {
 		if (isOpen) {
 			formError.value = '';
+			errors.value = {};
 			isNameDropdownOpen.value = false;
 			lecturerSearchQuery.value = '';
+			previewingImage.value = null;
 
 			if (props.isEditing && props.initialData) {
-				let cats = [];
-				if (Array.isArray(props.initialData.categories) && props.initialData.categories.length > 0) {
-					cats = [...props.initialData.categories];
-				} else if (props.initialData.category && props.initialData.category !== '-') {
-					cats = [props.initialData.category];
-				}
-
+				const cats = props.initialData.categories || (props.initialData.category ? [props.initialData.category] : []);
 				form.value = {
+					name: props.initialData.name || props.initialData.title || '',
 					title: props.initialData.title || props.initialData.name || '',
 					lecturerName: props.initialData.lecturerName || props.initialData.lecturer || '',
 					description: props.initialData.description || '',
@@ -130,13 +131,14 @@ watch(
 					startDate: props.initialData.startDate || '',
 					endDate: props.initialData.endDate || '',
 					images: props.initialData.images || [],
-					imagePreviews: props.initialData.imagePreviews || (props.initialData.image ? [props.initialData.image] : []),
-					lecturerQuote: props.initialData.lecturerQuote !== '-' ? (props.initialData.lecturerQuote || '') : '',
-					categories: cats,
-					releaseDate: props.initialData.date || props.initialData.releaseDate || getFormattedToday(),
+					imagePreviews: props.initialData.imagePreviews || (props.initialData.images ? [...props.initialData.images] : []),
+					lecturerQuote: props.initialData.lecturerQuote && props.initialData.lecturerQuote !== '-' ? props.initialData.lecturerQuote : '',
+					categories: [...cats],
+					releaseDate: props.initialData.date || getFormattedToday(),
 				};
 			} else {
 				form.value = {
+					name: '',
 					title: '',
 					lecturerName: '',
 					description: '',
@@ -146,7 +148,7 @@ watch(
 					images: [],
 					imagePreviews: [],
 					lecturerQuote: '',
-					categories: [], // Kosong default untuk tambah data baru
+					categories: [],
 					releaseDate: getFormattedToday(),
 				};
 			}
@@ -158,22 +160,21 @@ watch(
 const handleFiles = (files) => {
 	if (!files || files.length === 0) return;
 
-	const remainingSlots = 3 - form.value.imagePreviews.length;
+	const remainingSlots = 3 - form.value.images.length;
 	if (remainingSlots <= 0) {
-		formError.value = 'Maksimal upload adalah 3 gambar.';
+		formError.value = 'Maksimal 3 gambar yang dapat diupload.';
 		return;
 	}
 
 	const filesToProcess = Array.from(files).slice(0, remainingSlots);
 
 	filesToProcess.forEach((file) => {
-		if (file.size > 10 * 1024 * 1024) {
-			formError.value = `File ${file.name} melebihi batas ukuran 10MB.`;
+		if (!file.type.startsWith('image/')) {
+			formError.value = 'Harap upload file gambar yang valid (PNG, JPG, JPEG).';
 			return;
 		}
-
-		if (!file.type.startsWith('image/')) {
-			formError.value = `File ${file.name} bukan merupakan format gambar yang valid.`;
+		if (file.size > 10 * 1024 * 1024) {
+			formError.value = 'Ukuran gambar tidak boleh melebihi 10MB.';
 			return;
 		}
 
@@ -223,40 +224,40 @@ const handleBackdropMouseUp = (e) => {
 
 const handleClose = () => {
 	formError.value = '';
+	errors.value = {};
 	isNameDropdownOpen.value = false;
 	emit('close');
 };
 
 const handleSubmit = () => {
 	formError.value = '';
+	errors.value = {};
 	const title = form.value.title.trim();
 	const lecturerName = form.value.lecturerName.trim();
 	const rawDescription = form.value.description || '';
 	const cleanDesc = rawDescription.replace(/<[^>]*>/g, '').trim();
 	const role = form.value.role.trim();
 
-	if (!title) {
-		formError.value = 'Judul Aktivitas wajib diisi.';
-		return;
-	}
 	if (!lecturerName) {
-		formError.value = 'Nama Dosen wajib dipilih.';
-		return;
+		errors.value.lecturerName = 'Nama Dosen wajib dipilih.';
 	}
-	if (!cleanDesc) {
-		formError.value = 'Deskripsi aktivitas wajib diisi.';
-		return;
-	}
-	if (!role) {
-		formError.value = 'Peran dalam aktivitas wajib diisi.';
-		return;
-	}
-	if (!form.value.startDate) {
-		formError.value = 'Tanggal Mulai wajib diisi.';
-		return;
+	if (!title) {
+		errors.value.title = 'Judul Aktivitas wajib diisi.';
 	}
 	if (form.value.categories.length === 0) {
-		formError.value = 'Pilih minimal 1 kategori aktivitas.';
+		errors.value.categories = 'Pilih minimal 1 kategori aktivitas.';
+	}
+	if (!role) {
+		errors.value.role = 'Peran dalam kegiatan wajib diisi.';
+	}
+	if (!cleanDesc) {
+		errors.value.description = 'Deskripsi aktivitas wajib diisi.';
+	}
+	if (!form.value.startDate) {
+		errors.value.startDate = 'Tanggal Mulai wajib diisi.';
+	}
+
+	if (Object.keys(errors.value).length > 0) {
 		return;
 	}
 
@@ -302,7 +303,7 @@ const handleSubmit = () => {
 				{{ formError }}
 			</div>
 
-			<form @submit.prevent="handleSubmit" class="mt-6 font-poppins">
+			<form @submit.prevent="handleSubmit" novalidate class="mt-6 font-poppins">
 				<!-- 2 Column Layout with Balanced Grid & Spacing -->
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10 xl:gap-12">
 					<!-- ================= LEFT COLUMN ================= -->
@@ -320,8 +321,8 @@ const handleSubmit = () => {
 							<button
 								type="button"
 								@click="toggleNameDropdown"
-								class="mt-1.5 flex h-[44px] w-full items-center justify-between rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[13px] transition focus:border-[#183669] focus:outline-none focus:ring-0"
-								:class="{ 'border-[#183669] ring-1 ring-[#183669]/20': isNameDropdownOpen }"
+								class="mt-1.5 flex h-[44px] w-full items-center justify-between rounded-[10px] border bg-white px-3.5 font-inter text-[13px] text-[#1e3456] transition-colors duration-150 focus:outline-none"
+								:class="errors.lecturerName ? 'border-red-400 focus:border-red-500 bg-red-50/20' : (isNameDropdownOpen ? 'border-[#183669] bg-white' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff]')"
 							>
 								<span :class="form.lecturerName ? 'font-medium text-[#1e3456] truncate' : 'text-[#a6b7cb] truncate'">
 									{{ form.lecturerName || 'Pilih / Cari Nama Dosen' }}
@@ -336,6 +337,12 @@ const handleSubmit = () => {
 									<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
 								</svg>
 							</button>
+							<p v-if="errors.lecturerName" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+								<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+								</svg>
+								<span>{{ errors.lecturerName }}</span>
+							</p>
 
 							<!-- Searchable Dropdown Menu Popover -->
 							<div
@@ -353,7 +360,7 @@ const handleSubmit = () => {
 										v-model="lecturerSearchQuery"
 										type="text"
 										placeholder="Ketik untuk mencari nama dosen..."
-										class="h-[36px] w-full rounded-[8px] border border-[#d6e0ee] bg-[#fafcff] pl-8 pr-3 text-xs text-[#1e3456] placeholder-[#8ca1b9] focus:border-[#183669] focus:outline-none focus:ring-0"
+										class="h-[36px] w-full rounded-[8px] border border-[#d6e0ee] bg-[#fafcff] pl-8 pr-3 text-xs text-[#1e3456] placeholder-[#8ca1b9] transition-colors duration-150 hover:border-[#a6b7cb] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 										ref="lecturerSearchInputRef"
 										@click.stop
 									/>
@@ -398,9 +405,16 @@ const handleSubmit = () => {
 								v-model="form.title"
 								type="text"
 								placeholder="Pelatihan manajer KDMP"
-								required
-								class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+								@input="errors.title = ''"
+								class="mt-1.5 h-[44px] w-full rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
+								:class="errors.title ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
 							/>
+							<p v-if="errors.title" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+								<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+								</svg>
+								<span>{{ errors.title }}</span>
+							</p>
 						</div>
 
 						<!-- Kategori Checkboxes -->
@@ -414,17 +428,23 @@ const handleSubmit = () => {
 								<label
 									v-for="cat in categoryOptions"
 									:key="cat"
-									class="flex cursor-pointer items-center gap-2 select-none"
+									class="flex cursor-pointer items-center gap-2 select-none group"
 								>
 									<input
 										type="checkbox"
 										:checked="form.categories.includes(cat)"
 										@change="toggleCategory(cat)"
-										class="h-4 w-4 rounded border-[#a6b7cb] text-[#183669] focus:ring-0 focus:ring-offset-0"
+										class="h-4 w-4 rounded border-[#a6b7cb] text-[#183669] transition-colors hover:border-[#183669] focus:ring-0 focus:ring-offset-0 cursor-pointer"
 									/>
-									<span class="font-inter text-[13px] font-medium text-[#435b76]">{{ cat }}</span>
+									<span class="font-inter text-[13px] font-medium text-[#435b76] group-hover:text-[#183669] transition-colors">{{ cat }}</span>
 								</label>
 							</div>
+							<p v-if="errors.categories" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+								<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+								</svg>
+								<span>{{ errors.categories }}</span>
+							</p>
 						</div>
 
 						<!-- Peran -->
@@ -437,9 +457,16 @@ const handleSubmit = () => {
 								v-model="form.role"
 								type="text"
 								placeholder="Narasumber"
-								required
-								class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0"
+								@input="errors.role = ''"
+								class="mt-1.5 h-[44px] w-full rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
+								:class="errors.role ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"
 							/>
+							<p v-if="errors.role" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+								<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+								</svg>
+								<span>{{ errors.role }}</span>
+							</p>
 						</div>
 
 						<!-- Deskripsi (Rich Text Editor) -->
@@ -452,7 +479,14 @@ const handleSubmit = () => {
 								v-model="form.description"
 								placeholder="Pelatihan manajer KDMP..."
 								min-height="125px"
+								@update:modelValue="errors.description = ''"
 							/>
+							<p v-if="errors.description" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+								<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+								</svg>
+								<span>{{ errors.description }}</span>
+							</p>
 						</div>
 					</div>
 
@@ -462,7 +496,7 @@ const handleSubmit = () => {
 						<div>
 							<div class="flex items-center justify-between">
 								<label class="block text-[14px] font-bold text-[#183669]">
-									Gambar<span class="text-red-500">*</span>
+									Gambar
 								</label>
 								<span class="text-[11px] font-semibold text-[#7188a3]">{{ form.imagePreviews.length }}/3 Gambar</span>
 							</div>
@@ -476,7 +510,7 @@ const handleSubmit = () => {
 								@dragleave.prevent="isDragging = false"
 								@drop.prevent="handleImageDrop"
 								:class="[
-									'mt-1.5 flex flex-col items-center justify-center rounded-[12px] border-2 border-dashed p-3.5 text-center transition-colors min-h-[235px]',
+									'mt-1.5 flex flex-col items-center justify-center rounded-[12px] border-2 border-dashed p-3.5 text-center transition-colors min-h-[145px]',
 									isDragging ? 'border-[#183669] bg-[#183669]/5' : 'border-[#183669]/30 bg-[#fafcff] hover:border-[#183669]/60'
 								]"
 							>
@@ -491,7 +525,7 @@ const handleSubmit = () => {
 									<button
 										type="button"
 										@click="triggerFileInput"
-										class="mt-2 rounded-[8px] border border-[#a6b7cb] bg-white px-5 py-1 font-inter text-[12px] font-semibold text-[#5a718d] transition hover:bg-slate-50"
+										class="mt-2 rounded-[8px] border border-[#a6b7cb] bg-white px-5 py-1 font-inter text-[12px] font-semibold text-[#5a718d] transition hover:bg-slate-50 shadow-xs"
 									>
 										Upload
 									</button>
@@ -560,8 +594,8 @@ const handleSubmit = () => {
 							</div>
 						</div>
 
-						<!-- Tanggal Mulai & Tanggal Selesai Subgrid (Aligned pixel-perfect) -->
-						<div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 items-start">
+						<!-- Tanggal Mulai & Tanggal Selesai Subgrid -->
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 items-start">
 							<!-- Tanggal Mulai -->
 							<div class="flex flex-col">
 								<div class="min-h-[38px] flex flex-col justify-start">
@@ -574,9 +608,15 @@ const handleSubmit = () => {
 									<DatePicker
 										v-model="form.startDate"
 										placeholder="Pilih tanggal mulai"
-										required
+										@update:modelValue="errors.startDate = ''"
 									/>
 								</div>
+								<p v-if="errors.startDate" class="mt-1 flex items-center gap-1 font-inter text-[11px] font-medium text-red-500">
+									<svg class="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+									</svg>
+									<span>{{ errors.startDate }}</span>
+								</p>
 							</div>
 
 							<!-- Tanggal Selesai -->
@@ -606,7 +646,7 @@ const handleSubmit = () => {
 								v-model="form.lecturerQuote"
 								rows="5"
 								placeholder="Pelatihan ini sangat keren dan hebat, saya merasa berkembang setelah mengikuti kegiatan ini"
-								class="mt-1.5 w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3 font-inter text-[13px] text-[#1e3456] placeholder-[#a6b7cb] focus:border-[#183669] focus:outline-none focus:ring-0 resize-y min-h-[160px] max-h-[250px]"
+								class="mt-1.5 w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3 font-inter text-[13px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0 resize-y min-h-[160px] max-h-[250px]"
 							></textarea>
 						</div>
 

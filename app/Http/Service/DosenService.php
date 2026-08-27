@@ -62,6 +62,8 @@ class DosenService
                 $educationSummary = implode('; ', array_filter($eduItems));
             }
 
+            $imageUrl = $profile->image_url;
+
             return [
                 'id' => $profile->id,
                 'user_id' => $profile->user_id,
@@ -74,7 +76,11 @@ class DosenService
                 'contact' => $profile->user->email ?? '-',
                 'scholarLink' => $profile->scholar_link ?? '',
                 'linkedinLink' => $profile->linkedin_link ?? '',
-                'profile_picture' => $profile->user->profile_picture ?? null,
+                'scholar_link' => $profile->scholar_link ?? '',
+                'linkedin_link' => $profile->linkedin_link ?? '',
+                'image' => $imageUrl,
+                'imagePreview' => $imageUrl,
+                'profile_picture' => $imageUrl ?? $profile->user->profile_picture ?? null,
             ];
         })->toArray();
     }
@@ -102,6 +108,8 @@ class DosenService
                 default => 'umum',
             };
 
+            $imageUrl = $profile->image_url ?? $profile->user->profile_picture ?? '/assets/images/default-avatar.png';
+
             return [
                 'id' => $profile->id,
                 'user_id' => $profile->user_id,
@@ -117,7 +125,8 @@ class DosenService
                 'email' => $profile->user->email ?? '-',
                 'scholar_link' => $profile->scholar_link ?? '',
                 'linkedin_link' => $profile->linkedin_link ?? '',
-                'foto' => $profile->user->profile_picture ?? '/assets/images/default-avatar.png',
+                'foto' => $imageUrl,
+                'image' => $imageUrl,
             ];
         })->toArray();
     }
@@ -183,6 +192,13 @@ class DosenService
     public function updateProfile($id, array $data): ProfileDosen
     {
         $profile = $this->getProfileById($id);
+
+        if (isset($data['image']) && $profile->image && $profile->image !== $data['image']) {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($profile->image)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($profile->image);
+            }
+        }
+
         $profile->update($data);
 
         return $profile;
@@ -197,6 +213,11 @@ class DosenService
     public function deleteProfile($id): ?bool
     {
         $profile = $this->getProfileById($id);
+
+        if ($profile->image && \Illuminate\Support\Facades\Storage::disk('public')->exists($profile->image)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($profile->image);
+        }
+
         return $profile->delete();
     }
 }

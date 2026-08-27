@@ -251,9 +251,9 @@ const clearDate = () => {
 			:disabled="disabled"
 			@click="toggleDropdown"
 			:class="[
-				'flex h-[44px] w-full items-center justify-between rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-left transition focus:outline-none focus:ring-1 focus:ring-[#183669]',
-				isOpen ? 'border-[#183669] ring-1 ring-[#183669]/20' : 'border-[#d6e0ee] hover:border-[#183669]/50',
-				disabled ? 'cursor-not-allowed bg-slate-50 text-slate-400' : 'cursor-pointer'
+				'flex h-[44px] w-full items-center justify-between rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-left transition-colors duration-150 focus:outline-none',
+				isOpen ? 'border-[#183669] bg-white' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff]',
+				disabled ? 'cursor-not-allowed bg-slate-50 text-slate-400 opacity-60' : 'cursor-pointer'
 			]"
 		>
 			<span :class="displayValue ? 'text-[#1e3456] font-medium' : 'text-[#a6b7cb]'" class="truncate">

@@ -539,7 +539,7 @@ const handleBackdropMouseUp = (e) => {
 												v-model="editRowForm.name"
 												type="text"
 												placeholder="Nama"
-												class="h-7 w-full rounded border border-[#183669] px-2 text-xs focus:outline-none"
+												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
 										<td class="px-2 py-1">
@@ -547,7 +547,7 @@ const handleBackdropMouseUp = (e) => {
 												v-model="editRowForm.nip"
 												type="text"
 												placeholder="NIP"
-												class="h-7 w-full rounded border border-[#183669] px-2 text-xs font-mono focus:outline-none"
+												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs font-mono transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
 										<td class="px-2 py-1">
@@ -555,7 +555,7 @@ const handleBackdropMouseUp = (e) => {
 												v-model="editRowForm.email"
 												type="text"
 												placeholder="Email"
-												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs focus:outline-none"
+												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
 										<td class="px-2 py-1">
@@ -563,7 +563,7 @@ const handleBackdropMouseUp = (e) => {
 												v-model="editRowForm.phone"
 												type="text"
 												placeholder="No. HP"
-												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs focus:outline-none"
+												class="h-7 w-full rounded border border-[#d6e0ee] px-2 text-xs transition-colors hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
 											/>
 										</td>
 										<td class="px-1 py-1 text-center text-[10px] text-[#7188a3]">
