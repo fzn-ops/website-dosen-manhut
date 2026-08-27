@@ -3,21 +3,6 @@
         Staff Pengajar | DosenManhut
     </x-slot>
 
-    {{-- Data Dummy untuk Simulasi Filter --}}
-    @php
-        $dosenList = [
-            ['nama' => 'Dr. Budi Santoso', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'dr-budi-santoso'],
-            ['nama' => 'Prof. Andi Wahyu', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'prof-andi-wahyu'],
-            ['nama' => 'Siti Nurhaliza, M.Hut', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'siti-nurhaliza-mhut'],
-            ['nama' => 'Ir. Rudi Hermawan', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'ir-rudi-hermawan'],
-            ['nama' => 'Dr. Lestari Alam', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'dr-lestari-alam'],
-            ['nama' => 'Bambang Pamungkas', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'bambang-pamungkas'],
-            ['nama' => 'Dr. Fitri Ani', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'dr-fitri-ani'],
-            ['nama' => 'Prof. Rahmat Hidayat', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'prof-rahmat-hidayat'],
-            ['nama' => 'Agus Yudhoyono, M.Si', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'agus-yudhoyono-msi'],
-        ];
-    @endphp
-
     {{-- Wrapper Halaman --}}
     <div class="bg-[#fafafc] w-full min-h-screen py-12 md:py-16">
         {{-- Diubah menjadi max-w-7xl agar SEJAJAR persis dengan Navbar --}}
@@ -64,13 +49,13 @@
                     <button data-filter="semua" class="category-btn active px-6 py-1.5 rounded-full text-sm font-semibold shadow-md transition-all active:scale-95 bg-[#1a3675] text-white border border-transparent">
                         Semua
                     </button>
-                    <button data-filter="perencanaan" class="category-btn px-6 py-1.5 rounded-full text-sm font-semibold shadow-sm transition-all active:scale-95 bg-white border border-gray-200 text-gray-600 hover:border-[#1a3675] hover:shadow-md">
+                    <button data-filter="perencanaan kehutanan" class="category-btn px-6 py-1.5 rounded-full text-sm font-semibold shadow-sm transition-all active:scale-95 bg-white border border-gray-200 text-gray-600 hover:border-[#1a3675] hover:shadow-md">
                         Perencanaan Hutan
                     </button>
-                    <button data-filter="pemanfaatan" class="category-btn px-6 py-1.5 rounded-full text-sm font-semibold shadow-sm transition-all active:scale-95 bg-white border border-gray-200 text-gray-600 hover:border-[#1a3675] hover:shadow-md">
+                    <button data-filter="pemanfaatan sumberdaya hutan" class="category-btn px-6 py-1.5 rounded-full text-sm font-semibold shadow-sm transition-all active:scale-95 bg-white border border-gray-200 text-gray-600 hover:border-[#1a3675] hover:shadow-md">
                         Pemanfaatan SDH
                     </button>
-                    <button data-filter="kebijakan" class="category-btn px-6 py-1.5 rounded-full text-sm font-semibold shadow-sm transition-all active:scale-95 bg-white border border-gray-200 text-gray-600 hover:border-[#1a3675] hover:shadow-md">
+                    <button data-filter="kebijakan kehutanan" class="category-btn px-6 py-1.5 rounded-full text-sm font-semibold shadow-sm transition-all active:scale-95 bg-white border border-gray-200 text-gray-600 hover:border-[#1a3675] hover:shadow-md">
                         Kebijakan Kehutanan
                     </button>
                 </div>
@@ -80,21 +65,19 @@
             {{-- 3. Grid Daftar Dosen --}}
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6" id="dosenGrid">
                 
-                @foreach ($dosenList as $dosen)
-                {{-- Ubah tag pembungkus menjadi <a> dan tambahkan 'block' pada class --}}
-                <a href="{{ url('/dosen/' . $dosen['slug']) }}" 
+                @foreach ($lecturers as $lecturer)
+                <a href="{{ route('lecturer.show', $lecturer['id']) }}"
                    class="dosen-card block relative rounded-xl overflow-hidden shadow-[0_4px_15px_-3px_rgba(0,0,0,0.1)] group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl" 
-                   data-name="{{ strtolower($dosen['nama']) }}" 
-                   data-category="{{ $dosen['kategori'] }}">
-                    
+                   data-name="{{ strtolower($lecturer['name']) }}"
+                   data-category="{{ strtolower($lecturer['division']) }}">
+
                     <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-110"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-[#1a3675]/95 via-[#1a3675]/40 to-transparent"></div>
-                    
-                    <div class="absolute bottom-0 left-0 p-3 md:p-4 text-white w-full transform transition-transform duration-300 group-hover:-translate-y-1">
-                        <h3 class="font-bold text-sm md:text-base mb-1 leading-tight line-clamp-2">{{ $dosen['nama'] }}</h3>
-                        <p class="text-[9px] md:text-[10px] text-gray-200 line-clamp-1">{{ $dosen['divisi'] }}</p>
-                    </div>
 
+                    <div class="absolute bottom-0 left-0 p-3 md:p-4 text-white w-full transform transition-transform duration-300 group-hover:-translate-y-1">
+                        <h3 class="font-bold text-sm md:text-base mb-1 leading-tight line-clamp-2">{{ $lecturer['name'] }}</h3>
+                        <p class="text-[9px] md:text-[10px] text-gray-200 line-clamp-1">{{ $lecturer['division'] }}</p>
+                    </div>
                 </a>
                 @endforeach
 

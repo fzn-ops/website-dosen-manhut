@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LandingPage\ActivityController;
+use App\Http\Controllers\LandingPage\LandingProfileController;
 use Inertia\Inertia;
 
 /* Landing Page Routes (Blade Views) */
@@ -17,11 +18,9 @@ Route::get('/about', function () {
     return view('pages.about');
 })->name('about');
 
-Route::get('/lecturers', function () {
-    return view('pages.lecturer.lecturers');
-})->name('lecturers');
+Route::get('/lecturers', [LandingProfileController::class, 'index'])->name('lecturers');
 
-
+Route::get('/lecturers/{id}', [LandingProfileController::class, 'show'])->name('lecturer.show');
 
 Route::get('/activities', [ActivityController::class, 'index'])->name('activities.index');
 
