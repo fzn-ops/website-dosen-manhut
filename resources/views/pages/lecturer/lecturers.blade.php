@@ -71,7 +71,9 @@
                    data-name="{{ strtolower($lecturer['name']) }}"
                    data-category="{{ strtolower($lecturer['division']) }}">
 
-                    <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-110"></div>
+                    <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-110">
+                        <img src="{{ $lecturer['image'] ?? asset('images/default-avatar.png') }}" alt="{{ $lecturer['name'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
                     <div class="absolute inset-0 bg-gradient-to-t from-[#1a3675]/95 via-[#1a3675]/40 to-transparent"></div>
 
                     <div class="absolute bottom-0 left-0 p-3 md:p-4 text-white w-full transform transition-transform duration-300 group-hover:-translate-y-1">

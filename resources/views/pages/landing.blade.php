@@ -113,22 +113,10 @@
         {{-- Tabs Filter --}}
         <div class="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm font-semibold text-gray-600 mb-10" id="filter-container">
             <button class="filter-btn text-gray-900 border-b-2 border-gray-900 pb-1" data-filter="semua">Semua</button>
-            <button class="filter-btn hover:text-gray-900 transition pb-1" data-filter="perencanaan">Perencanaan Hutan</button>
-            <button class="filter-btn hover:text-gray-900 transition pb-1" data-filter="pemanfaatan">Pemanfaatan SDH</button>
-            <button class="filter-btn hover:text-gray-900 transition pb-1" data-filter="kebijakan">Kebijakan Kehutanan</button>
+            <button class="filter-btn hover:text-gray-900 transition pb-1" data-filter="perencanaan kehutanan">Perencanaan Hutan</button>
+            <button class="filter-btn hover:text-gray-900 transition pb-1" data-filter="pemanfaatan sumberdaya hutan">Pemanfaatan SDH</button>
+            <button class="filter-btn hover:text-gray-900 transition pb-1" data-filter="kebijakan kehutanan">Kebijakan Kehutanan</button>
         </div>
-
-        {{-- Dummy Data Dosen (Saya perbanyak agar bisa di-scroll) --}}
-        @php
-            $dosenList = [
-                ['nama' => 'Dr. Budi Santoso', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'dr-budi-santoso'],
-                ['nama' => 'Prof. Andi Wahyu', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'prof-andi-wahyu'],
-                ['nama' => 'Siti Nurhaliza, M.Hut', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'siti-nurhaliza-m-hut'],
-                ['nama' => 'Ir. Rudi Hermawan', 'divisi' => 'Perencanaan Hutan', 'kategori' => 'perencanaan', 'slug' => 'ir-rudi-hermawan'],
-                ['nama' => 'Dr. Lestari Alam', 'divisi' => 'Pemanfaatan SDH', 'kategori' => 'pemanfaatan', 'slug' => 'dr-lestari-alam'],
-                ['nama' => 'Bambang Pamungkas', 'divisi' => 'Kebijakan Kehutanan', 'kategori' => 'kebijakan', 'slug' => 'bambang-pamungkas'],
-            ];
-        @endphp
 
         {{-- Container Carousel dengan Tombol --}}
         <div class="relative group">
@@ -141,16 +129,23 @@
             {{-- Slider Container (Flexbox dengan overflow-x) --}}
             <div id="dosen-slider" class="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scroll pb-6 pt-2 px-2 scroll-smooth">
                 
-                @foreach ($dosenList as $dosen)
+                @foreach ($lecturers as $lecturer)
                 {{-- Card Item (Lebar di-setting agar responsif) --}}
-                <a href="{{ url('/dosen/' . $dosen['slug']) }}" class="dosen-card shrink-0 w-[75%] sm:w-[45%] md:w-[30%] lg:w-[23%] snap-center relative rounded-xl overflow-hidden shadow-sm group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-lg opacity-100 scale-100" data-category="{{ $dosen['kategori'] }}">
-                    
-                    <div class="w-full h-full bg-gray-300 transition-transform duration-500 group-hover:scale-110"></div>
+                <a href="{{  route('lecturer.show', $lecturer['id']) }}" class="dosen-card shrink-0 w-[75%] sm:w-[45%] md:w-[30%] lg:w-[23%] snap-center relative rounded-xl overflow-hidden shadow-sm group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-lg opacity-100 scale-100" data-category="{{ strtolower($lecturer['division']) }}">
+                    <div class="w-full h-full bg-gray-300 transition-transform duration-500 group-hover:scale-110">
+                        @if(!empty($lecturer['image']))
+                                <img src="{{ $lecturer['image'] }}" 
+                                     alt="{{ $lecturer['name'] }}" 
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-[10px] text-gray-500 transition-transform duration-500 group-hover:scale-110">No Image</div>
+                            @endif
+                    </div>
                     <div class="absolute inset-0 bg-gradient-to-t from-[#284078]/95 via-[#284078]/40 to-transparent transition-opacity duration-300"></div>
                     
                     <div class="absolute bottom-0 left-0 p-5 text-white w-full transform transition-transform duration-300 group-hover:-translate-y-2">
-                        <h3 class="font-bold text-lg mb-1 leading-tight">{{ $dosen['nama'] }}</h3>
-                        <p class="text-xs text-gray-200">{{ $dosen['divisi'] }}</p>
+                        <h3 class="font-bold text-lg mb-1 leading-tight">{{ $lecturer['name'] }}</h3>
+                        <p class="text-xs text-gray-200">{{ $lecturer['division'] }}</p>
                     </div>
                 </a>
                 @endforeach
@@ -171,7 +166,7 @@
     </section>
 
 
-    {{-- =======================================
+        {{-- =======================================
          4. AKTIVITAS TERKINI SECTION
          ======================================= --}}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -179,58 +174,89 @@
             Aktivitas Terkini
         </h2>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {{-- Kiri: Highlight (Penyesuaian tinggi gambar untuk mobile) --}}
-            <div class="lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer">
-                {{-- Tinggi gambar dikecilkan di mobile (h-48), besar di desktop (md:h-[320px]) --}}
-                <div class="w-full h-48 md:h-[320px] rounded-xl mb-4 overflow-hidden">
-                    <div class="w-full h-full bg-[#d9d9d9] transition-transform duration-500 group-hover:scale-105"></div>
-                </div>
+        {{-- Cek apakah ada data aktivitas yang dikirim --}}
+        @if(isset($activities) && $activities->count() > 0)
+            @php
+                // Ambil 1 data paling atas untuk kolom Kiri (Highlight)
+                $highlight = $activities->first();
                 
-                <div class="flex flex-wrap justify-between items-center text-[11px] md:text-xs text-[#1a3675] font-bold mb-2">
-                    <span>Pembicara &bull; Dr. Fulan Fulana</span>
-                    <span>10 Juni 2029</span>
-                </div>
-                
-                <h3 class="text-xl md:text-2xl font-bold text-[#1a3675] mb-2 group-hover:text-blue-700 transition-colors">Lorem Ipsum Dolor Sit Amet</h3>
-                <p class="text-xs md:text-sm text-gray-500 leading-relaxed line-clamp-3 md:line-clamp-4">
-                    Lorem ipsum dolor sit amet, voluptate ut nostrud consequat ut nulla. Reprehenderit laborum consectetur ad laboris adipiscing nostrud in veniam anim. Et enim nostrud nisi consectetur deserunt sunt eu sunt...
-                </p>
-            </div>
+                // Ambil 3 data berikutnya (lewati 1 data pertama) untuk kolom Kanan (List)
+                $listActivities = $activities->slice(1, 3);
+            @endphp
 
-            {{-- Kanan: List (Dibuat selalu flex-row berdampingan walau di layar HP) --}}
-            <div class="lg:col-span-5 flex flex-col gap-3 md:gap-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
-                @for ($i = 0; $i < 3; $i++)
-                <div class="bg-white border border-gray-200 rounded-2xl p-2.5 md:p-3 shadow-sm flex flex-row gap-3 md:gap-4 transition-all duration-300 hover:-translate-x-1 hover:shadow-lg group cursor-pointer h-full items-center md:items-start">
+                {{-- ==========================================
+                     KIRI: HIGHLIGHT (Data Pertama)
+                     ========================================== --}}
+                <a href="{{ route('activity.show', $highlight->id) }}" class="lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer block text-left">
                     
-                    {{-- Gambar Kotak Kecil yang rapi di HP (w-24) dan Tablet/Desktop (w-[140px]) --}}
-                    <div class="w-24 h-24 md:w-[140px] md:h-[120px] rounded-xl shrink-0 overflow-hidden">
-                        <div class="w-full h-full bg-[#d9d9d9] transition-transform duration-500 group-hover:scale-110"></div>
+                    <div class="w-full h-48 md:h-[320px] rounded-xl mb-4 overflow-hidden relative">
+                        @if($highlight->primaryPicture)
+                            <img src="{{ asset('storage/' . $highlight->primaryPicture->path) }}" 
+                                 alt="{{ $highlight->activity_name }}" 
+                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        @else
+                            <div class="w-full h-full bg-[#cbd5e1] flex items-center justify-center text-gray-500 transition-transform duration-500 group-hover:scale-105">No Image</div>
+                        @endif
                     </div>
                     
-                    {{-- Teks List --}}
-                    <div class="flex flex-col flex-grow py-1 justify-center">
-                        <div class="flex flex-wrap justify-between items-center text-[9px] md:text-[10px] text-[#1a3675] font-bold mb-1">
-                            <span class="truncate pr-2 max-w-[65%]">Tutor &bull; Prof. Fulani</span>
-                            <span>10/06/29</span>
+                    <div class="flex flex-wrap justify-between items-center text-[11px] md:text-xs text-[#1a3675] font-bold mb-2">
+                        <span>{{ $highlight->job ?? 'Partisipan' }} &bull; {{ $highlight->user->name ?? 'Nama Dosen' }}</span>
+                        <span>{{ \Carbon\Carbon::parse($highlight->activity_date_start)->translatedFormat('d F Y') }}</span>
+                    </div>
+                    
+                    <h3 class="text-xl md:text-2xl font-bold text-[#1a3675] mb-2 group-hover:text-blue-700 transition-colors">
+                        {{ $highlight->activity_name }}
+                    </h3>
+                    <p class="text-xs md:text-sm text-gray-500 leading-relaxed line-clamp-3 md:line-clamp-4">
+                        {{ $highlight->description }}
+                    </p>
+                </a>
+
+                {{-- ==========================================
+                     KANAN: LIST (Data ke 2, 3, 4)
+                     ========================================== --}}
+                <div class="lg:col-span-5 flex flex-col gap-3 md:gap-4">
+                    
+                    @foreach ($listActivities as $item)
+                    <a href="{{ route('activity.show', $item->id) }}" class="bg-white border border-gray-200 rounded-2xl p-2.5 md:p-3 shadow-sm flex flex-row gap-3 md:gap-4 transition-all duration-300 hover:-translate-x-1 hover:shadow-lg group cursor-pointer h-full items-center md:items-start text-left">
+                        
+                        <div class="w-24 h-24 md:w-[140px] md:h-[120px] rounded-xl shrink-0 overflow-hidden relative">
+                            @if($item->primaryPicture)
+                                <img src="{{ asset('storage/' . $item->primaryPicture->path) }}" 
+                                     alt="{{ $item->activity_name }}" 
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            @else
+                                <div class="w-full h-full bg-[#cbd5e1] flex items-center justify-center text-[10px] text-gray-500 transition-transform duration-500 group-hover:scale-110">No Image</div>
+                            @endif
                         </div>
-                        <h4 class="text-sm md:text-[15px] font-bold text-[#1a3675] mb-1 leading-tight group-hover:text-blue-700 transition-colors line-clamp-2">
-                            Lorem Ipsum Dolor Sit Amet
-                        </h4>
-                        <p class="hidden md:block text-[10px] text-gray-500 leading-relaxed line-clamp-2">
-                            Lorem ipsum dolor sit amet, voluptate ut nostrud consequat ut nulla. Reprehenderit laborum...
-                        </p>
-                    </div>
+                        
+                        <div class="flex flex-col flex-grow py-1 justify-center">
+                            <div class="flex flex-wrap justify-between items-center text-[9px] md:text-[10px] text-[#1a3675] font-bold mb-1">
+                                <span class="truncate pr-2 max-w-[65%]">{{ $item->job ?? 'Partisipan' }} &bull; {{ $item->user->name ?? 'Dosen' }}</span>
+                                <span>{{ \Carbon\Carbon::parse($item->activity_date_start)->format('d/m/y') }}</span>
+                            </div>
+                            <h4 class="text-sm md:text-[15px] font-bold text-[#1a3675] mb-1 leading-tight group-hover:text-blue-700 transition-colors line-clamp-2">
+                                {{ $item->activity_name }}
+                            </h4>
+                            <p class="hidden md:block text-[10px] text-gray-500 leading-relaxed line-clamp-2">
+                                {{ $item->description }}
+                            </p>
+                        </div>
+                    </a>
+                    @endforeach
                 </div>
-                @endfor
-
             </div>
-        </div>
+        @else
+            {{-- Fallback jika belum ada data aktivitas sama sekali di database --}}
+            <div class="w-full p-10 text-center bg-gray-50 rounded-2xl border border-gray-200 text-gray-500">
+                Belum ada aktivitas terkini yang ditambahkan.
+            </div>
+        @endif
 
         <div class="mt-10 flex justify-center">
-            <a href="{{ url('/aktivitas') }}" class="inline-flex items-center gap-2 px-6 py-2 border-2 border-gray-800 rounded-full text-sm font-bold text-gray-800 hover:bg-gray-800 hover:text-white transition-all">
+            <a href="{{ url('/activities') }}" class="inline-flex items-center gap-2 px-6 py-2 border-2 border-gray-800 rounded-full text-sm font-bold text-gray-800 hover:bg-gray-800 hover:text-white transition-all">
                 Semua Aktivitas <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </a>
         </div>
