@@ -224,7 +224,7 @@
                         
                         <div class="w-24 h-24 md:w-[140px] md:h-[120px] rounded-xl shrink-0 overflow-hidden relative">
                             @if($item->primaryPicture)
-                                <img src="{{ asset('storage/' . $item->primaryPicture->path) }}" 
+                                <img src="{{ $item->primaryPicture->path }}" 
                                      alt="{{ $item->activity_name }}" 
                                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                             @else
