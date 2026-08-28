@@ -3,17 +3,20 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import SidebarDosen from '@/Components/dosen/SidebarDosen.vue';
 import TopbarDosen from '@/Components/dosen/TopbarDosen.vue';
 
+const checkIsMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
+
 const getSavedSidebarState = () => {
     if (typeof window === 'undefined') return true;
+    if (window.innerWidth < 768) return false;
     const saved = localStorage.getItem('dosen_sidebar_expanded');
     if (saved !== null) {
         return saved === 'true';
     }
-    return window.innerWidth >= 768;
+    return true;
 };
 
+const isMobile = ref(checkIsMobile());
 const showingSidebar = ref(getSavedSidebarState());
-const isMobile = ref(false);
 
 const updateViewport = () => {
     const nextIsMobile = window.innerWidth < 768;

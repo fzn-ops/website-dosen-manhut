@@ -7,13 +7,12 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LandingPage\ActivityController;
 use App\Http\Controllers\LandingPage\LandingProfileController;
+use App\Http\Controllers\LandingPage\LandingController;
 use Inertia\Inertia;
 
 /* Landing Page Routes (Blade Views) */
 
-Route::get('/', function () {
-    return view('pages.landing');
-})->name('landing');
+Route::get('/', [LandingController::class, 'index'])->name('landing');
 
 Route::get('/about', function () {
     return view('pages.about');

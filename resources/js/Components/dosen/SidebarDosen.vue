@@ -42,7 +42,7 @@ const isActive = (item) => {
 			<Link href="/dosen/dashboard" class="flex items-center justify-center gap-3.5 focus:outline-none">
 				<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-base font-black text-[#1d3a7a] shadow-sm">
 				</span>
-				<span v-if="!collapsed" class="text-[24px] font-bold leading-none tracking-tight text-white">
+				<span v-if="!collapsed" class="whitespace-nowrap text-[24px] font-bold leading-none tracking-tight text-white">
 					DoSend!
 				</span>
 			</Link>
@@ -58,7 +58,7 @@ const isActive = (item) => {
 				:key="item.label"
 				:href="item.href"
 				:class="[
-					'flex h-11 items-center text-[15px] font-semibold transition-colors focus:outline-none',
+					'flex h-11 items-center text-[15px] font-semibold transition-colors focus:outline-none whitespace-nowrap',
 					collapsed ? 'justify-center rounded-full px-0' : 'gap-5 pl-7 pr-4',
 					isActive(item)
 						? collapsed ? 'bg-[#3c5da1] text-white' : 'ml-6 rounded-l-full bg-[#3c5da1] text-white shadow-sm'
@@ -68,7 +68,7 @@ const isActive = (item) => {
 				@click="$emit('navigate')"
 			>
 				<img :src="`/assets/icons/${item.icon}.svg`" :alt="`${item.label} icon`" class="h-5 w-5 shrink-0 object-contain" />
-				<span v-if="!collapsed">{{ item.label }}</span>
+				<span v-if="!collapsed" class="whitespace-nowrap truncate">{{ item.label }}</span>
 			</Link>
 		</nav>
 
@@ -79,14 +79,14 @@ const isActive = (item) => {
 				method="post"
 				as="button"
 				:class="[
-					'flex h-11 items-center text-[15px] font-semibold text-white/80 transition-colors focus:outline-none hover:bg-[#142e63] hover:text-white',
+					'flex h-11 items-center text-[15px] font-semibold text-white/80 transition-colors focus:outline-none hover:bg-[#142e63] hover:text-white whitespace-nowrap',
 					collapsed ? 'w-full justify-center rounded-full px-0' : 'ml-6 w-[calc(100%-24px)] gap-5 rounded-l-full pl-7 pr-4',
 				]"
 				:title="collapsed ? 'Logout' : undefined"
 				@click="$emit('navigate')"
 			>
 				<img src="/assets/icons/logout.svg" alt="Logout icon" class="h-5 w-5 shrink-0 object-contain" />
-				<span v-if="!collapsed">Logout</span>
+				<span v-if="!collapsed" class="whitespace-nowrap">Logout</span>
 			</Link>
 		</div>
 	</aside>
