@@ -27,6 +27,7 @@ const emit = defineEmits(['close', 'submit']);
 const categoryOptions = ['Lokakarya', 'Seminar', 'Workshop', 'Lainnya'];
 
 const form = ref({
+	user_id: null,
 	name: '',
 	title: '',
 	lecturerName: '',
@@ -80,6 +81,7 @@ const toggleNameDropdown = () => {
 };
 
 const selectLecturer = (lec) => {
+	form.value.user_id = lec.user_id || lec.id;
 	form.value.lecturerName = lec.name;
 	errors.value.lecturerName = '';
 	isNameDropdownOpen.value = false;
@@ -123,6 +125,7 @@ watch(
 			if (props.isEditing && props.initialData) {
 				const cats = props.initialData.categories || (props.initialData.category ? [props.initialData.category] : []);
 				form.value = {
+					user_id: props.initialData.user_id || null,
 					name: props.initialData.name || props.initialData.title || '',
 					title: props.initialData.title || props.initialData.name || '',
 					lecturerName: props.initialData.lecturerName || props.initialData.lecturer || '',
@@ -138,6 +141,7 @@ watch(
 				};
 			} else {
 				form.value = {
+					user_id: null,
 					name: '',
 					title: '',
 					lecturerName: '',
@@ -262,6 +266,7 @@ const handleSubmit = () => {
 	}
 
 	emit('submit', {
+		user_id: form.value.user_id,
 		name: title,
 		title: title,
 		lecturer: lecturerName,

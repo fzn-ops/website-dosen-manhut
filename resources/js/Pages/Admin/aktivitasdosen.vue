@@ -1,123 +1,70 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormAktivitasDosen from '@/Components/admin/ModalFormAktivitasDosen.vue';
 import TablePagination from '@/Components/TablePagination.vue';
+import ToastNotification from '@/Components/ToastNotification.vue';
 
-// Available Lecturer Profiles (12 Dosen yang memiliki profile - disinkronkan dengan profiledosen.vue)
-const availableProfiles = [
-	{ id: 1, name: 'Farhan Hakim', division: 'Perencanaan Kehutanan' },
-	{ id: 2, name: 'Fauzan Fuadiansyah', division: 'Perencanaan Kehutanan' },
-	{ id: 3, name: 'Rintan Arufafa Aji', division: 'Pemanfaatan Sumberdaya Hutan' },
-	{ id: 4, name: 'Muhammad Fauzan Fuadiansyah S.Kom., M.Cs.', division: 'Kebijakan Kehutanan' },
-	{ id: 5, name: 'Dakota Johnson', division: 'Pemanfaatan Sumberdaya Hutan' },
-	{ id: 6, name: 'Dr. Ir. Budi Rahardjo M.Sc.', division: 'Perencanaan Kehutanan' },
-	{ id: 7, name: 'Prof. Dr. Sulistyo Handoko', division: 'Kebijakan Kehutanan' },
-	{ id: 8, name: 'Siti Aminah S.Si., M.Kom.', division: 'Pemanfaatan Sumberdaya Hutan' },
-	{ id: 9, name: 'Ahmad Dahlan S.T., M.Eng.', division: 'Perencanaan Kehutanan' },
-	{ id: 10, name: 'Rian Hidayat S.Kom., M.T.', division: 'Perencanaan Kehutanan' },
-	{ id: 11, name: 'Dewi Lestari M.Kom.', division: 'Pemanfaatan Sumberdaya Hutan' },
-	{ id: 12, name: 'Hendra Setiawan Ph.D.', division: 'Kebijakan Kehutanan' },
-];
+const props = defineProps({
+	activities: {
+		type: Array,
+		default: () => [],
+	},
+	availableProfiles: {
+		type: Array,
+		default: () => [],
+	},
+});
 
-// Initial Activities Data (Sorted by newest first)
-const initialActivities = [
-	{
-		id: 5,
-		title: 'Rapat Evaluasi Akademik',
-		name: 'Rapat Evaluasi Akademik',
-		lecturer: 'Prof. Dr. Sulistyo Handoko',
-		lecturerName: 'Prof. Dr. Sulistyo Handoko',
-		description: 'Evaluasi capaian semester ganjil dan rencana perbaikan kurikulum.',
-		role: 'Peserta',
-		startDate: '2026-01-22',
-		endDate: '2026-01-22',
-		categories: ['Lainnya'],
-		category: 'Lainnya',
-		date: '22 Januari 2026',
-		dateSort: '2026-01-22',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Diskusi yang sangat produktif untuk kemajuan departemen.',
-	},
-	{
-		id: 4,
-		title: 'Lokakarya Desa Siman',
-		name: 'Lokakarya Desa Siman',
-		lecturer: 'Farhan Hakim',
-		lecturerName: 'Farhan Hakim',
-		description: 'Pendampingan pengelolaan UMKM desa berbasis digital.',
-		role: 'Narasumber',
-		startDate: '2026-01-21',
-		endDate: '2026-01-21',
-		categories: ['Lokakarya'],
-		category: 'Lokakarya',
-		date: '21 Januari 2026',
-		dateSort: '2026-01-21',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Pelatihan ini sangat keren dan hebat, saya merasa berkembang setelah mengikuti kegiatan ini.',
-	},
-	{
-		id: 3,
-		title: 'Seminar Kurikulum Merdeka',
-		name: 'Seminar Kurikulum Merdeka',
-		lecturer: 'Dr. Ir. Budi Rahardjo M.Sc.',
-		lecturerName: 'Dr. Ir. Budi Rahardjo M.Sc.',
-		description: 'Pemaparan strategi implementasi kurikulum adaptif di kampus.',
-		role: 'Pemateri Utama',
-		startDate: '2026-01-18',
-		endDate: '2026-01-18',
-		categories: ['Seminar'],
-		category: 'Seminar',
-		date: '18 Januari 2026',
-		dateSort: '2026-01-18',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Antusiasme peserta sangat luar biasa dalam menyerap materi.',
-	},
-	{
-		id: 2,
-		title: 'Workshop Metodologi Riset',
-		name: 'Workshop Metodologi Riset',
-		lecturer: 'Siti Aminah S.Si., M.Kom.',
-		lecturerName: 'Siti Aminah S.Si., M.Kom.',
-		description: 'Pelatihan teknik sampling dan validasi instrumen penelitian.',
-		role: 'Fasilitator',
-		startDate: '2026-01-15',
-		endDate: '2026-01-15',
-		categories: ['Workshop'],
-		category: 'Workshop',
-		date: '15 Januari 2026',
-		dateSort: '2026-01-15',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Semoga mahasiswa dapat mengaplikasikan metode penelitian dengan tepat.',
-	},
-	{
-		id: 1,
-		title: 'Pelatihan SPSS Dasar',
-		name: 'Pelatihan SPSS Dasar',
-		lecturer: 'Rian Hidayat S.Kom., M.T.',
-		lecturerName: 'Rian Hidayat S.Kom., M.T.',
-		description: 'Praktik olah data kuantitatif untuk tugas akhir mahasiswa.',
-		role: 'Instruktur',
-		startDate: '2026-01-12',
-		endDate: '2026-01-12',
-		categories: ['Workshop'],
-		category: 'Workshop',
-		date: '12 Januari 2026',
-		dateSort: '2026-01-12',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Pemahaman statistik sangat penting dalam penyusunan tugas akhir.',
-	},
-];
+const page = usePage();
 
-const activities = ref([...initialActivities]);
+// Toast State
+const toast = ref({
+	show: false,
+	type: 'success',
+	title: '',
+	message: '',
+});
+
+const showToast = (type, title, message) => {
+	toast.value = {
+		show: true,
+		type,
+		title,
+		message,
+	};
+};
+
+const closeToast = () => {
+	toast.value.show = false;
+};
+
+// Check flash messages on page mount
+watch(
+	() => page.props.flash,
+	(flash) => {
+		if (flash?.success) {
+			showToast('success', 'Berhasil', flash.success);
+		} else if (flash?.error) {
+			showToast('error', 'Gagal', flash.error);
+		}
+	},
+	{ immediate: true, deep: true }
+);
+
+const activities = ref([]);
+
+watch(
+	() => props.activities,
+	(val) => {
+		activities.value = val && val.length > 0 ? [...val] : [];
+	},
+	{ immediate: true, deep: true }
+);
+
 const searchQuery = ref('');
 const selectedLecturerFilter = ref('');
 const selectedCategories = ref([]);
@@ -144,7 +91,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAllDropdowns));
 
 const lecturerFilterList = computed(() => [
 	'Semua Dosen',
-	...availableProfiles.map((p) => p.name),
+	...props.availableProfiles.map((p) => p.name),
 ]);
 
 const filteredLecturerFilterList = computed(() => {
@@ -300,30 +247,71 @@ const openEditModal = (activity) => {
 };
 
 const handleModalSubmit = (formData) => {
-	if (isEditing.value && editingActivity.value) {
-		const index = activities.value.findIndex((a) => a.id === editingActivity.value.id);
-		if (index !== -1) {
-			activities.value[index] = {
-				...activities.value[index],
-				...formData,
-			};
-		}
-	} else {
-		// New entry at top (nomor 1) with clean incremented numeric ID
-		const maxId = activities.value.length ? Math.max(...activities.value.map((a) => Number(a.id) || 0)) : 0;
-		const newId = maxId + 1;
-		activities.value.unshift({
-			id: newId,
-			...formData,
-			dateSort: new Date().toISOString().split('T')[0],
+	const data = new FormData();
+	if (formData.user_id) data.append('user_id', formData.user_id);
+	data.append('lecturerName', formData.lecturerName || formData.lecturer);
+	data.append('title', formData.title || formData.name);
+	data.append('role', formData.role);
+	data.append('description', formData.description);
+	data.append('startDate', formData.startDate);
+	if (formData.endDate) data.append('endDate', formData.endDate);
+	if (formData.lecturerQuote && formData.lecturerQuote !== '-') data.append('lecturerQuote', formData.lecturerQuote);
+
+	if (Array.isArray(formData.categories)) {
+		formData.categories.forEach((cat, idx) => {
+			data.append(`categories[${idx}]`, cat);
 		});
-		currentPage.value = 1;
+	}
+
+	if (Array.isArray(formData.images)) {
+		let fileIndex = 0;
+		let existingIndex = 0;
+		formData.images.forEach((img) => {
+			if (img instanceof File || img instanceof Blob) {
+				data.append(`images[${fileIndex}]`, img);
+				fileIndex++;
+			} else if (typeof img === 'string') {
+				data.append(`existingImages[${existingIndex}]`, img);
+				existingIndex++;
+			}
+		});
+	}
+
+	if (isEditing.value && editingActivity.value?.id) {
+		router.post(route('admin.aktivitasdosen.update', editingActivity.value.id), data, {
+			forceFormData: true,
+			onSuccess: () => {
+				isModalOpen.value = false;
+				showToast('success', 'Berhasil Diperbarui', 'Data aktivitas dosen berhasil diperbarui.');
+			},
+			onError: (err) => {
+				showToast('error', 'Gagal Memperbarui', Object.values(err)[0] || 'Terjadi kesalahan.');
+			},
+		});
+	} else {
+		router.post(route('admin.aktivitasdosen.store'), data, {
+			forceFormData: true,
+			onSuccess: () => {
+				isModalOpen.value = false;
+				showToast('success', 'Berhasil Ditambahkan', 'Aktivitas dosen baru berhasil ditambahkan.');
+			},
+			onError: (err) => {
+				showToast('error', 'Gagal Menambahkan', Object.values(err)[0] || 'Terjadi kesalahan.');
+			},
+		});
 	}
 };
 
 const deleteActivity = (activity) => {
 	if (confirm(`Apakah Anda yakin ingin menghapus aktivitas "${activity.name || activity.title}"?`)) {
-		activities.value = activities.value.filter((a) => a.id !== activity.id);
+		router.delete(route('admin.aktivitasdosen.destroy', activity.id), {
+			onSuccess: () => {
+				showToast('success', 'Berhasil Dihapus', 'Aktivitas dosen berhasil dihapus.');
+			},
+			onError: (err) => {
+				showToast('error', 'Gagal Menghapus', Object.values(err)[0] || 'Terjadi kesalahan.');
+			},
+		});
 	}
 };
 </script>
@@ -603,6 +591,15 @@ const deleteActivity = (activity) => {
 			:available-profiles="availableProfiles"
 			@close="isModalOpen = false"
 			@submit="handleModalSubmit"
+		/>
+
+		<!-- Toast Notification -->
+		<ToastNotification
+			:show="toast.show"
+			:type="toast.type"
+			:title="toast.title"
+			:message="toast.message"
+			@close="closeToast"
 		/>
 	</AdminLayout>
 </template>

@@ -41,4 +41,10 @@ class Activity extends Model
     {
         return $this->hasOne(ActivityPicture::class, 'activity_id')->where('is_primary', true);
     }
+
+    public function getPrimaryImageUrlAttribute(): ?string
+    {
+        $pic = $this->primaryPicture ?? $this->pictures->first();
+        return $pic?->path;
+    }
 }

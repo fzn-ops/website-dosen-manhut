@@ -22,6 +22,17 @@ class ActivityPicture extends Model
 
     public function getPathAttribute($value)
     {
-        return asset('storage/' . $value);
+        if (!$value) {
+            return null;
+        }
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
+        }
+        return asset('storage/' . ltrim($value, '/'));
+    }
+
+    public function getRawPathAttribute(): ?string
+    {
+        return $this->getRawOriginal('path');
     }
 }

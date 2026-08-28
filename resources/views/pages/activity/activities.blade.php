@@ -93,17 +93,20 @@
                 
             {{-- Ganti $aktivitasList menjadi $activities (sesuai nama variabel dari Controller) --}}
             @foreach ($activities as $item)
+            @php
+                $imgUrl = $item->primary_image_url ?? $item->primaryPicture?->path ?? $item->pictures?->first()?->path;
+            @endphp
             <a href="{{ route('activity.show', $item->id) }}" 
                class="aktivitas-card block bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer text-left" 
                  data-judul="{{ strtolower($item->activity_name) }}" 
                  data-dosen="{{ strtolower($item->user->name ?? 'Nama Dosen') }}"
                  data-kategori="{{ strtolower(is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type) }}"
-                 data-date="{{ $item->activity_date_start->format('Y-m-d') }}">
+                 data-date="{{ $item->activity_date_start ? $item->activity_date_start->format('Y-m-d') : '' }}">
                 
                 <div class="w-full h-48 md:h-[220px] rounded-xl mb-4 overflow-hidden bg-gray-100 relative">
-                    {{-- Tampilkan gambar utama jika ada, jika tidak pakai warna abu-abu default --}}
-                    @if($item->primaryPicture)
-                        <img src="{{ asset('storage/' . $item->primaryPicture->path) }}" 
+                    {{-- Tampilkan gambar utama jika ada, jika tidak pakai placeholder --}}
+                    @if($imgUrl)
+                        <img src="{{ $imgUrl }}" 
                              alt="{{ $item->activity_name }}" 
                              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                     @else
@@ -113,16 +116,29 @@
                     @endif
                 </div>
                 
-                <div class="flex flex-wrap justify-between items-center text-[10px] md:text-xs text-[#1a3675] font-bold mb-2">
-                    <span>{{ is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type }} &bull; {{$item->user->name ?? 'Nama Dosen' }}</span>
-                    <span>{{ $item->activity_date_start->translatedFormat('d F Y') }}</span>
+                <div class="flex items-center justify-between text-[11px] md:text-xs font-bold mb-2.5">
+                    <span class="bg-[#1a3675]/10 text-[#1a3675] px-2.5 py-0.5 rounded-md font-semibold">
+                        {{ is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type }}
+                    </span>
+                    <span class="text-gray-500 font-medium">
+                        {{ $item->activity_date_start ? $item->activity_date_start->translatedFormat('d F Y') : '-' }}
+                    </span>
                 </div>
                 
-                <h3 class="text-lg md:text-xl font-bold text-[#1a3675] mb-2 group-hover:text-blue-700 transition-colors line-clamp-2">
+                <h3 class="text-lg md:text-xl font-bold text-[#1a3675] mb-1.5 group-hover:text-blue-700 transition-colors line-clamp-2">
                     {{ $item->activity_name }}
                 </h3>
+
+                {{-- Nama Dosen di Bawah Judul --}}
+                <div class="text-xs font-semibold text-gray-700 mb-2.5 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#1a3675] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span class="truncate">{{ $item->user->name ?? 'Nama Dosen' }}</span>
+                </div>
+
                 <p class="text-xs text-gray-500 leading-relaxed line-clamp-3">
-                    {{ $item->description }}
+                    {{ strip_tags($item->description) }}
                 </p>
             </a>
             @endforeach

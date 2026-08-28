@@ -52,13 +52,13 @@
                      BARIS 2 KIRI: GAMBAR & TEKS KONTEN
                      ======================================= --}}
                 <div class="lg:col-span-8 flex flex-col">
-                    <div class="w-full h-[250px] sm:h-[350px] md:h-[450px] bg-[#d9d9d9] rounded-2xl mb-8 overflow-hidden shadow-sm relative">
-                        @php
-                            $mainPic = $activity->pictures->where('is_primary', true)->first() ?? $activity->pictures->first();
-                        @endphp
+                    @php
+                        $mainPicUrl = $activity->primary_image_url ?? $activity->pictures?->first()?->path;
+                    @endphp
 
-                        @if($mainPic)
-                            <img src="{{ asset('storage/' . $mainPic->path) }}" alt="{{ $activity->activity_name }}" class="w-full h-full object-cover">
+                    <div class="w-full h-[250px] sm:h-[350px] md:h-[450px] bg-[#d9d9d9] rounded-2xl mb-4 overflow-hidden shadow-sm relative">
+                        @if($mainPicUrl)
+                            <img src="{{ $mainPicUrl }}" alt="{{ $activity->activity_name }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-gray-500 bg-gray-200">
                                 <span class="text-lg font-medium">Tidak ada gambar dokumentasi</span>
@@ -66,10 +66,31 @@
                         @endif
                     </div>
 
+                    <!-- {{-- Galeri Foto Tambahan jika lebih dari 1 --}}
+                    @if($activity->pictures && $activity->pictures->count() > 1)
+                    <div class="grid grid-cols-3 gap-3 mb-8">
+                        @foreach($activity->pictures as $galleryPic)
+                            <div class="h-24 sm:h-32 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+                                <img src="{{ $galleryPic->path }}" alt="Dokumentasi" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                            </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <div class="mb-4"></div>
+                    @endif -->
+
                     {{-- Teks Konten --}}
                     <div class="prose prose-sm md:prose-base max-w-none text-gray-700 text-left leading-relaxed flex flex-col gap-5">
-                        <p>{!! nl2br(e($activity->description)) !!}</p>
+                        {!! $activity->description !!}
                     </div>
+
+                    <!-- {{-- Kutipan Dosen jika ada --}}
+                    @if(!empty($activity->quote) && $activity->quote !== '-')
+                    <div class="mt-8 p-5 bg-[#f0f4fa] border-l-4 border-[#1a3675] rounded-r-xl italic text-gray-800">
+                        <p class="text-sm md:text-base font-medium">"{{ $activity->quote }}"</p>
+                        <span class="block text-xs md:text-sm font-bold text-[#1a3675] mt-2 not-italic">&mdash; {{ $activity->user->name ?? 'Dosen' }}</span>
+                    </div>
+                    @endif -->
 
                 </div>
 
@@ -83,11 +104,14 @@
 
                     <div class="flex flex-col gap-4">
                         @foreach ($relatedActivities as $item)
+                        @php
+                            $relImgUrl = $item->primary_image_url ?? $item->pictures?->first()?->path;
+                        @endphp
                         <a href="{{ route('activity.show', $item->id) }}" class="h-[124px] group bg-white border border-gray-200 rounded-xl p-3 flex gap-4 hover:scale-105 hover:shadow-md transition-all duration-300">
                             
                             <div class="w-[120px] shrink-0 aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
-                                @if($item->primaryPicture)
-                                    <img src="{{ asset('storage/' . $item->primaryPicture->path) }}" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                @if($relImgUrl)
+                                    <img src="{{ $relImgUrl }}" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                 @else
                                     <div class="w-full h-full bg-[#cbd5e1] flex items-center justify-center text-[10px] text-gray-500 group-hover:scale-105 transition-transform duration-500">No Image</div>
                                 @endif
