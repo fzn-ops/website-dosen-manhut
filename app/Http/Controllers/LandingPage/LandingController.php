@@ -21,8 +21,17 @@ class LandingController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $kategori = $request->input('kategori');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
         $lecturers = $this->dosenService->getProfilesForBlade();
-        $activities = $this->activityService->getAllActivitiesPaginated($search, 4);
+        $activities = $this->activityService->getAllActivitiesPaginated(
+            $search, 
+            $kategori, 
+            $startDate, 
+            $endDate, 
+            4
+        );
 
         return view('pages.landing', [
             'lecturers' => $lecturers,
