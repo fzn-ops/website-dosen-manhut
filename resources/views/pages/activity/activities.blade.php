@@ -31,18 +31,22 @@
             {{-- 2. Bagian Pencarian & Tombol Filter --}}
             <div class="flex items-center gap-3 w-full mb-10">
                 
-                {{-- Input Pencarian --}}
-                <div class="relative flex-grow">
+                {{-- Form Pencarian Backend --}}
+                <form action="{{ route('activities.index') }}" method="GET" id="searchForm" class="relative flex-grow">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <input type="text" 
-                           id="searchInput"
-                           placeholder="Cari Aktivitas atau Nama Dosen" 
-                           class="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1a3675]/50 focus:border-[#1a3675] text-sm text-gray-700 bg-white">
-                </div>
+
+                    <input type="text"
+                            name="search"
+                            value="{{ request('search') }}" 
+                            id="searchInput"
+                            autocomplete="off"
+                            placeholder="Ketik nama aktivitas atau dosen..." 
+                            class="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1a3675]/50 focus:border-[#1a3675] text-sm text-gray-700 bg-white">
+                </form>
 
                 {{-- Wrapper Dropdown Filter --}}
                 <div class="relative shrink-0">
@@ -142,138 +146,141 @@
                 </p>
             </a>
             @endforeach
-
             </div>
 
-            {{-- Pesan Kosong --}}
-            <div id="noResult" class="hidden text-center py-12">
-                <p class="text-gray-500 font-medium">Maaf, Aktivitas yang kamu cari tidak ditemukan pada rentang waktu ini.</p>
-            </div>
+            @if($activities->isEmpty())
+                <div id="noResult" class="text-center py-12">
+                    <p class="text-gray-500 font-medium">
+                        Maaf, Aktivitas yang kamu cari tidak ditemukan.
+                    </p>
+                </div>
+            @endif
 
+            @if ($activities->hasPages())
+                <div class="mt-20">
+                    {{ $activities->withQueryString()->links('components.pagination') }}
+                </div>
+            @endif
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const cards = document.querySelectorAll('.aktivitas-card');
-            const noResultMsg = document.getElementById('noResult');
-            
-            const filterBtn = document.getElementById('filterBtn');
-            const filterDropdown = document.getElementById('filterDropdown');
-            const filterOpts = document.querySelectorAll('.filter-opt');
-            
-            const startDateInput = document.getElementById('startDate');
-            const endDateInput = document.getElementById('endDate');
-            const applyDateBtn = document.getElementById('applyDateBtn');
-            const resetDateBtn = document.getElementById('resetDateBtn');
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const filterBtn = document.getElementById('filterBtn');
+        const filterDropdown = document.getElementById('filterDropdown');
+        const filterOpts = document.querySelectorAll('.filter-opt');
+        
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const applyDateBtn = document.getElementById('applyDateBtn');
+        const resetDateBtn = document.getElementById('resetDateBtn');
 
-            // State Variabel
-            let searchQuery = '';
-            let currentKategori = 'semua';
-            let filterStartDate = null;
-            let filterEndDate = null;
+        let typingTimer;
+        const doneTypingInterval = 100; // Delay 0.5 detik untuk Live Search
 
-            // Toggle Buka/Tutup Dropdown
+        // --- 1. BACA URL UNTUK MEMPERTAHANKAN TAMPILAN (STATE) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Kembalikan kursor ke kolom search agar ngetik tidak putus
+        if (searchInput && searchInput.value) {
+            searchInput.focus();
+            const val = searchInput.value;
+            searchInput.value = '';
+            searchInput.value = val;
+        }
+
+        // Warnai tombol kategori yang sedang aktif
+        const activeKategori = urlParams.get('kategori') || 'semua';
+        filterOpts.forEach(opt => {
+            if (opt.getAttribute('data-kategori') === activeKategori) {
+                opt.classList.remove('text-gray-700');
+                opt.classList.add('font-bold', 'bg-gray-50', 'text-[#1a3675]');
+            } else {
+                opt.classList.remove('font-bold', 'bg-gray-50', 'text-[#1a3675]');
+                opt.classList.add('text-gray-700');
+            }
+        });
+
+        // Isi ulang tanggal kalender dari URL
+        if (startDateInput) startDateInput.value = urlParams.get('start_date') || '';
+        if (endDateInput) endDateInput.value = urlParams.get('end_date') || '';
+
+        // --- 2. FUNGSI UTAMA: KIRIM KE BACKEND ---
+        function sendToBackend(updates) {
+            const url = new URL(window.location.href);
+            
+            // Masukkan parameter baru ke URL
+            for (const key in updates) {
+                if (updates[key]) {
+                    url.searchParams.set(key, updates[key]);
+                } else {
+                    url.searchParams.delete(key); // Hapus kalau kosong
+                }
+            }
+            
+            // Selalu kembali ke halaman 1 tiap kali filter diganti
+            url.searchParams.delete('page');
+            
+            // Reload halaman dengan parameter baru
+            window.location.href = url.toString();
+        }
+
+        // --- 3. EVENT: TOGGLE DROPDOWN ---
+        if(filterBtn && filterDropdown) {
             filterBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 filterDropdown.classList.toggle('hidden');
             });
-
-            // Cegah dropdown tertutup saat klik di dalam area dropdown itu sendiri
-            filterDropdown.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-
+            filterDropdown.addEventListener('click', (e) => e.stopPropagation());
             document.addEventListener('click', (e) => {
-                if (!filterBtn.contains(e.target)) {
-                    filterDropdown.classList.add('hidden');
-                }
+                if (!filterBtn.contains(e.target)) filterDropdown.classList.add('hidden');
             });
+        }
 
-            // FUNGSI UTAMA: Menyaring Berdasarkan 3 Parameter
-            function saringAktivitas() {
-                let hasVisibleCard = false;
-
-                cards.forEach(card => {
-                    const judul = card.getAttribute('data-judul');
-                    const dosen = card.getAttribute('data-dosen');
-                    const kategori = card.getAttribute('data-kategori');
-                    const cardDate = new Date(card.getAttribute('data-date'));
-                    
-                    // 1. Cek Ketikan Search
-                    const matchSearch = judul.includes(searchQuery) || dosen.includes(searchQuery);
-                    
-                    // 2. Cek Kategori
-                    const matchKategori = (currentKategori === 'semua' || kategori === currentKategori);
-                    
-                    // 3. Cek Rentang Waktu (Date Range)
-                    let matchDate = true;
-                    if (filterStartDate) {
-                        matchDate = matchDate && (cardDate >= filterStartDate);
-                    }
-                    if (filterEndDate) {
-                        matchDate = matchDate && (cardDate <= filterEndDate);
-                    }
-
-                    // Tampilkan jika lulus ketiga filter
-                    if (matchSearch && matchKategori && matchDate) {
-                        card.classList.remove('hidden');
-                        hasVisibleCard = true;
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
-
-                if (hasVisibleCard) {
-                    noResultMsg.classList.add('hidden');
-                } else {
-                    noResultMsg.classList.remove('hidden');
-                }
-            }
-
-            // Aksi: Ketik Pencarian
+        // --- 4. EVENT: LIVE SEARCH ---
+        if(searchInput) {
             searchInput.addEventListener('input', (e) => {
-                searchQuery = e.target.value.toLowerCase();
-                saringAktivitas();
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(() => {
+                    sendToBackend({ search: e.target.value });
+                }, doneTypingInterval);
             });
-
-            // Aksi: Pilih Kategori
-            filterOpts.forEach(opt => {
-                opt.addEventListener('click', (e) => {
-                    filterOpts.forEach(o => {
-                        o.classList.remove('font-bold', 'bg-gray-50', 'text-[#1a3675]');
-                        o.classList.add('text-gray-700');
-                    });
-                    
-                    const clickedOpt = e.currentTarget;
-                    clickedOpt.classList.remove('text-gray-700');
-                    clickedOpt.classList.add('font-bold', 'bg-gray-50', 'text-[#1a3675]');
-
-                    currentKategori = clickedOpt.getAttribute('data-kategori');
-                    saringAktivitas();
-                });
+            
+            // Cegah submit manual kalau user iseng tekan Enter
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(typingTimer);
+                    sendToBackend({ search: e.target.value });
+                }
             });
+        }
 
-            // Aksi: Terapkan Rentang Waktu
-            applyDateBtn.addEventListener('click', () => {
-                // Konversi value input ke object Date Javascript
-                filterStartDate = startDateInput.value ? new Date(startDateInput.value) : null;
-                filterEndDate = endDateInput.value ? new Date(endDateInput.value) : null;
-                
-                saringAktivitas();
-                filterDropdown.classList.add('hidden'); // Tutup dropdown setelah apply
-            });
-
-            // Aksi: Reset Rentang Waktu
-            resetDateBtn.addEventListener('click', () => {
-                startDateInput.value = '';
-                endDateInput.value = '';
-                filterStartDate = null;
-                filterEndDate = null;
-                
-                saringAktivitas();
+        // --- 5. EVENT: PILIH KATEGORI ---
+        filterOpts.forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                const kategori = e.currentTarget.getAttribute('data-kategori');
+                // Kalau pilih 'semua', kirim parameter kosong agar dihapus dari URL
+                sendToBackend({ kategori: kategori === 'semua' ? '' : kategori });
             });
         });
-    </script>
+
+        // --- 6. EVENT: TANGGAL ---
+        if(applyDateBtn) {
+            applyDateBtn.addEventListener('click', () => {
+                sendToBackend({ 
+                    start_date: startDateInput.value,
+                    end_date: endDateInput.value
+                });
+            });
+        }
+
+        if(resetDateBtn) {
+            resetDateBtn.addEventListener('click', () => {
+                sendToBackend({ start_date: '', end_date: '' });
+            });
+        }
+    });
+</script>
 </x-layouts.main>

@@ -18,9 +18,21 @@ class ActivityController extends Controller
 
     public function index(Request $request)
     {
+        // Tangkap semua input dari URL
         $search = $request->input('search');
-        $activities = $this->activityService->getAllActivitiesPaginated($search, 9);
-
+        $kategori = $request->input('kategori');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+    
+        // Lempar ke Service secara berurutan
+        $activities = $this->activityService->getAllActivitiesPaginated(
+            $search, 
+            $kategori, 
+            $startDate, 
+            $endDate, 
+            9
+        );
+    
         return view('pages.activity.activities', [
             'activities' => $activities
         ]);

@@ -62,102 +62,201 @@
 
             </div>
 
-            {{-- 3. Grid Daftar Dosen --}}
+            @php 
+                $perPage = 10; // Mau tampilkan berapa dosen per halaman?
+                $totalPages = ceil(count($lecturers) / $perPage); 
+            @endphp
+
+            {{-- Grid Daftar Dosen --}}
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6" id="dosenGrid">
-                
                 @foreach ($lecturers as $lecturer)
-                <a href="{{ route('lecturer.show', $lecturer['id']) }}"
-                   class="dosen-card block relative rounded-xl overflow-hidden shadow-[0_4px_15px_-3px_rgba(0,0,0,0.1)] group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl" 
-                   data-name="{{ strtolower($lecturer['name']) }}"
-                   data-category="{{ strtolower($lecturer['division']) }}">
+                    {{-- Hitung otomatis dosen ini masuk halaman berapa --}}
+                    @php $page = floor($loop->index / $perPage) + 1; @endphp
 
-                    <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-110">
-                        <img src="{{ $lecturer['image'] ?? asset('images/default-avatar.png') }}" alt="{{ $lecturer['name'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                    </div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#1a3675]/95 via-[#1a3675]/40 to-transparent"></div>
+                    <a href="{{ route('lecturer.show', $lecturer['id']) }}"
+                       class="dosen-card block relative rounded-xl overflow-hidden shadow-[0_4px_15px_-3px_rgba(0,0,0,0.1)] group aspect-[3/4]          bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl {{ $page > 1 ? 'hidden' : '' }}" 
+                       data-name="{{ strtolower($lecturer['name']) }}"
+                       data-category="{{ strtolower($lecturer['division']) }}"
+                       data-page="{{ $page }}"> {{-- Atribut penting untuk JS --}}
 
-                    <div class="absolute bottom-0 left-0 p-3 md:p-4 text-white w-full transform transition-transform duration-300 group-hover:-translate-y-1">
-                        <h3 class="font-bold text-sm md:text-base mb-1 leading-tight line-clamp-2">{{ $lecturer['name'] }}</h3>
-                        <p class="text-[9px] md:text-[10px] text-gray-200 line-clamp-1">{{ $lecturer['division'] }}</p>
-                    </div>
-                </a>
+                        <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-110">
+                            <img src="{{ $lecturer['image'] ?? asset('images/default-avatar.png') }}" alt="{{ $lecturer['name'] }}" class="w-full           h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#1a3675]/95 via-[#1a3675]/40 to-transparent"></div>
+
+                        <div class="absolute bottom-0 left-0 p-3 md:p-4 text-white w-full transform transition-transform duration-300           group-hover:-translate-y-1">
+                            <h3 class="font-bold text-sm md:text-base mb-1 leading-tight line-clamp-2">{{ $lecturer['name'] }}</h3>
+                            <p class="text-[9px] md:text-[10px] text-gray-200 line-clamp-1">{{ $lecturer['division'] }}</p>
+                        </div>
+                    </a>
                 @endforeach
-
             </div>
+
+            {{-- Container Tombol Pagination (Muncul kalau halamannya > 1) --}}
+            @if($totalPages > 1)
+                <nav id="paginationNav" class="flex items-center justify-end space-x-2 mt-10 hidden" aria-label="Pagination">
+                    {{-- Tombol Prev --}}
+                    <button id="btn-prev" onclick="changePage(-1)" disabled 
+                            class="px-4 py-2 text-sm font-semibold text-[#1a3675] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm">
+                        &laquo; Prev
+                    </button>
+                
+                    {{-- Container untuk Deretan Angka Halaman --}}
+                    <div id="page-numbers" class="flex space-x-2"></div>
+                
+                    {{-- Tombol Next --}}
+                    <button id="btn-next" onclick="changePage(1)" 
+                            class="px-4 py-2 text-sm font-semibold text-[#1a3675] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm">
+                        Next &raquo;    
+                    </button>
+                </nav>
+            @endif
             
             {{-- Pesan Jika Tidak Ada Hasil (Disembunyikan default) --}}
             <div id="noResult" class="hidden text-center py-10">
                 <p class="text-gray-500 font-medium">Maaf, Dosen yang kamu cari tidak ditemukan.</p>
             </div>
-
         </div>
     </div>
 
-    {{-- Script Logika Filter & Search --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('searchInput');
             const categoryBtns = document.querySelectorAll('.category-btn');
-            const cards = document.querySelectorAll('.dosen-card');
+            const cards = Array.from(document.querySelectorAll('.dosen-card'));
             const noResultMsg = document.getElementById('noResult');
-            
+            const paginationNav = document.getElementById('paginationNav');
+
             let currentCategory = 'semua';
             let searchQuery = '';
 
-            // Fungsi utama untuk memfilter
-            function filterDosen() {
-                let hasVisibleCard = false;
+            // --- PENGATURAN PAGINASI ---
+            let currentPage = 1;
+            const perPage = 10;
 
+            // FUNGSI UTAMA: Update Tampilan
+            function updateView() {
+                let matchedCards = [];
+
+                // 1. Saring dosen sesuai Search dan Kategori
                 cards.forEach(card => {
                     const name = card.getAttribute('data-name');
                     const category = card.getAttribute('data-category');
-                    
-                    // Cek kecocokan ketikan (search) dan tombol kategori
+
                     const matchSearch = name.includes(searchQuery);
                     const matchCategory = (currentCategory === 'semua' || category === currentCategory);
 
                     if (matchSearch && matchCategory) {
-                        card.classList.remove('hidden');
-                        hasVisibleCard = true;
+                        matchedCards.push(card);
                     } else {
                         card.classList.add('hidden');
                     }
                 });
 
-                // Tampilkan pesan "Tidak ditemukan" jika semua kartu hidden
-                if (hasVisibleCard) {
-                    noResultMsg.classList.add('hidden');
-                } else {
+                // 2. Jika Tidak Ada Dosen yang Cocok
+                if (matchedCards.length === 0) {
                     noResultMsg.classList.remove('hidden');
+                    if (paginationNav) paginationNav.classList.add('hidden');
+                    return;
+                } else {
+                    noResultMsg.classList.add('hidden');
+                }
+
+                // 3. Hitung Paginasi Baru Berdasarkan Hasil Filter
+                const totalPages = Math.ceil(matchedCards.length / perPage);
+                if (currentPage > totalPages) currentPage = 1;
+
+                // Tampilkan dosen hanya untuk halaman saat ini
+                matchedCards.forEach((card, index) => {
+                    const cardPage = Math.floor(index / perPage) + 1;
+
+                    if (cardPage === currentPage) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+
+                // 4. Update UI Tombol Paginasi
+                if (paginationNav) {
+                    if (totalPages > 1) {
+                        paginationNav.classList.remove('hidden');
+
+                        // Render deretan angka halaman
+                        const pageNumbersContainer = document.getElementById('page-numbers');
+                        pageNumbersContainer.innerHTML = ''; // Bersihkan isi sebelumnya
+
+                        for (let i = 1; i <= totalPages; i++) {
+                            if (i === currentPage) {
+                                // Desain tombol aktif (Biru)
+                                pageNumbersContainer.innerHTML += `
+                                    <button class="px-4 py-2 text-sm font-bold text-white bg-[#1a3675] border border-[#1a3675] rounded-lg shadow-md cursor-default">
+                                        ${i}
+                                    </button>
+                                `;
+                            } else {
+                                // Desain tombol tidak aktif (Putih)
+                                pageNumbersContainer.innerHTML += `
+                                    <button onclick="goToPage(${i})" class="px-4 py-2 text-sm font-semibold text-[#1a3675] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                                        ${i}
+                                    </button>
+                                `;
+                            }
+                        }
+
+                        document.getElementById('btn-prev').disabled = (currentPage === 1);
+                        document.getElementById('btn-next').disabled = (currentPage === totalPages);
+                    } else {
+                        paginationNav.classList.add('hidden');
+                    }
                 }
             }
 
-            // Event Listener Ketikan Pencarian
-            searchInput.addEventListener('input', (e) => {
-                searchQuery = e.target.value.toLowerCase();
-                filterDosen();
-            });
+            // Ekspos fungsi ganti halaman ke HTML (tombol onClick)
+            window.changePage = function(direction) {
+                currentPage += direction;
+                updateView();
+                window.scrollTo({ top: document.getElementById('dosenGrid').offsetTop - 100, behavior: 'smooth' });
+            };
 
-            // Event Listener Klik Kategori
+            // Fungsi untuk loncat ke angka halaman tertentu
+            window.goToPage = function(page) {
+                currentPage = page;
+                updateView();
+                window.scrollTo({ top: document.getElementById('dosenGrid').offsetTop - 100, behavior: 'smooth' });
+            };
+
+            // EVENT: Saat Mengetik di Kolom Pencarian
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    searchQuery = e.target.value.toLowerCase();
+                    currentPage = 1;
+                    updateView();
+                });
+            }
+
+            // EVENT: Saat Klik Tombol Kategori
             categoryBtns.forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    
-                    // 1. Reset semua warna tombol ke Abu-abu/Putih
+                    // Reset Warna Tombol
                     categoryBtns.forEach(b => {
                         b.classList.remove('bg-[#1a3675]', 'text-white', 'border-transparent');
                         b.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
                     });
 
-                    // 2. Warnai tombol yang sedang diklik jadi Biru
+                    // Warnai Tombol Aktif
                     const clickedBtn = e.currentTarget;
                     clickedBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
                     clickedBtn.classList.add('bg-[#1a3675]', 'text-white', 'border-transparent');
 
-                    // 3. Update kategori dan jalankan filter
                     currentCategory = clickedBtn.getAttribute('data-filter');
-                    filterDosen();
+                    currentPage = 1; // Balik ke halaman 1 tiap kali ganti kategori
+                    updateView();
                 });
             });
+
+            // Jalankan saat web pertama kali dibuka
+            updateView();
         });
     </script>
 </x-layouts.main>

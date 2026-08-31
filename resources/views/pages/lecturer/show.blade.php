@@ -189,7 +189,7 @@
                             </div>
                         </div>
                         <p class="text-[13px] text-gray-500 leading-relaxed text-left line-clamp-3">
-                            {{ $activity->description }}
+                            {{ $activity->quote ?? $activity->description }}
                         </p>
                     </div>
                     

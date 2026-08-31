@@ -92,7 +92,7 @@ class DosenService
      * @param Collection|null $profiles
      * @return array
      */
-    public function getProfilesForBlade(?Collection $profiles = null): array
+    public function getProfilesForBlade(?Collection $profiles = null, $perPage = 10): array
     {
         $profiles = $profiles ?? $this->getAllProfiles();
 

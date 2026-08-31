@@ -117,15 +117,39 @@ class ActivityService
     /**
      * Mengambil data aktivitas terpaginasi untuk Landing Page.
      */
-    public function getAllActivitiesPaginated($keyword = null, $perPage = 9)
+    public function getAllActivitiesPaginated($search = null, $kategori = null, $startDate = null, $endDate = null, $perPage = 9)
     {
         $query = Activity::with(['user', 'primaryPicture', 'pictures']);
-
-        if ($keyword) {
-            $query->where('activity_name', 'like', "%{$keyword}%")
-                  ->orWhere('description', 'like', "%{$keyword}%");
+    
+        // 1. Filter Pencarian (Keyword)
+        if ($search) {
+            // PENTING: Dibungkus function($q) agar orWhere tidak merusak filter lain
+            $query->where(function($q) use ($search) {
+                $q->where('activity_name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  // Mencari juga berdasarkan nama dosen
+                  ->orWhereHas('user', function($userQ) use ($search) {
+                      $userQ->where('name', 'like', "%{$search}%");
+                  });
+            });
         }
-
+    
+        // 2. Filter Kategori
+        if ($kategori) {
+            // Catatan: Jika kolom activity_type di DB-mu bertipe JSON/Array, 
+            // ganti pakai ->whereJsonContains('activity_type', $kategori)
+            $query->where('activity_type', 'like', "%{$kategori}%");
+        }
+    
+        // 3. Filter Rentang Waktu (Tanggal)
+        if ($startDate) {
+            $query->whereDate('activity_date_start', '>=', $startDate);
+        }
+        
+        if ($endDate) {
+            $query->whereDate('activity_date_start', '<=', $endDate);
+        }
+    
         return $query->orderBy('activity_date_start', 'desc')
                      ->paginate($perPage);
     }
