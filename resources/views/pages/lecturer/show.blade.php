@@ -102,7 +102,7 @@
                                     @else
                                         <tr>
                                             <td colspan="4" class="px-4 py-3 text-center text-gray-500">
-            Belum ada riwayat pendidikan.
+                                                    Belum ada riwayat pendidikan.
                                             </td>
                                         </tr>
                                     @endif
@@ -167,23 +167,29 @@
             {{-- TAB 2: AKTIVITAS --}}
             <div id="content-aktivitas" class="hidden bg-[#fafafc] border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                 
-                @foreach ($aktivitasDosen as $index => $akt)
+                @foreach ($activities as $activity)
                 <div class="aktivitas-item flex flex-col lg:flex-row p-6 border-b border-gray-200 last:border-b-0 hover:bg-white transition-colors gap-6 lg:gap-10"
-                     data-search="{{ strtolower($akt['nama'] . ' ' . $akt['role'] . ' ' . $akt['year'] . ' ' . $akt['month']) }}">
+                     data-search="{{ strtolower($activity->activity_name . ' ' . $activity->job . ' ' . $activity->activity_date_start . ' ' . $activity->month) }}">
                     
                     <div class="flex-1">
                         <div class="flex flex-col sm:flex-row justify-between sm:items-start mb-4 gap-4">
                             <div>
-                                <h3 class="text-xl font-extrabold text-[#1a3675]">{{ $akt['nama'] }}</h3>
-                                <p class="text-xs font-bold text-gray-600 mt-1">{{ $akt['role'] }}</p>
+                                <h3 class="text-xl font-extrabold text-[#1a3675]">{{ $activity->activity_name }}</h3>
+                                <p class="text-xs font-bold text-gray-600 mt-1">{{ $activity->job }}</p>
                             </div>
                             <div class="text-left sm:text-right shrink-0">
-                                <h4 class="text-xl font-extrabold text-[#1a3675] leading-none mb-1">{{ $akt['year'] }}</h4>
-                                <p class="text-[11px] font-semibold text-gray-500">{{ $akt['month'] }}</p>
+                                <h4 class="text-xl font-extrabold text-[#1a3675] leading-none mb-1">
+                                    {{ $activity->activity_date_start->translatedFormat('d F Y') }}
+                                </h4>
+                                @if($activity->activity_date_end)
+                                    <p class="text-[11px] font-semibold text-gray-500 mt-2">
+                                        s/d {{ $activity->activity_date_end->translatedFormat('d F Y') }}
+                                    </p>
+                                @endif
                             </div>
                         </div>
                         <p class="text-[13px] text-gray-500 leading-relaxed text-left line-clamp-3">
-                            {{ $akt['desc'] }}
+                            {{ $activity->description }}
                         </p>
                     </div>
                     
@@ -192,20 +198,29 @@
                             <button class="btn-prev absolute left-0 z-20 bg-white/90 p-1.5 rounded-full shadow hover:bg-white text-gray-800 transition active:scale-95 focus:outline-none">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                             </button>
-                            <div class="relative flex items-center justify-center w-full h-full">
-                                {{-- FOTO 1 --}}
-                                <div class="carousel-img absolute transition-all duration-300 ease-in-out overflow-hidden w-16 h-12 opacity-50 scale-90 -translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80">
-                                    <img src="https://picsum.photos/seed/{{ $index }}5/600/400" alt="Aktivitas" class="w-full h-full object-cover pointer-events-none">
-                                </div>
-                                {{-- FOTO 2 --}}
-                                <div class="carousel-img absolute transition-all duration-300 ease-in-out overflow-hidden w-24 h-16 opacity-100 scale-100 translate-x-0 z-10 shadow-lg border-2 border-white rounded-lg cursor-pointer">
-                                    <img src="https://picsum.photos/seed/{{ $index }}2/600/400" alt="Aktivitas" class="w-full h-full object-cover pointer-events-none">
-                                </div>
-                                {{-- FOTO 3 --}}
-                                <div class="carousel-img absolute transition-all duration-300 ease-in-out overflow-hidden w-16 h-12 opacity-50 scale-90 translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80">
-                                    <img src="https://picsum.photos/seed/{{ $index }}3/600/400" alt="Aktivitas" class="w-full h-full object-cover pointer-events-none">
-                                </div>
-                            </div>
+                    @php
+                        $images = $activity->pictures->pluck('path')->toArray();
+                        $totalImages = count($images);
+                    @endphp
+
+                    <div class="relative flex items-center justify-center w-full h-full">
+
+                        {{-- FOTO 1 (Kiri) --}}
+                        <div class="carousel-img absolute transition-all duration-300 ease-in-out overflow-hidden w-16 h-12 opacity-50 scale-90-translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80">
+                            <img src="{{ $images[0] ?? asset('default-image.jpg') }}" alt="Aktivitas 1" class="w-full h-full object-cover pointer-events-none">
+                        </div>
+
+                        {{-- FOTO 2 (Tengah) --}}
+                        <div class="carousel-img absolute transition-all duration-300 ease-in-out overflow-hidden w-24 h-16 opacity-100 scale-100 translate-x-0 z-10 shadow-lg border-2 border-white rounded-lg cursor-pointer">
+                            <img src="{{ $images[1] ?? ($images[0] ?? asset('default-image.jpg')) }}" alt="Aktivitas 2" class="w-full h-full object-cover pointer-events-none">
+                        </div>
+
+                        {{-- FOTO 3 (Kanan) beserta Overlay jika gambar > 3 --}}
+                        <div class="carousel-img relative absolute transition-all duration-300 ease-in-out overflow-hidden w-16 h-12 opacity-50 scale-90 translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80">
+                            <img src="{{ $images[2] ?? ($images[0] ?? asset('default-image.jpg')) }}" alt="Aktivitas 3" class="w-full h-full object-cover pointer-events-none">
+                        </div>
+
+                    </div>
                             <button class="btn-next absolute right-0 z-20 bg-white/90 p-1.5 rounded-full shadow hover:bg-white text-gray-800 transition active:scale-95 focus:outline-none">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                             </button>

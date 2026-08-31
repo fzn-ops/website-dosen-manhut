@@ -34,7 +34,9 @@
                         <div class="font-bold text-[#1a3675] flex items-center gap-2">
                             <span>{{ $activity->job ?? 'Partisipan' }}</span>
                             <span class="w-1.5 h-1.5 rounded-full bg-[#1a3675]"></span>
-                            <span>{{ $activity->user->name ?? 'Nama Dosen' }}</span>
+                            <a href="{{ route('lecturer.show', $activity->user->id-1) }}" class="hover:text-[#1a3675] transition-colors hover:underline">
+                                {{ $activity->user->name ?? 'Nama Dosen' }}
+                            </a>
                         </div>
                         
                         {{-- Kanan: Tanggal --}}
