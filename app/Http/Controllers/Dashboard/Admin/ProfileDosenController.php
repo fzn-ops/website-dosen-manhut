@@ -61,7 +61,7 @@ class ProfileDosenController extends Controller
 
         $this->dosenService->createProfile($validated);
 
-        return redirect()->route('admin.profiledosen')->with('success', 'Profil dosen berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Profil dosen berhasil ditambahkan.');
     }
 
     /**
@@ -101,7 +101,7 @@ class ProfileDosenController extends Controller
 
         $this->dosenService->updateProfile($id, $validated);
 
-        return redirect()->route('admin.profiledosen')->with('success', 'Profil dosen berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Profil dosen berhasil diperbarui.');
     }
 
     /**
@@ -111,6 +111,6 @@ class ProfileDosenController extends Controller
     {
         $this->dosenService->deleteProfile($id);
 
-        return redirect()->route('admin.profiledosen')->with('success', 'Profil dosen berhasil dihapus.');
+        return redirect()->back()->with('success', 'Profil dosen berhasil dihapus.');
     }
 }

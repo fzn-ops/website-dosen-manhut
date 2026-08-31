@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Dashboard\Admin\AktivitasDosenController;
+use App\Http\Controllers\Dashboard\Admin\DashboardController;
 use App\Http\Controllers\Dashboard\Admin\DosenController;
 use App\Http\Controllers\Dashboard\Admin\ProfileDosenController;
 use App\Http\Controllers\ProfileController;
@@ -41,9 +42,7 @@ Route::get('/login', function () {
 /* Admin Panel Routes (Inertia Vue) */
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Admin/dashboard');
-    })->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     // Dosen Account Routes (CRUD User role: dosen)
     Route::get('/dosen', [DosenController::class, 'index'])->name('admin.dosen');

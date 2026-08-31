@@ -8,6 +8,7 @@ import ModalFormDosen from '@/Components/admin/ModalFormDosen.vue';
 import ModalImportDosen from '@/Components/admin/ModalImportDosen.vue';
 import TablePagination from '@/Components/TablePagination.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
+import SearchBarTable from '@/Components/SearchBarTable.vue';
 
 const props = defineProps({
 	lecturers: {
@@ -68,11 +69,11 @@ const searchQuery = ref('');
 
 // Sorting
 const columns = [
-	{ key: 'nip', label: 'NIP', sortable: true, align: 'center', width: 'w-[15%]' },
-	{ key: 'name', label: 'Nama Dosen', sortable: true, align: 'center', width: 'w-[25%]' },
+	{ key: 'nip', label: 'NIP', sortable: true, align: 'center', width: 'w-[18%]' },
+	{ key: 'name', label: 'Nama Dosen', sortable: true, align: 'center', width: 'w-[20%]' },
 	{ key: 'username', label: 'Username', sortable: true, align: 'center', width: 'w-[15%]' },
-	{ key: 'email', label: 'Email', sortable: true, align: 'center', width: 'w-[25%]' },
-	{ key: 'phone', label: 'Nomor Handphone', sortable: true, align: 'center', width: 'w-[18%]' },
+	{ key: 'email', label: 'Email', sortable: true, align: 'center', width: 'w-[18%]' },
+	{ key: 'phone', label: 'Nomor Handphone', sortable: true, align: 'center', width: 'w-[15%]' },
 	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
 
@@ -92,10 +93,11 @@ const toggleSort = (key) => {
 const filteredAndSortedLecturers = computed(() => {
 	let list = [...lecturers.value];
 
+	// Search Query (NIP atau Nama Dosen - case-insensitive sesuai placeholder)
 	if (searchQuery.value.trim()) {
 		const q = searchQuery.value.toLowerCase().trim();
 		list = list.filter(
-			(l) => l.name.toLowerCase().includes(q) || l.nip.toLowerCase().includes(q) || l.email.toLowerCase().includes(q)
+			(l) => (l.name && l.name.toLowerCase().includes(q)) || (l.nip && l.nip.toLowerCase().includes(q))
 		);
 	}
 
@@ -235,26 +237,17 @@ const deleteLecturer = (lecturer) => {
 
 				<!-- Action Bar (Search, Import, Tambah Button) -->
 				<div class="flex items-center gap-3">
-					<!-- Search Input -->
-					<div class="relative flex-1">
-						<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-							<svg class="h-5 w-5 text-[#aeaeae]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-							</svg>	
-						</div>
-						<input
-							v-model="searchQuery"
-							type="text"
-							placeholder="Cari NIP atau Nama Dosen disini"
-							class="h-[46px] w-full rounded-[10px] border-2 border-[#d6e0ee] bg-transparent pl-12 pr-4 font-inter text-[14px] text-[#173a63] placeholder-[#8ca1b9] transition-colors focus:border-[#183669] focus:outline-none focus:ring-0"
-						/>
-					</div>
+					<!-- Search Input Component -->
+					<SearchBarTable
+						v-model="searchQuery"
+						placeholder="Cari NIP atau Nama Dosen disini"
+					/>
 
-					<!-- Import Button -->
+					<!-- Import Button (Border-only hover) -->
 					<button
 						type="button"
 						@click="isImportModalOpen = true"
-						class="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-[10px] border-2 border-[#d6e0ee] bg-transparent px-4 font-poppins text-[14px] font-semibold text-[#183669] transition hover:border-[#183669] hover:bg-[#183669]/5 focus:border-[#183669] focus:outline-none active:border-[#183669]"
+						class="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-[10px] border-2 border-[#d6e0ee] bg-transparent px-4 font-poppins text-[14px] font-semibold text-[#183669] transition-colors hover:border-[#8ea9cb] focus:border-[#183669] focus:outline-none"
 						title="Import Data Dosen (Excel / CSV)"
 					>
 						<svg class="h-5 w-5 text-[#183669]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -293,12 +286,20 @@ const deleteLecturer = (lecturer) => {
 										type="button"
 										@click="toggleSort(col.key)"
 										:class="[
-											'group inline-flex items-center gap-1.5 transition-colors hover:text-white/80 focus:outline-none',
-											col.align === 'center' ? 'mx-auto justify-center' : 'justify-start'
+											'group transition-colors hover:text-white/80 focus:outline-none',
+											col.align === 'center'
+												? 'relative mx-auto inline-flex items-center justify-center'
+												: 'inline-flex items-center gap-1.5 justify-start'
 										]"
 									>
 										<span>{{ col.label }}</span>
-										<span class="inline-flex items-center text-white/70 group-hover:text-white">
+										<span
+											:class="[
+												col.align === 'center'
+													? 'absolute left-full ml-1.5 inline-flex items-center text-white/70 group-hover:text-white'
+													: 'inline-flex items-center text-white/70 group-hover:text-white'
+											]"
+										>
 											<svg
 												v-if="sortKey === col.key"
 												:class="[

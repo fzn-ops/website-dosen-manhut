@@ -46,6 +46,7 @@ class AktivitasDosenController extends Controller
             'startDate'           => 'required|date',
             'endDate'             => 'nullable|date|after_or_equal:startDate',
             'lecturerQuote'       => 'nullable|string|max:1000',
+            'primaryImageIndex'   => 'nullable|integer|min:0|max:2',
             'images'              => 'nullable|array|max:3',
             'images.*'            => 'nullable',
         ], [
@@ -81,11 +82,12 @@ class AktivitasDosenController extends Controller
             'job'                 => $validated['role'],
             'activity_type'       => $validated['categories'],
             'quote'               => $validated['lecturerQuote'] ?? null,
+            'primary_image_index' => $validated['primaryImageIndex'] ?? 0,
             'activity_date_start' => $validated['startDate'],
             'activity_date_end'   => $validated['endDate'] ?? $validated['startDate'],
         ], $imageFiles);
 
-        return redirect()->route('admin.aktivitasdosen')->with('success', 'Aktivitas dosen berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Aktivitas dosen berhasil ditambahkan.');
     }
 
     /**
@@ -104,6 +106,7 @@ class AktivitasDosenController extends Controller
             'startDate'           => 'required|date',
             'endDate'             => 'nullable|date|after_or_equal:startDate',
             'lecturerQuote'       => 'nullable|string|max:1000',
+            'primaryImageIndex'   => 'nullable|integer|min:0|max:2',
             'images'              => 'nullable|array|max:3',
             'images.*'            => 'nullable',
             'existingImages'      => 'nullable|array',
@@ -144,11 +147,12 @@ class AktivitasDosenController extends Controller
             'job'                 => $validated['role'],
             'activity_type'       => $validated['categories'],
             'quote'               => $validated['lecturerQuote'] ?? null,
+            'primary_image_index' => $validated['primaryImageIndex'] ?? 0,
             'activity_date_start' => $validated['startDate'],
             'activity_date_end'   => $validated['endDate'] ?? $validated['startDate'],
         ], $imageFiles, $keptExistingImages);
 
-        return redirect()->route('admin.aktivitasdosen')->with('success', 'Aktivitas dosen berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Aktivitas dosen berhasil diperbarui.');
     }
 
     /**
@@ -158,6 +162,6 @@ class AktivitasDosenController extends Controller
     {
         $this->activityService->deleteActivity($id);
 
-        return redirect()->route('admin.aktivitasdosen')->with('success', 'Aktivitas dosen berhasil dihapus.');
+        return redirect()->back()->with('success', 'Aktivitas dosen berhasil dihapus.');
     }
 }

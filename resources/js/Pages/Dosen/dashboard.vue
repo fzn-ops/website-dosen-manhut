@@ -355,17 +355,29 @@ const deleteActivity = (activity) => {
 										:key="col.key"
 										:class="[
 											col.width,
-											'px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none'
+											'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none',
+											col.align === 'center' || col.cellAlign === 'center' ? 'text-center' : 'text-left'
 										]"
 									>
 										<button
 											v-if="col.sortable"
 											type="button"
 											@click="toggleSort(col.key)"
-											class="group mx-auto inline-flex items-center justify-center gap-1.5 transition-colors hover:text-white/80 focus:outline-none"
+											:class="[
+												'group transition-colors hover:text-white/80 focus:outline-none',
+												col.align === 'center' || col.cellAlign === 'center'
+													? 'relative mx-auto inline-flex items-center justify-center'
+													: 'inline-flex items-center gap-1.5 justify-start'
+											]"
 										>
 											<span>{{ col.label }}</span>
-											<span class="inline-flex items-center text-white/70 group-hover:text-white">
+											<span
+												:class="[
+													col.align === 'center' || col.cellAlign === 'center'
+														? 'absolute left-full ml-1.5 inline-flex items-center text-white/70 group-hover:text-white'
+														: 'inline-flex items-center text-white/70 group-hover:text-white'
+												]"
+											>
 												<svg
 													v-if="sortKey === col.key"
 													:class="[
@@ -387,7 +399,7 @@ const deleteActivity = (activity) => {
 												</svg>
 											</span>
 										</button>
-										<span v-else class="block text-center">{{ col.label }}</span>
+										<span v-else>{{ col.label }}</span>
 									</th>
 								</tr>
 							</thead>

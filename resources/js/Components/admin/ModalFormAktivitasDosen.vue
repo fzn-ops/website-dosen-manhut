@@ -37,6 +37,7 @@ const form = ref({
 	endDate: '',
 	images: [],
 	imagePreviews: [],
+	primaryImageIndex: 0,
 	lecturerQuote: '',
 	categories: [],
 	releaseDate: '',
@@ -135,9 +136,10 @@ watch(
 					endDate: props.initialData.endDate || '',
 					images: props.initialData.images || [],
 					imagePreviews: props.initialData.imagePreviews || (props.initialData.images ? [...props.initialData.images] : []),
+					primaryImageIndex: Number(props.initialData.primaryImageIndex ?? 0),
 					lecturerQuote: props.initialData.lecturerQuote && props.initialData.lecturerQuote !== '-' ? props.initialData.lecturerQuote : '',
 					categories: [...cats],
-					releaseDate: props.initialData.date || getFormattedToday(),
+					releaseDate: props.initialData.publishDate || props.initialData.date || getFormattedToday(),
 				};
 			} else {
 				form.value = {
@@ -151,6 +153,7 @@ watch(
 					endDate: '',
 					images: [],
 					imagePreviews: [],
+					primaryImageIndex: 0,
 					lecturerQuote: '',
 					categories: [],
 					releaseDate: getFormattedToday(),
@@ -204,9 +207,18 @@ const handleImageChange = (e) => {
 	e.target.value = '';
 };
 
+const setPrimaryImage = (index) => {
+	form.value.primaryImageIndex = index;
+};
+
 const removeImage = (index) => {
 	form.value.images.splice(index, 1);
 	form.value.imagePreviews.splice(index, 1);
+	if (form.value.primaryImageIndex === index) {
+		form.value.primaryImageIndex = 0;
+	} else if (form.value.primaryImageIndex > index) {
+		form.value.primaryImageIndex -= 1;
+	}
 };
 
 const triggerFileInput = () => {
@@ -277,6 +289,7 @@ const handleSubmit = () => {
 		endDate: form.value.endDate || form.value.startDate,
 		images: form.value.images,
 		imagePreviews: form.value.imagePreviews,
+		primaryImageIndex: form.value.primaryImageIndex,
 		lecturerQuote: form.value.lecturerQuote.trim() || '-',
 		category: form.value.categories.length > 0 ? form.value.categories[0] : 'Lainnya',
 		categories: [...form.value.categories],
@@ -506,7 +519,7 @@ const handleSubmit = () => {
 								<span class="text-[11px] font-semibold text-[#7188a3]">{{ form.imagePreviews.length }}/3 Gambar</span>
 							</div>
 							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">
-								Masukkan gambar pendukung (MAX 10mb, JPG/PNG, 3 Gambar)
+								Pilih 1 gambar sebagai Thumbnail utama (MAX 10mb, JPG/PNG, 3 Gambar)
 							</p>
 
 							<!-- Image Upload Box Container -->
@@ -542,28 +555,64 @@ const handleSubmit = () => {
 										<div
 											v-for="(img, idx) in form.imagePreviews"
 											:key="idx"
-											class="group relative aspect-video overflow-hidden rounded-[8px] border border-[#d6e0ee] bg-slate-100 shadow-xs"
+											:class="[
+												'group relative aspect-video overflow-hidden rounded-[8px] border transition-all shadow-xs cursor-pointer',
+												form.imagePreviews.length > 1 && form.primaryImageIndex === idx
+													? 'border-[#183669] ring-2 ring-[#183669]'
+													: 'border-[#d6e0ee] bg-slate-100 hover:border-[#183669]/50'
+											]"
+											@click="form.imagePreviews.length > 1 && setPrimaryImage(idx)"
 										>
 											<img :src="img" alt="Preview Gambar" class="h-full w-full object-cover" />
 
+											<!-- Persistent Thumbnail Badge (hanya tampil jika > 1 gambar) -->
+											<span
+												v-if="form.imagePreviews.length > 1 && form.primaryImageIndex === idx"
+												class="absolute left-1.5 top-1.5 z-10 flex items-center gap-1 rounded-[6px] bg-[#183669] px-2 py-0.5 text-[9px] font-bold text-white shadow-md backdrop-blur-xs"
+											>
+												<svg class="h-2.5 w-2.5 fill-amber-400 text-amber-400" viewBox="0 0 20 20">
+													<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+												</svg>
+												Utama
+											</span>
+
 											<!-- Action Overlays on Hover -->
-											<div class="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+											<div class="absolute inset-0 flex items-center justify-center gap-2 bg-black/55 opacity-0 transition-opacity group-hover:opacity-100">
+												<!-- Set Primary / Star Button (Icon Only, bulat h-7 w-7, hanya jika > 1 gambar) -->
+												<button
+													v-if="form.imagePreviews.length > 1"
+													type="button"
+													@click.stop="setPrimaryImage(idx)"
+													:class="[
+														'flex h-7 w-7 items-center justify-center rounded-full transition hover:scale-110 shadow-xs',
+														form.primaryImageIndex === idx
+															? 'bg-amber-400 text-slate-900 ring-2 ring-white/90 shadow-sm'
+															: 'bg-white/90 text-[#183669] hover:bg-white'
+													]"
+													:title="form.primaryImageIndex === idx ? 'Gambar ini adalah thumbnail utama' : 'Jadikan sebagai thumbnail utama'"
+												>
+													<svg class="h-3.5 w-3.5" :class="form.primaryImageIndex === idx ? 'fill-slate-900 text-slate-900' : 'fill-none text-[#183669]'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+													</svg>
+												</button>
+
 												<!-- Zoom Preview Button -->
 												<button
 													type="button"
 													@click.stop="openImagePreview(img)"
-													class="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#183669] transition hover:bg-white hover:scale-110"
+													class="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#183669] transition hover:bg-white hover:scale-110 shadow-xs"
 													title="Lihat Gambar Penuh"
 												>
 													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 														<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
 													</svg>
 												</button>
+
 												<!-- Delete Button -->
 												<button
 													type="button"
 													@click.stop="removeImage(idx)"
-													class="flex h-7 w-7 items-center justify-center rounded-full bg-red-500/90 text-white transition hover:bg-red-600 hover:scale-110"
+													class="flex h-7 w-7 items-center justify-center rounded-full bg-red-500/90 text-white transition hover:bg-red-600 hover:scale-110 shadow-xs"
 													title="Hapus Gambar"
 												>
 													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

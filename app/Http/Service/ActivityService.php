@@ -47,14 +47,31 @@ class ActivityService
                 $pictures = $act->pictures;
                 $images = $pictures->map(fn($p) => $p->path)->values()->all();
 
-                $formattedDate = '-';
+                $primaryPic = $act->primaryPicture ?? $pictures->first();
+                $primaryIndex = 0;
+                if ($primaryPic) {
+                    $foundIdx = $pictures->search(fn($p) => $p->id === $primaryPic->id);
+                    if ($foundIdx !== false) {
+                        $primaryIndex = $foundIdx;
+                    }
+                }
+
+                $publishDate = $act->created_at
+                    ? Carbon::parse($act->created_at)->translatedFormat('d F Y')
+                    : ($act->activity_date_start ? Carbon::parse($act->activity_date_start)->translatedFormat('d F Y') : '-');
+
+                $dateSort = $act->created_at
+                    ? Carbon::parse($act->created_at)->format('Y-m-d H:i:s')
+                    : ($act->activity_date_start ? Carbon::parse($act->activity_date_start)->format('Y-m-d') : '');
+
+                $formattedEventDate = '-';
                 if ($act->activity_date_start) {
                     $startStr = Carbon::parse($act->activity_date_start)->translatedFormat('d F Y');
                     if ($act->activity_date_end && $act->activity_date_end != $act->activity_date_start) {
                         $endStr = Carbon::parse($act->activity_date_end)->translatedFormat('d F Y');
-                        $formattedDate = "{$startStr} - {$endStr}";
+                        $formattedEventDate = "{$startStr} - {$endStr}";
                     } else {
-                        $formattedDate = $startStr;
+                        $formattedEventDate = $startStr;
                     }
                 }
 
@@ -75,10 +92,13 @@ class ActivityService
                     'endDate' => $act->activity_date_end ? Carbon::parse($act->activity_date_end)->format('Y-m-d') : '',
                     'categories' => $categories,
                     'category' => count($categories) ? $categories[0] : 'Lainnya',
-                    'date' => $formattedDate,
-                    'dateSort' => $act->activity_date_start ? Carbon::parse($act->activity_date_start)->format('Y-m-d') : '',
+                    'publishDate' => $publishDate,
+                    'date' => $publishDate,
+                    'eventDate' => $formattedEventDate,
+                    'dateSort' => $dateSort,
                     'images' => $images,
                     'imagePreviews' => $images,
+                    'primaryImageIndex' => $primaryIndex,
                     'lecturerQuote' => $act->quote && $act->quote !== '-' ? $act->quote : '-',
                 ];
             })
@@ -159,19 +179,18 @@ class ActivityService
 
         if (!empty($imageFiles) && is_array($imageFiles)) {
             $filesToUpload = array_slice($imageFiles, 0, 3);
-            $isFirst = true;
+            $primaryIndex = isset($data['primary_image_index']) ? (int)$data['primary_image_index'] : 0;
+            $primaryIndex = max(0, min($primaryIndex, count($filesToUpload) - 1));
 
-            foreach ($filesToUpload as $file) {
+            foreach ($filesToUpload as $idx => $file) {
                 if ($file instanceof \Illuminate\Http\UploadedFile) {
                     $path = $file->store('activities', 'public');
 
                     ActivityPicture::create([
                         'activity_id' => $activity->id,
                         'path'        => $path,
-                        'is_primary'  => $isFirst,
+                        'is_primary'  => ($idx === $primaryIndex),
                     ]);
-
-                    $isFirst = false;
                 }
             }
         }
@@ -214,7 +233,7 @@ class ActivityService
             }
         }
 
-        // Hitung slot gambar yang tersisa (maksimal 3)
+        // Upload gambar baru jika masih ada slot (maksimal total 3 gambar)
         $currentCount = $activity->pictures()->count();
         $remainingSlots = max(0, 3 - $currentCount);
 
@@ -224,14 +243,28 @@ class ActivityService
             foreach ($filesToUpload as $file) {
                 if ($file instanceof \Illuminate\Http\UploadedFile) {
                     $path = $file->store('activities', 'public');
-                    $hasPrimary = $activity->pictures()->where('is_primary', true)->exists();
 
                     ActivityPicture::create([
                         'activity_id' => $activity->id,
                         'path'        => $path,
-                        'is_primary'  => !$hasPrimary,
+                        'is_primary'  => false,
                     ]);
                 }
+            }
+        }
+
+        // Set primary picture sesuai pilihan user
+        $allPictures = $activity->pictures()->get();
+        if ($allPictures->isNotEmpty()) {
+            $primaryIndex = isset($data['primary_image_index']) ? (int)$data['primary_image_index'] : 0;
+            $primaryIndex = max(0, min($primaryIndex, $allPictures->count() - 1));
+
+            ActivityPicture::where('activity_id', $activity->id)->update(['is_primary' => false]);
+
+            if (isset($allPictures[$primaryIndex])) {
+                $allPictures[$primaryIndex]->update(['is_primary' => true]);
+            } else {
+                $allPictures->first()->update(['is_primary' => true]);
             }
         }
 

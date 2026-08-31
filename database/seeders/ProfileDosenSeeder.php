@@ -42,6 +42,33 @@ class ProfileDosenSeeder extends Seeder
                 ],
             ],
             [
+                'nip' => '197503122000031111',
+                'division' => 'Perencanaan Kehutanan',
+                'research' => 'Inventarisasi Sumberdaya Hutan, Penginderaan Jauh Kehutanan, Pemodelan Pertumbuhan dan Hasil Hutan Tropis.',
+                'scholar_link' => 'https://scholar.google.com/citations?user=budisantoso',
+                'linkedin_link' => 'https://linkedin.com/in/budisantoso-ipb',
+                'educations' => [
+                    [
+                        'degree' => 'S1',
+                        'university' => 'Institut Pertanian Bogor',
+                        'major' => 'Manajemen Hutan',
+                        'graduationYear' => '1998',
+                    ],
+                    [
+                        'degree' => 'S2',
+                        'university' => 'Universitas Gadjah Mada',
+                        'major' => 'Ilmu Kehutanan',
+                        'graduationYear' => '2003',
+                    ],
+                    [
+                        'degree' => 'S3',
+                        'university' => 'Kyoto University',
+                        'major' => 'Forest Resource Management',
+                        'graduationYear' => '2009',
+                    ],
+                ],
+            ],
+            [
                 'nip' => '198005142005012002',
                 'division' => 'Kebijakan Kehutanan',
                 'research' => 'Tata Kelola Kehutanan, Perhutanan Sosial, Resolusi Konflik Sumberdaya Alam, Hukum dan Kebijakan Lingkungan.',

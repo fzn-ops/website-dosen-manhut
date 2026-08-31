@@ -84,7 +84,7 @@ class DosenController extends Controller
             'role' => 'dosen',
         ]);
 
-        return redirect()->route('admin.dosen')->with('success', 'Akun dosen berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Akun dosen berhasil ditambahkan.');
     }
 
     /**
@@ -125,7 +125,7 @@ class DosenController extends Controller
 
         $user->update($updateData);
 
-        return redirect()->route('admin.dosen')->with('success', 'Akun dosen berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Akun dosen berhasil diperbarui.');
     }
 
     /**
@@ -136,7 +136,7 @@ class DosenController extends Controller
         $user = User::where('role', 'dosen')->findOrFail($id);
         $user->delete();
 
-        return redirect()->route('admin.dosen')->with('success', 'Akun dosen berhasil dihapus.');
+        return redirect()->back()->with('success', 'Akun dosen berhasil dihapus.');
     }
 
     /**
@@ -198,6 +198,6 @@ class DosenController extends Controller
             $insertedCount++;
         }
 
-        return redirect()->route('admin.dosen')->with('success', "Berhasil mengimpor {$insertedCount} data akun dosen.");
+        return redirect()->back()->with('success', "Berhasil mengimpor {$insertedCount} data akun dosen.");
     }
 }

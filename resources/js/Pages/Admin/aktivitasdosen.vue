@@ -7,6 +7,7 @@ import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormAktivitasDosen from '@/Components/admin/ModalFormAktivitasDosen.vue';
 import TablePagination from '@/Components/TablePagination.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
+import SearchBarTable from '@/Components/SearchBarTable.vue';
 
 const props = defineProps({
 	activities: {
@@ -131,7 +132,7 @@ const columns = [
 	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, align: 'left', width: 'w-[20%]' },
 	{ key: 'category', label: 'Kategori', sortable: true, align: 'left', width: 'w-[16%]' },
 	{ key: 'role', label: 'Peran', sortable: true, align: 'left', width: 'w-[15%]' },
-	{ key: 'dateSort', label: 'Tanggal', sortable: true, align: 'left', width: 'w-[15%]' },
+	{ key: 'dateSort', label: 'Tanggal Publish', sortable: true, align: 'center', width: 'w-[15%]' },
 	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
 
@@ -166,19 +167,13 @@ const filteredAndSortedActivities = computed(() => {
 		});
 	}
 
-	// 3. Search Query
+	// 3. Search Query (Nama Aktivitas - case-insensitive sesuai placeholder)
 	if (searchQuery.value.trim()) {
 		const q = searchQuery.value.toLowerCase().trim();
 		list = list.filter(
 			(a) =>
 				(a.name && a.name.toLowerCase().includes(q)) ||
-				(a.title && a.title.toLowerCase().includes(q)) ||
-				(a.lecturer && a.lecturer.toLowerCase().includes(q)) ||
-				(a.description && a.description.toLowerCase().includes(q)) ||
-				(a.role && a.role.toLowerCase().includes(q)) ||
-				(a.date && a.date.toLowerCase().includes(q)) ||
-				(a.category && a.category.toLowerCase().includes(q)) ||
-				(Array.isArray(a.categories) && a.categories.some((c) => c.toLowerCase().includes(q)))
+				(a.title && a.title.toLowerCase().includes(q))
 		);
 	}
 
@@ -256,6 +251,7 @@ const handleModalSubmit = (formData) => {
 	data.append('startDate', formData.startDate);
 	if (formData.endDate) data.append('endDate', formData.endDate);
 	if (formData.lecturerQuote && formData.lecturerQuote !== '-') data.append('lecturerQuote', formData.lecturerQuote);
+	data.append('primaryImageIndex', formData.primaryImageIndex ?? 0);
 
 	if (Array.isArray(formData.categories)) {
 		formData.categories.forEach((cat, idx) => {
@@ -336,30 +332,21 @@ const deleteActivity = (activity) => {
 
 				<!-- Action Bar (Search, Unified Filter, Tambah Button) -->
 				<div class="flex items-center gap-3">
-					<!-- Search Input -->
-					<div class="relative flex-1">
-						<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-							<svg class="h-5 w-5 text-[#aeaeae]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-							</svg>
-						</div>
-						<input
-							v-model="searchQuery"
-							type="text"
-							placeholder="Cari nama aktivitas disini"
-							class="h-[46px] w-full rounded-[10px] border-2 border-[#d6e0ee] bg-transparent pl-12 pr-4 font-inter text-[14px] text-[#173a63] placeholder-[#8ca1b9] transition-colors focus:border-[#183669] focus:outline-none focus:ring-0"
-						/>
-					</div>
+					<!-- Search Input Component -->
+					<SearchBarTable
+						v-model="searchQuery"
+						placeholder="Cari nama aktivitas disini"
+					/>
 
 					<!-- Single Filter Button with Unified Dropdown -->
 					<div class="relative" @click.stop @keydown.escape="isFilterOpen = false">
 						<button
 							type="button"
 							@click="toggleFilterDropdown"
-							class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition focus:outline-none"
-							:class="isFilterOpen || selectedCategories.length > 0 || selectedLecturerFilter !== ''
+							class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition-colors focus:outline-none"
+							:class="isFilterOpen
 								? 'border-[#183669]'
-								: 'border-[#d6e0ee] hover:border-[#183669] hover:bg-[#183669]/5'"
+								: 'border-[#d6e0ee] hover:border-[#8ea9cb]'"
 							title="Filter Aktivitas"
 						>
 							<img
@@ -503,12 +490,20 @@ const deleteActivity = (activity) => {
 										type="button"
 										@click="toggleSort(col.key)"
 										:class="[
-											'group inline-flex items-center gap-1.5 transition-colors hover:text-white/80 focus:outline-none',
-											col.align === 'center' ? 'mx-auto justify-center' : 'justify-start'
+											'group transition-colors hover:text-white/80 focus:outline-none',
+											col.align === 'center'
+												? 'relative mx-auto inline-flex items-center justify-center'
+												: 'inline-flex items-center gap-1.5 justify-start'
 										]"
 									>
 										<span>{{ col.label }}</span>
-										<span class="inline-flex items-center text-white/70 group-hover:text-white">
+										<span
+											:class="[
+												col.align === 'center'
+													? 'absolute left-full ml-1.5 inline-flex items-center text-white/70 group-hover:text-white'
+													: 'inline-flex items-center text-white/70 group-hover:text-white'
+											]"
+										>
 											<svg
 												v-if="sortKey === col.key"
 												:class="[
@@ -553,7 +548,7 @@ const deleteActivity = (activity) => {
 								<td class="px-3 py-2.5 text-left" :title="activity.role">
 									<span class="block truncate">{{ activity.role }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-left" :title="activity.date">
+								<td class="px-3 py-2.5 text-center" :title="activity.date">
 									<span class="block truncate">{{ activity.date }}</span>
 								</td>
 								<td class="px-3 py-2.5 text-center">

@@ -97,7 +97,7 @@ const config = computed(() => {
 	<Teleport to="body">
 		<Transition
 			enter-active-class="transform ease-out duration-300 transition"
-			enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-4"
+			enter-from-class="-translate-y-3 opacity-0 sm:translate-y-0 sm:translate-x-4"
 			enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
 			leave-active-class="transition ease-in duration-200"
 			leave-from-class="opacity-100"
@@ -105,7 +105,7 @@ const config = computed(() => {
 		>
 			<div
 				v-if="show"
-				class="pointer-events-none fixed bottom-5 right-5 z-50 flex w-full max-w-sm flex-col items-end sm:top-5 sm:bottom-auto font-poppins"
+				class="pointer-events-none fixed top-4 inset-x-4 z-50 flex flex-col items-center sm:inset-x-auto sm:top-5 sm:right-5 sm:w-full sm:max-w-sm sm:items-end font-poppins"
 			>
 				<div
 					:class="[
