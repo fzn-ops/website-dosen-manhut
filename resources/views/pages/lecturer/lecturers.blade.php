@@ -74,17 +74,17 @@
                     @php $page = floor($loop->index / $perPage) + 1; @endphp
 
                     <a href="{{ route('lecturer.show', $lecturer['id']) }}"
-                       class="dosen-card block relative rounded-xl overflow-hidden shadow-[0_4px_15px_-3px_rgba(0,0,0,0.1)] group aspect-[3/4]          bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl {{ $page > 1 ? 'hidden' : '' }}" 
+                       class="dosen-card block relative rounded-xl overflow-hidden shadow-[0_4px_15px_-3px_rgba(0,0,0,0.1)] group aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl {{ $page > 1 ? 'hidden' : '' }}" 
                        data-name="{{ strtolower($lecturer['name']) }}"
                        data-category="{{ strtolower($lecturer['division']) }}"
                        data-page="{{ $page }}"> {{-- Atribut penting untuk JS --}}
 
                         <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-110">
-                            <img src="{{ $lecturer['image'] ?? asset('images/default-avatar.png') }}" alt="{{ $lecturer['name'] }}" class="w-full           h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            <img src="{{ $lecturer['image'] ?? asset('images/default-avatar.png') }}" alt="{{ $lecturer['name'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                         </div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-[#1a3675]/95 via-[#1a3675]/40 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#1a3675]/95 via-[#1a3675]/5 to-transparent"></div>
 
-                        <div class="absolute bottom-0 left-0 p-3 md:p-4 text-white w-full transform transition-transform duration-300           group-hover:-translate-y-1">
+                        <div class="absolute bottom-0 left-0 p-3 md:p-4 text-white w-full transform transition-transform duration-300 group-hover:-translate-y-1">
                             <h3 class="font-bold text-sm md:text-base mb-1 leading-tight line-clamp-2">{{ $lecturer['name'] }}</h3>
                             <p class="text-[9px] md:text-[10px] text-gray-200 line-clamp-1">{{ $lecturer['division'] }}</p>
                         </div>

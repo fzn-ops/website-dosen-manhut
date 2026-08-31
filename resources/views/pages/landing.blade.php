@@ -141,7 +141,7 @@
                                 <div class="w-full h-full flex items-center justify-center text-[10px] text-gray-500 transition-transform duration-500 group-hover:scale-110">No Image</div>
                             @endif
                     </div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#284078]/95 via-[#284078]/40 to-transparent transition-opacity duration-300"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#284078]/95 via-[#284078]/10 to-transparent transition-opacity duration-300"></div>
                     
                     <div class="absolute bottom-0 left-0 p-5 text-white w-full transform transition-transform duration-300 group-hover:-translate-y-2">
                         <h3 class="font-bold text-lg mb-1 leading-tight">{{ $lecturer['name'] }}</h3>
