@@ -65,7 +65,7 @@ onBeforeUnmount(() => {
     <div class="flex min-h-screen bg-[#eef2f7]">
         <div
             v-if="isMobile && showingSidebar"
-            class="fixed inset-0 z-30 bg-[#102653]/45"
+            class="fixed inset-0 z-30 bg-[#102653]/45 backdrop-blur-sm"
             aria-hidden="true"
             @click="showingSidebar = false"
         ></div>

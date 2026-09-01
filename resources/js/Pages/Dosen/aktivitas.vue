@@ -7,6 +7,8 @@ import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormAktivitas from '@/Components/dosen/ModalFormAktivitas.vue';
 import TablePagination from '@/Components/TablePagination.vue';
 import SearchBarTable from '@/Components/SearchBarTable.vue';
+import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
+import ToastNotification from '@/Components/ToastNotification.vue';
 
 const page = usePage();
 const currentLecturerName = computed(() => page.props.auth?.user?.name || 'Dr. John Doe, M.Si');
@@ -275,14 +277,48 @@ const handleSaveActivity = (formData) => {
 			title: formData.name || formData.title,
 			dateSort: formData.startDate || new Date().toISOString().split('T')[0],
 		});
+		showToast('success', 'Berhasil Ditambahkan', 'Aktivitas baru berhasil disimpan.');
 	}
 	closeModal();
 };
 
-const deleteActivity = (activity) => {
-	if (confirm(`Apakah Anda yakin ingin menghapus aktivitas "${activity.name || activity.title}"?`)) {
-		activities.value = activities.value.filter((a) => a.id !== activity.id);
-	}
+// Toast State
+const toast = ref({
+	show: false,
+	type: 'success',
+	title: '',
+	message: '',
+});
+
+const showToast = (type, title, message) => {
+	toast.value = {
+		show: true,
+		type,
+		title,
+		message,
+	};
+};
+
+const closeToast = () => {
+	toast.value.show = false;
+};
+
+// Delete Confirmation Modal State
+const isDeleteModalOpen = ref(false);
+const deletingActivity = ref(null);
+
+const openDeleteModal = (activity) => {
+	deletingActivity.value = activity;
+	isDeleteModalOpen.value = true;
+};
+
+const confirmDeleteActivity = () => {
+	if (!deletingActivity.value) return;
+	const activity = deletingActivity.value;
+	activities.value = activities.value.filter((a) => a.id !== activity.id);
+	isDeleteModalOpen.value = false;
+	deletingActivity.value = null;
+	showToast('success', 'Berhasil Dihapus', `Aktivitas "${activity.name || activity.title}" berhasil dihapus.`);
 };
 </script>
 
@@ -407,14 +443,14 @@ const deleteActivity = (activity) => {
 				<table class="w-full min-w-[850px] table-fixed border-collapse text-sm">
 					<thead class="bg-[#183669]">
 						<tr class="h-[48px]">
-							<th class="w-[60px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white">No</th>
+							<th class="w-[60px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white border-r border-white/15 lg:border-r-0">No</th>
 							<th
 								v-for="col in columns"
 								:key="col.key"
 								:class="[
 									col.width,
-									'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none',
-									col.align === 'center' ? 'text-center' : 'text-left'
+									'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0',
+									col.align === 'center'
 								]"
 							>
 								<button
@@ -422,20 +458,20 @@ const deleteActivity = (activity) => {
 									type="button"
 									@click="toggleSort(col.key)"
 									:class="[
-										'group transition-colors hover:text-white/80 focus:outline-none',
+										'group transition-colors hover:text-white/80 focus:outline-none max-w-full',
 										col.align === 'center'
-											? 'relative mx-auto inline-flex items-center justify-center'
+											? 'mx-auto flex items-center justify-center'
 											: 'inline-flex items-center gap-1.5 justify-start'
 									]"
 								>
-									<span>{{ col.label }}</span>
+									<!-- Balanced spacer for center-aligned columns so text is optically centered and arrow never overflows cell -->
 									<span
-										:class="[
-											col.align === 'center'
-												? 'absolute left-full ml-1.5 inline-flex items-center text-white/70 group-hover:text-white'
-												: 'inline-flex items-center text-white/70 group-hover:text-white'
-										]"
-									>
+										v-if="col.align === 'center'"
+										class="h-3.5 w-3.5 shrink-0 opacity-0 pointer-events-none mr-1.5"
+										aria-hidden="true"
+									></span>
+									<span class="truncate">{{ col.label }}</span>
+									<span class="inline-flex shrink-0 items-center ml-1.5 text-white/70 group-hover:text-white">
 										<svg
 											v-if="sortKey === col.key"
 											:class="[
@@ -457,7 +493,7 @@ const deleteActivity = (activity) => {
 										</svg>
 									</span>
 								</button>
-								<span v-else>{{ col.label }}</span>
+								<span v-else class="block truncate">{{ col.label }}</span>
 							</th>
 						</tr>
 					</thead>
@@ -488,7 +524,7 @@ const deleteActivity = (activity) => {
 							<td class="px-3 py-2.5 text-center">
 								<div class="flex items-center justify-center gap-2">
 									<EditButtonTable :label="`Edit ${activity.name}`" @click="openEditModal(activity)" />
-									<DeleteButtonTable :label="`Hapus ${activity.name}`" @click="deleteActivity(activity)" />
+									<DeleteButtonTable :label="`Hapus ${activity.name}`" @click="openDeleteModal(activity)" />
 								</div>
 							</td>
 						</tr>
@@ -519,6 +555,24 @@ const deleteActivity = (activity) => {
 			:lecturer-name="currentLecturerName"
 			@close="closeModal"
 			@submit="handleSaveActivity"
+		/>
+
+		<!-- Modal Delete Confirmation -->
+		<ModalDeleteConfirmation
+			:show="isDeleteModalOpen"
+			title="Hapus Aktivitas"
+			:item-name="deletingActivity?.name || deletingActivity?.title"
+			@close="isDeleteModalOpen = false"
+			@confirm="confirmDeleteActivity"
+		/>
+
+		<!-- Toast Notification -->
+		<ToastNotification
+			:show="toast.show"
+			:type="toast.type"
+			:title="toast.title"
+			:message="toast.message"
+			@close="closeToast"
 		/>
 	</DosenLayout>
 </template>

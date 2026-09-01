@@ -5,6 +5,8 @@ import { computed, ref } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormAktivitas from '@/Components/dosen/ModalFormAktivitas.vue';
+import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
+import ToastNotification from '@/Components/ToastNotification.vue';
 import { Line } from 'vue-chartjs';
 import {
 	Chart as ChartJS,
@@ -265,13 +267,47 @@ const handleModalSubmit = (formData) => {
 			lecturerName: currentLecturer.name,
 			dateSort: new Date().toISOString().split('T')[0],
 		});
+		showToast('success', 'Berhasil Ditambahkan', 'Aktivitas baru berhasil disimpan.');
 	}
 };
 
-const deleteActivity = (activity) => {
-	if (confirm(`Apakah Anda yakin ingin menghapus aktivitas "${activity.name || activity.title}"?`)) {
-		activities.value = activities.value.filter((a) => a.id !== activity.id);
-	}
+// Toast State
+const toast = ref({
+	show: false,
+	type: 'success',
+	title: '',
+	message: '',
+});
+
+const showToast = (type, title, message) => {
+	toast.value = {
+		show: true,
+		type,
+		title,
+		message,
+	};
+};
+
+const closeToast = () => {
+	toast.value.show = false;
+};
+
+// Delete Confirmation Modal State
+const isDeleteModalOpen = ref(false);
+const deletingActivity = ref(null);
+
+const openDeleteModal = (activity) => {
+	deletingActivity.value = activity;
+	isDeleteModalOpen.value = true;
+};
+
+const confirmDeleteActivity = () => {
+	if (!deletingActivity.value) return;
+	const activity = deletingActivity.value;
+	activities.value = activities.value.filter((a) => a.id !== activity.id);
+	isDeleteModalOpen.value = false;
+	deletingActivity.value = null;
+	showToast('success', 'Berhasil Dihapus', `Aktivitas "${activity.name || activity.title}" berhasil dihapus.`);
 };
 </script>
 
@@ -428,7 +464,7 @@ const deleteActivity = (activity) => {
 									<td class="px-3 py-2.5 text-center">
 										<div class="flex items-center justify-center gap-2">
 											<EditButtonTable :label="`Edit ${activity.name}`" @click="openEditModal(activity)" />
-											<DeleteButtonTable :label="`Hapus ${activity.name}`" @click="deleteActivity(activity)" />
+											<DeleteButtonTable :label="`Hapus ${activity.name}`" @click="openDeleteModal(activity)" />
 										</div>
 									</td>
 								</tr>
@@ -452,6 +488,24 @@ const deleteActivity = (activity) => {
 			:lecturer-name="currentLecturer.name"
 			@close="isModalOpen = false"
 			@submit="handleModalSubmit"
+		/>
+
+		<!-- MODAL DELETE CONFIRMATION -->
+		<ModalDeleteConfirmation
+			:show="isDeleteModalOpen"
+			title="Hapus Aktivitas"
+			:item-name="deletingActivity?.name || deletingActivity?.title"
+			@close="isDeleteModalOpen = false"
+			@confirm="confirmDeleteActivity"
+		/>
+
+		<!-- TOAST NOTIFICATION -->
+		<ToastNotification
+			:show="toast.show"
+			:type="toast.type"
+			:title="toast.title"
+			:message="toast.message"
+			@close="closeToast"
 		/>
 	</DosenLayout>
 </template>

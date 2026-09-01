@@ -566,25 +566,49 @@ const savePassword = () => {
 			</div>
 
 			<!-- Lightbox Image Modal Preview (Identical to ModalFormAktivitas.vue) -->
-			<div
-				v-if="previewingImage"
-				class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 transition-all"
-				@click="closeImagePreview"
-			>
-				<div class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-transparent" @click.stop>
-					<button
-						type="button"
+			<Teleport to="body">
+				<Transition
+					enter-active-class="ease-out duration-200"
+					enter-from-class="opacity-0"
+					enter-to-class="opacity-100"
+					leave-active-class="ease-in duration-150"
+					leave-from-class="opacity-100"
+					leave-to-class="opacity-0"
+				>
+					<div
+						v-if="previewingImage"
+						class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4 transition-all"
 						@click="closeImagePreview"
-						class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/90 focus:outline-none"
-						title="Tutup Preview"
 					>
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-						</svg>
-					</button>
-					<img :src="previewingImage" alt="Zoomed Preview" class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
-				</div>
-			</div>
+						<Transition
+							enter-active-class="ease-out duration-200"
+							enter-from-class="opacity-0 scale-95"
+							enter-to-class="opacity-100 scale-100"
+							leave-active-class="ease-in duration-150"
+							leave-from-class="opacity-100 scale-100"
+							leave-to-class="opacity-0 scale-95"
+						>
+							<div
+								v-if="previewingImage"
+								class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-transparent"
+								@click.stop
+							>
+								<button
+									type="button"
+									@click="closeImagePreview"
+									class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/90 focus:outline-none"
+									title="Tutup Preview"
+								>
+									<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+									</svg>
+								</button>
+								<img :src="previewingImage" alt="Zoomed Preview" class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+							</div>
+						</Transition>
+					</div>
+				</Transition>
+			</Teleport>
 		</section>
 	</DosenLayout>
 </template>

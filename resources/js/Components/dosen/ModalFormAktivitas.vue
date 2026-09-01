@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
 import DatePicker from '@/Components/DatePicker.vue';
+import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
 
 const props = defineProps({
 	show: {
@@ -34,6 +35,7 @@ const form = ref({
 	endDate: '',
 	images: [],
 	imagePreviews: [],
+	primaryImageIndex: 0,
 	lecturerQuote: '',
 	categories: [],
 	releaseDate: '',
@@ -51,6 +53,10 @@ const openImagePreview = (imgUrl) => {
 };
 const closeImagePreview = () => {
 	previewingImage.value = null;
+};
+
+const setPrimaryImage = (index) => {
+	form.value.primaryImageIndex = index;
 };
 
 // Category Toggle (can check/uncheck freely)
@@ -101,6 +107,7 @@ watch(
 					endDate: props.initialData.endDate || '',
 					images: props.initialData.images || [],
 					imagePreviews: props.initialData.imagePreviews || (props.initialData.image ? [props.initialData.image] : []),
+					primaryImageIndex: Number(props.initialData.primaryImageIndex ?? 0),
 					lecturerQuote: props.initialData.lecturerQuote !== '-' ? (props.initialData.lecturerQuote || '') : '',
 					categories: cats,
 					releaseDate: props.initialData.date || props.initialData.releaseDate || getFormattedToday(),
@@ -114,6 +121,7 @@ watch(
 					endDate: '',
 					images: [],
 					imagePreviews: [],
+					primaryImageIndex: 0,
 					lecturerQuote: '',
 					categories: [], // Kosong default untuk tambah data baru
 					releaseDate: getFormattedToday(),
@@ -168,9 +176,29 @@ const handleImageChange = (e) => {
 	e.target.value = '';
 };
 
+// Delete Image Confirmation State
+const showDeleteImageModal = ref(false);
+const imageIndexToDelete = ref(null);
+
+const confirmRemoveImage = (index) => {
+	imageIndexToDelete.value = index;
+	showDeleteImageModal.value = true;
+};
+
+const executeRemoveImage = () => {
+	if (imageIndexToDelete.value !== null) {
+		removeImage(imageIndexToDelete.value);
+		imageIndexToDelete.value = null;
+	}
+	showDeleteImageModal.value = false;
+};
+
 const removeImage = (index) => {
 	form.value.images.splice(index, 1);
 	form.value.imagePreviews.splice(index, 1);
+	if (form.value.primaryImageIndex >= form.value.imagePreviews.length) {
+		form.value.primaryImageIndex = Math.max(0, form.value.imagePreviews.length - 1);
+	}
 };
 
 const triggerFileInput = () => {
@@ -246,15 +274,33 @@ const handleSubmit = () => {
 </script>
 
 <template>
-	<div
-		v-if="show"
-		class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4 sm:p-6 transition-all"
-		@mousedown="handleBackdropMouseDown"
-		@mouseup="handleBackdropMouseUp"
-	>
-		<div
-			class="w-full max-w-[1240px] transform rounded-[10px] bg-white p-7 shadow-2xl transition-all sm:p-10 lg:p-12 font-poppins max-h-[92vh] overflow-y-auto"
+	<Teleport to="body">
+		<Transition
+			enter-active-class="ease-out duration-200"
+			enter-from-class="opacity-0"
+			enter-to-class="opacity-100"
+			leave-active-class="ease-in duration-150"
+			leave-from-class="opacity-100"
+			leave-to-class="opacity-0"
 		>
+			<div
+				v-if="show"
+				class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6"
+				@mousedown="handleBackdropMouseDown"
+				@mouseup="handleBackdropMouseUp"
+			>
+				<Transition
+					enter-active-class="ease-out duration-200"
+					enter-from-class="opacity-0 scale-95 translate-y-2"
+					enter-to-class="opacity-100 scale-100 translate-y-0"
+					leave-active-class="ease-in duration-150"
+					leave-from-class="opacity-100 scale-100 translate-y-0"
+					leave-to-class="opacity-0 scale-95 translate-y-2"
+				>
+					<div
+						v-if="show"
+						class="w-full max-w-[1240px] transform rounded-[18px] bg-white p-7 shadow-2xl font-poppins border border-[#e2e8f0] max-h-[92vh] overflow-y-auto sm:p-10 lg:p-12"
+					>
 			<!-- Header Title -->
 			<h2 class="text-left text-[24px] font-bold text-[#183669]">
 				{{ isEditing ? 'Form Edit Aktivitas Saya' : 'Form Tambah Aktivitas Saya' }}
@@ -412,35 +458,63 @@ const handleSubmit = () => {
 										<div
 											v-for="(img, idx) in form.imagePreviews"
 											:key="idx"
-											class="group relative aspect-video overflow-hidden rounded-[8px] border border-[#d6e0ee] bg-slate-100 shadow-xs"
+											:class="[
+												'group relative aspect-video overflow-hidden rounded-[8px] border transition-all shadow-xs bg-slate-100',
+												form.imagePreviews.length > 1 && form.primaryImageIndex === idx
+													? 'border-[#183669] ring-2 ring-[#183669]'
+													: 'border-[#d6e0ee]'
+											]"
 										>
 											<img :src="img" alt="Preview Gambar" class="h-full w-full object-cover" />
 
-											<!-- Action Overlays on Hover -->
-											<div class="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-												<!-- Zoom Preview Button -->
-												<button
-													type="button"
-													@click.stop="openImagePreview(img)"
-													class="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#183669] transition hover:bg-white hover:scale-110"
-													title="Lihat Gambar Penuh"
+											<!-- Top-Left: Thumbnail Badge or Set Primary Button (if > 1 image) -->
+											<div v-if="form.imagePreviews.length > 1" class="absolute left-1.5 top-1.5 z-20">
+												<!-- Is Primary Badge -->
+												<span
+													v-if="form.primaryImageIndex === idx"
+													class="inline-flex h-[21px] items-center justify-center gap-1 rounded-[6px] bg-[#183669] px-2 text-[9.5px] font-bold text-white shadow-md leading-none select-none"
 												>
-													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+													<svg class="h-2.5 w-2.5 shrink-0 fill-amber-400 text-amber-400" viewBox="0 0 24 24">
+														<path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
 													</svg>
-												</button>
-												<!-- Delete Button -->
+													<span class="inline-block leading-none translate-y-[0.5px]">Utama</span>
+												</span>
+												<!-- Set Primary Button (Touch & Desktop friendly) -->
 												<button
+													v-else
 													type="button"
-													@click.stop="removeImage(idx)"
-													class="flex h-7 w-7 items-center justify-center rounded-full bg-red-500/90 text-white transition hover:bg-red-600 hover:scale-110"
-													title="Hapus Gambar"
+													@click.stop="setPrimaryImage(idx)"
+													class="inline-flex h-[21px] items-center justify-center gap-1 rounded-[6px] bg-white/95 px-2 text-[9.5px] font-bold text-[#183669] shadow-md backdrop-blur-xs transition hover:bg-white active:scale-95 leading-none select-none sm:opacity-0 sm:group-hover:opacity-100"
+													title="Jadikan gambar utama"
 												>
-													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+													<svg class="h-2.5 w-2.5 shrink-0 fill-none text-[#183669]" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
 													</svg>
+													<span class="inline-block leading-none translate-y-[0.5px]">Set Utama</span>
 												</button>
 											</div>
+
+											<!-- Top-Right: Delete Button with Trash Icon from assets -->
+											<button
+												type="button"
+												@click.stop="confirmRemoveImage(idx)"
+												class="absolute right-1.5 top-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-110 active:scale-95 focus:outline-none sm:opacity-0 sm:group-hover:opacity-100"
+												title="Hapus Gambar"
+											>
+												<img src="/assets/icons/delete.svg" alt="Hapus" class="h-3 w-3 object-contain" />
+											</button>
+
+											<!-- Bottom-Right: Zoom Preview Button -->
+											<button
+												type="button"
+												@click.stop="openImagePreview(img)"
+												class="absolute right-1.5 bottom-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/80 text-white shadow-md backdrop-blur-xs transition hover:bg-slate-900 hover:scale-110 active:scale-95 focus:outline-none sm:opacity-0 sm:group-hover:opacity-100"
+												title="Lihat Ukuran Penuh"
+											>
+												<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+												</svg>
+											</button>
 										</div>
 
 										<!-- Add More Slot Button (if < 3) -->
@@ -519,6 +593,22 @@ const handleSubmit = () => {
 								class="mt-1.5 h-[245px] min-h-[230px] max-h-[360px] w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0 resize-y leading-relaxed"
 							></textarea>
 						</div>
+
+						<!-- Release Date (Tanggal Publish / Rilis) -->
+						<div>
+							<label class="block text-[14px] font-bold text-[#183669]">
+								Tanggal Publish<span class="text-red-500">*</span>
+							</label>
+							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">
+								Tanggal rilis informasi aktivitas
+							</p>
+							<input
+								v-model="form.releaseDate"
+								type="text"
+								required
+								class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-[#f8fafc] px-3.5 font-inter text-[14px] text-[#1e3456] transition-colors focus:border-[#183669] focus:bg-white focus:outline-none"
+							/>
+						</div>
 					</div>
 				</div>
 
@@ -539,26 +629,65 @@ const handleSubmit = () => {
 					</button>
 				</div>
 			</form>
-		</div>
-
-		<!-- Lightbox Image Modal Preview -->
-		<div
-			v-if="previewingImage"
-			class="fixed inset-0 z-60 flex items-center justify-center bg-black/80 p-4 transition-all"
-			@click="closeImagePreview"
-		>
-			<div class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-transparent" @click.stop>
-				<button
-					type="button"
-					@click="closeImagePreview"
-					class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/90 focus:outline-none"
-				>
-					<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-					</svg>
-				</button>
-				<img :src="previewingImage" alt="Zoomed Preview" class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+					</div>
+				</Transition>
 			</div>
-		</div>
-	</div>
+		</Transition>
+	</Teleport>
+
+	<!-- Separate Top-Level Lightbox Image Modal Preview (z-[100] above all modals) -->
+	<Teleport to="body">
+		<Transition
+			enter-active-class="ease-out duration-200"
+			enter-from-class="opacity-0"
+			enter-to-class="opacity-100"
+			leave-active-class="ease-in duration-150"
+			leave-from-class="opacity-100"
+			leave-to-class="opacity-0"
+		>
+			<div
+				v-if="previewingImage"
+				class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4 transition-all"
+				@click="closeImagePreview"
+			>
+				<Transition
+					enter-active-class="ease-out duration-200"
+					enter-from-class="opacity-0 scale-95"
+					enter-to-class="opacity-100 scale-100"
+					leave-active-class="ease-in duration-150"
+					leave-from-class="opacity-100 scale-100"
+					leave-to-class="opacity-0 scale-95"
+				>
+					<div
+						v-if="previewingImage"
+						class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-transparent"
+						@click.stop
+					>
+						<button
+							type="button"
+							@click="closeImagePreview"
+							class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/90 focus:outline-none"
+							title="Tutup Preview"
+						>
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+						<img :src="previewingImage" alt="Zoomed Preview" class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+					</div>
+				</Transition>
+			</div>
+		</Transition>
+	</Teleport>
+
+	<!-- Modal Delete Confirmation for Image -->
+	<ModalDeleteConfirmation
+		:show="showDeleteImageModal"
+		title="Hapus Gambar?"
+		:item-name="`Foto Lampiran ke-${imageIndexToDelete !== null ? imageIndexToDelete + 1 : ''}`"
+		message="Apakah Anda yakin ingin menghapus gambar ini dari form aktivitas?"
+		confirm-button-text="Hapus Gambar"
+		@close="showDeleteImageModal = false"
+		@confirm="executeRemoveImage"
+	/>
 </template>

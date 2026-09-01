@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue';
+import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
 
 const props = defineProps({
 	show: {
@@ -271,6 +272,17 @@ const closeImagePreview = () => {
 	previewingImage.value = null;
 };
 
+const showDeletePhotoModal = ref(false);
+
+const confirmRemovePhoto = () => {
+	showDeletePhotoModal.value = true;
+};
+
+const executeRemovePhoto = () => {
+	removeImage();
+	showDeletePhotoModal.value = false;
+};
+
 const removeImage = () => {
 	form.value.image = null;
 	form.value.imagePreview = null;
@@ -403,16 +415,34 @@ const handleBackdropMouseUp = (e) => {
 </script>
 
 <template>
-	<div
-		v-if="show"
-		class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4 sm:p-6 transition-all"
-		@mousedown="handleBackdropMouseDown"
-		@mouseup="handleBackdropMouseUp"
-	>
-		<div
-			class="w-full max-w-[1220px] transform rounded-[10px] bg-white p-7 shadow-2xl transition-all sm:p-10 lg:p-12 font-poppins max-h-[92vh] overflow-y-auto"
-			@click="isNameDropdownOpen = false; isDivisionDropdownOpen = false; openDegreeDropdownIndex = null; openYearDropdownIndex = null"
+	<Teleport to="body">
+		<Transition
+			enter-active-class="ease-out duration-200"
+			enter-from-class="opacity-0"
+			enter-to-class="opacity-100"
+			leave-active-class="ease-in duration-150"
+			leave-from-class="opacity-100"
+			leave-to-class="opacity-0"
 		>
+			<div
+				v-if="show"
+				class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6"
+				@mousedown="handleBackdropMouseDown"
+				@mouseup="handleBackdropMouseUp"
+			>
+				<Transition
+					enter-active-class="ease-out duration-200"
+					enter-from-class="opacity-0 scale-95 translate-y-2"
+					enter-to-class="opacity-100 scale-100 translate-y-0"
+					leave-active-class="ease-in duration-150"
+					leave-from-class="opacity-100 scale-100 translate-y-0"
+					leave-to-class="opacity-0 scale-95 translate-y-2"
+				>
+					<div
+						v-if="show"
+						class="w-full max-w-[1220px] transform rounded-[18px] bg-white p-7 shadow-2xl font-poppins border border-[#e2e8f0] max-h-[92vh] overflow-y-auto sm:p-10 lg:p-12"
+						@click="isNameDropdownOpen = false; isDivisionDropdownOpen = false; openDegreeDropdownIndex = null; openYearDropdownIndex = null"
+					>
 			<!-- Header Title -->
 			<h2 class="text-left text-[24px] font-bold text-[#183669]">
 				{{ isEditing ? 'Form Edit Profile Dosen' : 'Form Tambah Profile Dosen' }}
@@ -869,16 +899,14 @@ const handleBackdropMouseUp = (e) => {
 													<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
 												</svg>
 											</button>
-											<!-- Delete Button -->
+											<!-- Delete Button with Trash Icon from assets -->
 											<button
 												type="button"
-												@click.stop="removeImage"
-												class="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/90 text-white transition hover:bg-red-600 hover:scale-110"
+												@click.stop="confirmRemovePhoto"
+												class="flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-110 active:scale-95 focus:outline-none"
 												title="Hapus Foto"
 											>
-												<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-												</svg>
+												<img src="/assets/icons/delete.svg" alt="Hapus" class="h-3.5 w-3.5 object-contain" />
 											</button>
 										</div>
 									</div>
@@ -955,29 +983,65 @@ const handleBackdropMouseUp = (e) => {
 					</button>
 				</div>
 			</form>
-		</div>
-	</div>
+					</div>
+				</Transition>
+			</div>
+		</Transition>
+	</Teleport>
 
 	<!-- Lightbox Image Modal Preview (Matching profile.vue & ModalFormAktivitas.vue) -->
 	<Teleport to="body">
-		<div
-			v-if="previewingImage"
-			class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 transition-all"
-			@click="closeImagePreview"
+		<Transition
+			enter-active-class="ease-out duration-200"
+			enter-from-class="opacity-0"
+			enter-to-class="opacity-100"
+			leave-active-class="ease-in duration-150"
+			leave-from-class="opacity-100"
+			leave-to-class="opacity-0"
 		>
-			<div class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-transparent" @click.stop>
-				<button
-					type="button"
-					@click="closeImagePreview"
-					class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/90 focus:outline-none"
-					title="Tutup Preview"
+			<div
+				v-if="previewingImage"
+				class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4 transition-all"
+				@click="closeImagePreview"
+			>
+				<Transition
+					enter-active-class="ease-out duration-200"
+					enter-from-class="opacity-0 scale-95"
+					enter-to-class="opacity-100 scale-100"
+					leave-active-class="ease-in duration-150"
+					leave-from-class="opacity-100 scale-100"
+					leave-to-class="opacity-0 scale-95"
 				>
-					<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-					</svg>
-				</button>
-				<img :src="previewingImage" alt="Zoomed Preview" class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+					<div
+						v-if="previewingImage"
+						class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-transparent"
+						@click.stop
+					>
+						<button
+							type="button"
+							@click="closeImagePreview"
+							class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/90 focus:outline-none"
+							title="Tutup Preview"
+						>
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+						<img :src="previewingImage" alt="Zoomed Preview" class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+					</div>
+				</Transition>
 			</div>
-		</div>
+		</Transition>
 	</Teleport>
+
+	<!-- Modal Delete Confirmation for Photo -->
+	<ModalDeleteConfirmation
+		:show="showDeletePhotoModal"
+		title="Hapus Foto Dosen?"
+		item-name="Foto Profil Dosen"
+		message="Apakah Anda yakin ingin menghapus foto yang sudah diunggah?"
+		confirm-button-text="Hapus Foto"
+		@close="showDeletePhotoModal = false"
+		@confirm="executeRemovePhoto"
+	/>
 </template>

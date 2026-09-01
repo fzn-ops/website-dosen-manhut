@@ -168,13 +168,33 @@ const handleBackdropMouseUp = (e) => {
 </script>
 
 <template>
-	<div
-		v-if="show"
-		class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4 transition-all"
-		@mousedown="handleBackdropMouseDown"
-		@mouseup="handleBackdropMouseUp"
-	>
-		<div class="w-full max-w-[500px] max-h-[92vh] overflow-y-auto transform rounded-[10px] bg-white p-7 shadow-2xl transition-all sm:p-9 font-poppins">
+	<Teleport to="body">
+		<Transition
+			enter-active-class="ease-out duration-200"
+			enter-from-class="opacity-0"
+			enter-to-class="opacity-100"
+			leave-active-class="ease-in duration-150"
+			leave-from-class="opacity-100"
+			leave-to-class="opacity-0"
+		>
+			<div
+				v-if="show"
+				class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-4"
+				@mousedown="handleBackdropMouseDown"
+				@mouseup="handleBackdropMouseUp"
+			>
+				<Transition
+					enter-active-class="ease-out duration-200"
+					enter-from-class="opacity-0 scale-95 translate-y-2"
+					enter-to-class="opacity-100 scale-100 translate-y-0"
+					leave-active-class="ease-in duration-150"
+					leave-from-class="opacity-100 scale-100 translate-y-0"
+					leave-to-class="opacity-0 scale-95 translate-y-2"
+				>
+					<div
+						v-if="show"
+						class="w-full max-w-[500px] max-h-[92vh] overflow-y-auto transform rounded-[18px] bg-white p-7 sm:p-9 shadow-2xl font-poppins border border-[#e2e8f0]"
+					>
 			<h2 class="text-center text-[22px] font-bold text-[#183669]">
 				{{ isEditing ? 'Form Edit Dosen' : 'Form Tambah Dosen' }}
 			</h2>
@@ -294,7 +314,7 @@ const handleBackdropMouseUp = (e) => {
 					</p>
 				</div>
 
-				<!-- 4. Email (Kontak Opsional) -->
+				<!-- 5. Email (Kontak Opsional) -->
 				<div>
 					<label class="block text-[14px] font-bold text-[#183669]">
 						Email
@@ -308,7 +328,7 @@ const handleBackdropMouseUp = (e) => {
 					/>
 				</div>
 
-				<!-- 5. Nomor Handphone (Kontak Opsional) -->
+				<!-- 6. Nomor Handphone (Kontak Opsional) -->
 				<div>
 					<label class="block text-[14px] font-bold text-[#183669]">
 						Nomor Handphone
@@ -339,6 +359,9 @@ const handleBackdropMouseUp = (e) => {
 					</button>
 				</div>
 			</form>
-		</div>
-	</div>
+					</div>
+				</Transition>
+			</div>
+		</Transition>
+	</Teleport>
 </template>

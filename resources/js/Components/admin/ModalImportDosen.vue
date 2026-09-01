@@ -368,16 +368,36 @@ const handleBackdropMouseUp = (e) => {
 </script>
 
 <template>
-	<div
-		v-if="show"
-		class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4 transition-all"
-		@mousedown="handleBackdropMouseDown"
-		@mouseup="handleBackdropMouseUp"
-	>
-		<div class="w-full max-w-[880px] transform rounded-[12px] bg-white p-6 shadow-2xl transition-all sm:p-8 font-poppins">
-			<!-- Modal Header -->
-			<div class="text-center">
-				<h2 class="text-[22px] font-bold text-[#183669]">Import Data Dosen</h2>
+	<Teleport to="body">
+		<Transition
+			enter-active-class="ease-out duration-200"
+			enter-from-class="opacity-0"
+			enter-to-class="opacity-100"
+			leave-active-class="ease-in duration-150"
+			leave-from-class="opacity-100"
+			leave-to-class="opacity-0"
+		>
+			<div
+				v-if="show"
+				class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-4"
+				@mousedown="handleBackdropMouseDown"
+				@mouseup="handleBackdropMouseUp"
+			>
+				<Transition
+					enter-active-class="ease-out duration-200"
+					enter-from-class="opacity-0 scale-95 translate-y-2"
+					enter-to-class="opacity-100 scale-100 translate-y-0"
+					leave-active-class="ease-in duration-150"
+					leave-from-class="opacity-100 scale-100 translate-y-0"
+					leave-to-class="opacity-0 scale-95 translate-y-2"
+				>
+					<div
+						v-if="show"
+						class="w-full max-w-[880px] transform rounded-[18px] bg-white p-6 shadow-2xl font-poppins border border-[#e2e8f0] sm:p-8"
+					>
+						<!-- Modal Header -->
+						<div class="text-center">
+							<h2 class="text-[22px] font-bold text-[#183669]">Import Data Dosen</h2>
 				<p class="mt-1 font-inter text-[13px] text-[#7188a3]">
 					Unggah file Excel (.xlsx, .xls) atau CSV untuk menambahkan data dosen sekaligus.
 				</p>
@@ -713,6 +733,9 @@ const handleBackdropMouseUp = (e) => {
 					Tambahkan ({{ validCount }})
 				</button>
 			</div>
-		</div>
-	</div>
+					</div>
+				</Transition>
+			</div>
+		</Transition>
+	</Teleport>
 </template>
