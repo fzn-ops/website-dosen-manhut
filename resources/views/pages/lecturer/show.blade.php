@@ -146,13 +146,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($publicationList as $pub)
+                            @foreach ($publications as $pub)
                             <tr class="publikasi-row border-b border-gray-100 last:border-0 hover:bg-gray-50 transition"
                                 data-search="{{ strtolower($pub['title'] . ' ' . $pub['authors'] . ' ' . $pub['publisher'] . ' ' . $pub['year']) }}">
                                 <td class="px-5 py-4 max-w-xs truncate" title="{{ $pub['title'] }}">{{ $pub['title'] }}</td>
                                 <td class="px-5 py-4">{{ $pub['authors'] }}</td>
                                 <td class="px-5 py-4">{{ $pub['publisher'] }}</td>
-                                <td class="px-5 py-4 text-center">{{ $pub['cited'] }}</td>
+                                <td class="px-5 py-4 text-center">{{ $pub['cited_by'] }}</td>
                                 <td class="px-5 py-4 text-center">{{ $pub['year'] }}</td>
                             </tr>
                             @endforeach
@@ -276,7 +276,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             
             // --- STATE GLOBAL ---
-            const itemsPerPage = 3; // Tampilkan 2 item per halaman (Ubah sesuai kebutuhan)
+            const itemsPerPage = 10; // Tampilkan 2 item per halaman (Ubah sesuai kebutuhan)
             let currentPubPage = 1;
             let currentAktPage = 1;
             let activeTab = 'publikasi'; // Default tab yang aktif
@@ -375,30 +375,50 @@
                 renderPagination(currentTotalPages, currentPage);
             }
 
+            function generatePaginationArray(currentPage, totalPages) {
+                if (totalPages <= 7) {
+                    return Array.from({ length: totalPages }, (_, i) => i + 1);
+                }
+                if (currentPage <= 3) {
+                    return [1, 2, 3, 4, '...', totalPages];
+                }
+                if (currentPage >= totalPages - 2) {
+                    return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                }
+                return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+            }
+
+            // --- FUNGSI RENDER PAGINATION (REVISI) ---
             function renderPagination(totalPages, currentPage) {
                 paginationContainer.innerHTML = ''; 
                 if (totalPages <= 1) return; // Sembunyikan pagination jika hanya 1 halaman
 
                 let html = '';
 
-                // Tombol Prev
+                // 1. Tombol Prev
                 const prevDisabled = currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:text-[#1a3675] hover:bg-gray-200';
-                html += `<button class="p-1 rounded-full transition-colors focus:outline-none ${prevDisabled}" onclick="if(${currentPage} > 1) window.changePage(${currentPage - 1})">
+                const prevClick = currentPage > 1 ? `onclick="window.changePage(${currentPage - 1})"` : '';
+                html += `<button class="p-1 rounded-full transition-colors focus:outline-none ${prevDisabled}" ${prevClick}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                          </button>`;
 
-                // Nomor Halaman
-                for (let i = 1; i <= totalPages; i++) {
-                    if (i === currentPage) {
-                        html += `<button class="w-7 h-7 flex items-center justify-center rounded-full bg-[#1a3675] text-white focus:outline-none">${i}</button>`;
+                // 2. Nomor Halaman (Menggunakan Helper Array)
+                const paginationArray = generatePaginationArray(currentPage, totalPages);
+                
+                paginationArray.forEach(item => {
+                    if (item === '...') {
+                        html += `<span class="px-1 text-gray-400">...</span>`;
+                    } else if (item === currentPage) {
+                        html += `<button class="w-7 h-7 flex items-center justify-center rounded-full bg-[#1a3675] text-white focus:outline-none">${item}</button>`;
                     } else {
-                        html += `<button class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors focus:outline-none text-gray-700" onclick="window.changePage(${i})">${i}</button>`;
+                        html += `<button class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors focus:outline-none text-gray-700" onclick="window.changePage(${item})">${item}</button>`;
                     }
-                }
+                });
 
-                // Tombol Next
+                // 3. Tombol Next
                 const nextDisabled = currentPage === totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:text-[#1a3675] hover:bg-gray-200';
-                html += `<button class="p-1 rounded-full transition-colors focus:outline-none ${nextDisabled}" onclick="if(${currentPage} < ${totalPages}) window.changePage(${currentPage + 1})">
+                const nextClick = currentPage < totalPages ? `onclick="window.changePage(${currentPage + 1})"` : '';
+                html += `<button class="p-1 rounded-full transition-colors focus:outline-none ${nextDisabled}" ${nextClick}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                          </button>`;
 

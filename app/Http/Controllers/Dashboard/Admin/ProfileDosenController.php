@@ -12,7 +12,7 @@ use Inertia\Response;
 class ProfileDosenController extends Controller
 {
     protected DosenService $dosenService;
-
+                        
     public function __construct(DosenService $dosenService)
     {
         $this->dosenService = $dosenService;

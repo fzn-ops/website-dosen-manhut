@@ -39,4 +39,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(ProfileDosen::class, 'user_id');
     }
+
+    public function publication()
+    {
+        return $this->hasMany(Publication::class, 'user_id');
+    }
 }
