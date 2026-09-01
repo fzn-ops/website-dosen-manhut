@@ -32,10 +32,12 @@ class LandingController extends Controller
             $endDate, 
             4
         );
-
+        $allCategories = $this->activityService->countAllActivitiesByCategory();
+        /* dd($allCategories); */
         return view('pages.landing', [
             'lecturers' => $lecturers,
-            'activities' => $activities
+            'activities' => $activities,
+            'allCategories' => $allCategories
         ]);
     }
 

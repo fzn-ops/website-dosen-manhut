@@ -15,6 +15,13 @@ class ActivityService
      * Mengambil daftar dosen yang memiliki profil di tabel profile_dosen
      * untuk dropdown pemilihan nama dosen di form aktivitas.
      */
+
+    public function countAllActivitiesByCategory()
+    {
+        $categories = Activity::pluck('activity_type');
+        return $categories->flatten()->countBy();
+    }
+    
     public function getAvailableProfiles(): array
     {
         return ProfileDosen::with('user')
@@ -136,9 +143,7 @@ class ActivityService
     
         // 2. Filter Kategori
         if ($kategori) {
-            // Catatan: Jika kolom activity_type di DB-mu bertipe JSON/Array, 
-            // ganti pakai ->whereJsonContains('activity_type', $kategori)
-            $query->where('activity_type', 'like', "%{$kategori}%");
+            $query->whereJsonContains('activity_type', $kategori);
         }
     
         // 3. Filter Rentang Waktu (Tanggal)

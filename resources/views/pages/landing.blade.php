@@ -65,8 +65,8 @@
             
             {{-- Card 1: Publikasi --}}
             <div class="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 p-8 text-center flex flex-col items-center transition hover:-translate-y-1 hover:shadow-lg duration-300">
-                <span class="text-5xl font-extrabold text-[#1a3675] mb-4">100</span>
-                <h3 class="text-lg font-bold text-[#1a3675] mb-3">Publikasi</h3>
+                <span class="text-5xl font-extrabold text-[#1a3675] mb-4">{{ $allCategories['Seminar'] ?? 0 }}</span>
+                <h3 class="text-lg font-bold text-[#1a3675] mb-3">Seminar</h3>
                 <p class="text-[11px] text-gray-500 leading-relaxed px-2">
                     Disini kamu bisa belajar banyak hal terkait dengan talenta yang telah kamu temukan pada diri kamu saat ini.
                 </p>
@@ -74,7 +74,7 @@
 
             {{-- Card 2: Lokakarya --}}
             <div class="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 p-8 text-center flex flex-col items-center transition hover:-translate-y-1 hover:shadow-lg duration-300">
-                <span class="text-5xl font-extrabold text-[#1a3675] mb-4">100</span>
+                <span class="text-5xl font-extrabold text-[#1a3675] mb-4">{{ $allCategories['Lokakarya'] ?? 0 }}</span>
                 <h3 class="text-lg font-bold text-[#1a3675] mb-3">Lokakarya</h3>
                 <p class="text-[11px] text-gray-500 leading-relaxed px-2">
                     Disini kamu bisa belajar banyak hal terkait dengan talenta yang telah kamu temukan pada diri kamu saat ini.
@@ -83,8 +83,8 @@
 
             {{-- Card 3: Seminar --}}
             <div class="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 p-8 text-center flex flex-col items-center transition hover:-translate-y-1 hover:shadow-lg duration-300">
-                <span class="text-5xl font-extrabold text-[#1a3675] mb-4">100</span>
-                <h3 class="text-lg font-bold text-[#1a3675] mb-3">Seminar</h3>
+                <span class="text-5xl font-extrabold text-[#1a3675] mb-4">{{ $allCategories['Workshop'] ?? 0 }}</span>
+                <h3 class="text-lg font-bold text-[#1a3675] mb-3">Workshop</h3>
                 <p class="text-[11px] text-gray-500 leading-relaxed px-2">
                     Disini kamu bisa belajar banyak hal terkait dengan talenta yang telah kamu temukan pada diri kamu saat ini.
                 </p>
@@ -92,8 +92,8 @@
 
             {{-- Card 4: Workshop --}}
             <div class="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 p-8 text-center flex flex-col items-center transition hover:-translate-y-1 hover:shadow-lg duration-300">
-                <span class="text-5xl font-extrabold text-[#1a3675] mb-4">100</span>
-                <h3 class="text-lg font-bold text-[#1a3675] mb-3">Workshop</h3>
+                <span class="text-5xl font-extrabold text-[#1a3675] mb-4">{{ $allCategories['Lainnya'] ?? 0 }}</span>
+                <h3 class="text-lg font-bold text-[#1a3675] mb-3">Lainnya</h3>
                 <p class="text-[11px] text-gray-500 leading-relaxed px-2">
                     Disini kamu bisa belajar banyak hal terkait dengan talenta yang telah kamu temukan pada diri kamu saat ini.
                 </p>

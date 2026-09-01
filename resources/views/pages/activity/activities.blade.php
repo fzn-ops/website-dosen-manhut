@@ -62,10 +62,10 @@
                         {{-- Kategori Section --}}
                         <div class="px-4 pt-4 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kategori</div>
                         <button class="filter-opt block w-full text-left px-4 py-2 text-sm font-bold bg-gray-50 text-[#1a3675] hover:bg-gray-100" data-kategori="semua">Semua Kategori</button>
-                        <button class="filter-opt block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3675]" data-kategori="tutor">Tutor</button>
-                        <button class="filter-opt block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3675]" data-kategori="pembicara">Pembicara</button>
-                        <button class="filter-opt block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3675]" data-kategori="lokakarya">Lokakarya</button>
-                        <button class="filter-opt block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3675]" data-kategori="seminar">Seminar</button>
+                        <button class="filter-opt block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3675]" data-kategori="Workshop">Workshop</button>
+                        <button class="filter-opt block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3675]" data-kategori="Lokakarya">Lokakarya</button>
+                        <button class="filter-opt block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3675]" data-kategori="Seminar">Seminar</button>
+                        <button class="filter-opt block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#1a3675]" data-kategori="Lainnya">Lainnya</button>
                         
                         <div class="border-t border-gray-100 my-2"></div>
                         
