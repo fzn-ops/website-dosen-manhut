@@ -9,7 +9,7 @@ db = mysql.connector.connect(
     host="localhost",
     user="root",
     password="",
-    database="website_dosen_manhut"
+    database="website_dosen_manhut_vue"
 )
 cursor = db.cursor(dictionary=True)
 

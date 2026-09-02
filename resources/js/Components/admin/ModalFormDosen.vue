@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const props = defineProps({
 	show: {
@@ -152,6 +152,20 @@ const handleSubmit = () => {
 
 	handleClose();
 };
+
+const handleKeyDown = (e) => {
+	if (e.key === 'Escape' && props.show) {
+		handleClose();
+	}
+};
+
+onMounted(() => {
+	document.addEventListener('keydown', handleKeyDown);
+});
+
+onBeforeUnmount(() => {
+	document.removeEventListener('keydown', handleKeyDown);
+});
 
 const isBackdropClick = ref(false);
 

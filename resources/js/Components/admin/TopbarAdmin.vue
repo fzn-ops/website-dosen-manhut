@@ -55,12 +55,10 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 				v-if="showingAccountMenu"
 				class="absolute right-0 top-[48px] z-40 w-44 rounded-xl border border-[#d6e0ee] bg-white p-1.5 shadow-xl font-poppins"
 			>
-				<Link
-					:href="route('logout')"
-					method="post"
-					as="button"
-					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-[#c93b2b] transition-colors hover:bg-[#feeceb]"
-					@click="showingAccountMenu = false"
+				<button
+					type="button"
+					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-[#c93b2b] transition-colors hover:bg-[#feeceb] focus:outline-none"
+					@click="showingAccountMenu = false; $emit('logout')"
 				>
 					<svg class="h-4 w-4 shrink-0 text-[#c93b2b]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 						<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -68,7 +66,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 						<line x1="21" y1="12" x2="9" y2="12" />
 					</svg>
 					<span>Logout</span>
-				</Link>
+				</button>
 			</div>
 		</div>
 	</header>

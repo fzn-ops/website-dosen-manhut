@@ -74,20 +74,18 @@ const isActive = (item) => {
 
 		<!-- Logout Button -->
 		<div class="mt-auto pb-8">
-			<Link
-				:href="route('logout')"
-				method="post"
-				as="button"
+			<button
+				type="button"
 				:class="[
 					'flex h-11 items-center text-[15px] font-semibold text-white/80 transition-colors focus:outline-none hover:bg-[#142e63] hover:text-white whitespace-nowrap',
 					collapsed ? 'w-full justify-center rounded-full px-0' : 'ml-6 w-[calc(100%-24px)] gap-5 rounded-l-full pl-7 pr-4',
 				]"
 				:title="collapsed ? 'Logout' : undefined"
-				@click="$emit('navigate')"
+				@click="$emit('logout')"
 			>
 				<img src="/assets/icons/logout.svg" alt="Logout icon" class="h-5 w-5 shrink-0 object-contain" />
 				<span v-if="!collapsed" class="whitespace-nowrap">Logout</span>
-			</Link>
+			</button>
 		</div>
 	</aside>
 </template>

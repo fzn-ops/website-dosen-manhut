@@ -262,8 +262,8 @@ const confirmDeleteLecturer = () => {
 					<!-- Import Button (Border-only hover) -->
 					<button
 						type="button"
-						@click="isImportModalOpen = true"
-						class="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-[10px] border-2 border-[#d6e0ee] bg-transparent px-4 font-poppins text-[14px] font-semibold text-[#183669] transition-colors hover:border-[#8ea9cb] focus:border-[#183669] focus:outline-none"
+						@click="(e) => { e.currentTarget?.blur(); isImportModalOpen = true; }"
+						class="flex h-[46px] w-[46px] sm:w-auto shrink-0 items-center justify-center gap-2 rounded-[10px] border-2 border-[#d6e0ee] bg-transparent px-0 sm:px-4 font-poppins text-[14px] font-semibold text-[#183669] transition-colors hover:border-[#8ea9cb] focus:border-[#183669] focus:outline-none focus:ring-0 focus-visible:outline-none active:scale-95 select-none"
 						title="Import Data Dosen (Excel / CSV)"
 					>
 						<svg class="h-5 w-5 text-[#183669]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -272,13 +272,17 @@ const confirmDeleteLecturer = () => {
 						<span class="hidden sm:inline">Import</span>
 					</button>
 
-					<!-- Tambah Button -->
+					<!-- Tambah Button (Icon + on Mobile, Text on Desktop) -->
 					<button
 						type="button"
-						@click="openCreateModal"
-						class="flex h-[46px] shrink-0 items-center justify-center rounded-[10px] bg-[#183669] px-7 font-poppins text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#122b54]"
+						@click="(e) => { e.currentTarget?.blur(); openCreateModal(); }"
+						class="flex h-[46px] w-[46px] sm:w-auto shrink-0 items-center justify-center rounded-[10px] bg-[#183669] px-0 sm:px-7 font-poppins text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-95 focus:outline-none focus:ring-0 focus-visible:outline-none select-none"
+						title="Tambah Dosen"
 					>
-						Tambah
+						<svg class="h-5 w-5 sm:hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+						</svg>
+						<span class="hidden sm:inline">Tambah</span>
 					</button>
 				</div>
 

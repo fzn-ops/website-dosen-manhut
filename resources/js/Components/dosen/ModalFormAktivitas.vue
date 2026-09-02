@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
 import DatePicker from '@/Components/DatePicker.vue';
 import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
@@ -221,8 +221,31 @@ const handleBackdropMouseUp = (e) => {
 const handleClose = () => {
 	formError.value = '';
 	errors.value = {};
+	previewingImage.value = null;
 	emit('close');
 };
+
+const handleKeyDown = (e) => {
+	if (e.key === 'Escape' && props.show) {
+		if (previewingImage.value) {
+			closeImagePreview();
+			e.stopPropagation();
+			return;
+		}
+		if (showDeleteImageModal.value) {
+			return;
+		}
+		handleClose();
+	}
+};
+
+onMounted(() => {
+	document.addEventListener('keydown', handleKeyDown);
+});
+
+onBeforeUnmount(() => {
+	document.removeEventListener('keydown', handleKeyDown);
+});
 
 const handleSubmit = () => {
 	formError.value = '';
@@ -458,12 +481,7 @@ const handleSubmit = () => {
 										<div
 											v-for="(img, idx) in form.imagePreviews"
 											:key="idx"
-											:class="[
-												'group relative aspect-video overflow-hidden rounded-[8px] border transition-all shadow-xs bg-slate-100',
-												form.imagePreviews.length > 1 && form.primaryImageIndex === idx
-													? 'border-[#183669] ring-2 ring-[#183669]'
-													: 'border-[#d6e0ee]'
-											]"
+											class="group relative aspect-video overflow-hidden rounded-[8px] border border-[#d6e0ee] transition-all shadow-xs bg-slate-100"
 										>
 											<img :src="img" alt="Preview Gambar" class="h-full w-full object-cover" />
 
@@ -660,20 +678,24 @@ const handleSubmit = () => {
 				>
 					<div
 						v-if="previewingImage"
-						class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-transparent"
+						class="relative flex items-center justify-center bg-transparent"
 						@click.stop
 					>
 						<button
 							type="button"
 							@click="closeImagePreview"
-							class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/90 focus:outline-none"
+							class="absolute top-3.5 right-3.5 z-20 flex h-8.5 w-8.5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/85 backdrop-blur-xs shadow-md transition hover:scale-105 active:scale-95 focus:outline-none"
 							title="Tutup Preview"
 						>
-							<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
 							</svg>
 						</button>
-						<img :src="previewingImage" alt="Zoomed Preview" class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+						<img
+							:src="previewingImage"
+							alt="Zoomed Preview"
+							class="max-h-[82vh] max-w-[88vw] w-auto h-auto min-w-[280px] sm:min-w-[460px] rounded-xl object-contain shadow-2xl"
+						/>
 					</div>
 				</Transition>
 			</div>

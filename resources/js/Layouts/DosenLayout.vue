@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import SidebarDosen from '@/Components/dosen/SidebarDosen.vue';
 import TopbarDosen from '@/Components/dosen/TopbarDosen.vue';
+import ModalLogoutConfirmation from '@/Components/ModalLogoutConfirmation.vue';
 
 const checkIsMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -17,6 +19,18 @@ const getSavedSidebarState = () => {
 
 const isMobile = ref(checkIsMobile());
 const showingSidebar = ref(getSavedSidebarState());
+const showLogoutModal = ref(false);
+const isLoggingOut = ref(false);
+
+const handleLogout = () => {
+    isLoggingOut.value = true;
+    router.post(route('logout'), {}, {
+        onFinish: () => {
+            isLoggingOut.value = false;
+            showLogoutModal.value = false;
+        }
+    });
+};
 
 const updateViewport = () => {
     const nextIsMobile = window.innerWidth < 768;
@@ -74,14 +88,23 @@ onBeforeUnmount(() => {
             :collapsed="sidebarCollapsed"
             :mobile="isMobile"
             @navigate="isMobile && (showingSidebar = false)"
+            @logout="showLogoutModal = true"
         />
 
         <div :class="['min-w-0 flex-1', isMobile ? 'ml-[80px]' : '']">
-            <TopbarDosen @toggle="toggleSidebar" />
+            <TopbarDosen @toggle="toggleSidebar" @logout="showLogoutModal = true" />
 
             <main>
                 <slot />
             </main>
         </div>
+
+        <!-- Modal Logout Confirmation -->
+        <ModalLogoutConfirmation
+            :show="showLogoutModal"
+            :loading="isLoggingOut"
+            @close="showLogoutModal = false"
+            @confirm="handleLogout"
+        />
     </div>
 </template>

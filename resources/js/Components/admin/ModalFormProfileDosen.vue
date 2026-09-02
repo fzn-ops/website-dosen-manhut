@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
 
 const props = defineProps({
@@ -301,6 +301,28 @@ const handleClose = () => {
 	previewingImage.value = null;
 	emit('close');
 };
+
+const handleKeyDown = (e) => {
+	if (e.key === 'Escape' && props.show) {
+		if (previewingImage.value) {
+			closeImagePreview();
+			e.stopPropagation();
+			return;
+		}
+		if (showDeletePhotoModal.value) {
+			return;
+		}
+		handleClose();
+	}
+};
+
+onMounted(() => {
+	document.addEventListener('keydown', handleKeyDown);
+});
+
+onBeforeUnmount(() => {
+	document.removeEventListener('keydown', handleKeyDown);
+});
 
 const handleSubmit = () => {
 	formError.value = '';
@@ -864,51 +886,46 @@ const handleBackdropMouseUp = (e) => {
 									</button>
 								</div>
 
-								<!-- State 2: 1 Single Image Preview with Contained Size & Hover Actions (Matching profile.vue) -->
+								<!-- State 2: 1 Single Image Preview with Contained Size & Responsive Actions -->
 								<div v-else class="flex h-full w-full items-center justify-center p-1">
-									<div class="group relative flex max-h-[220px] max-w-[90%] items-center justify-center overflow-hidden rounded-[10px] border border-[#d6e0ee] bg-slate-100 shadow-sm">
+									<div class="group relative flex max-h-[190px] w-auto items-center justify-center overflow-hidden rounded-[10px] border border-[#d6e0ee] bg-slate-100 shadow-xs aspect-[3/4]">
 										<img
 											:src="form.imagePreview"
 											alt="Preview Foto Dosen"
-											class="max-h-[180px] w-auto max-w-full rounded-[9px] object-contain cursor-pointer transition hover:opacity-95"
-											@click="openImagePreview(form.imagePreview)"
+											class="h-full w-full object-cover"
 										/>
 
-										<!-- Action Overlays on Hover (Matching profile.vue & ModalFormAktivitas.vue) -->
-										<div class="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-											<!-- Preview / Zoom Button -->
-											<button
-												type="button"
-												@click.stop="openImagePreview(form.imagePreview)"
-												class="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#183669] transition hover:bg-white hover:scale-110"
-												title="Lihat Foto Penuh"
-											>
-												<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-													<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-												</svg>
-											</button>
-											<!-- Change / Re-upload Button -->
-											<button
-												type="button"
-												@click.stop="imageInputRef?.click()"
-												class="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#183669] transition hover:bg-white hover:scale-110"
-												title="Ganti Foto"
-											>
-												<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-												</svg>
-											</button>
-											<!-- Delete Button with Trash Icon from assets -->
-											<button
-												type="button"
-												@click.stop="confirmRemovePhoto"
-												class="flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-110 active:scale-95 focus:outline-none"
-												title="Hapus Foto"
-											>
-												<img src="/assets/icons/delete.svg" alt="Hapus" class="h-3.5 w-3.5 object-contain" />
-											</button>
-										</div>
+										<!-- 1. Edit / Ganti Foto Button (Top-Left) -->
+										<button
+											type="button"
+											@click.stop="imageInputRef?.click()"
+											class="absolute left-1.5 top-1.5 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#183669] shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
+											title="Ganti Foto"
+										>
+											<img src="/assets/icons/edit.svg" alt="Ganti Foto" class="h-3 w-3 object-contain" />
+										</button>
+
+										<!-- 2. Delete / Hapus Button (Top-Right) -->
+										<button
+											type="button"
+											@click.stop="confirmRemovePhoto"
+											class="absolute right-1.5 top-1.5 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
+											title="Hapus Foto"
+										>
+											<img src="/assets/icons/delete.svg" alt="Hapus" class="h-3 w-3 object-contain" />
+										</button>
+
+										<!-- 3. Zoom / Preview Button (Bottom-Right) -->
+										<button
+											type="button"
+											@click.stop="openImagePreview(form.imagePreview)"
+											class="absolute right-1.5 bottom-1.5 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/80 text-white shadow-md backdrop-blur-xs transition hover:bg-slate-900 hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
+											title="Lihat Ukuran Penuh"
+										>
+											<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+											</svg>
+										</button>
 									</div>
 								</div>
 
@@ -1014,20 +1031,24 @@ const handleBackdropMouseUp = (e) => {
 				>
 					<div
 						v-if="previewingImage"
-						class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-transparent"
+						class="relative flex items-center justify-center bg-transparent"
 						@click.stop
 					>
 						<button
 							type="button"
 							@click="closeImagePreview"
-							class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/90 focus:outline-none"
+							class="absolute top-3.5 right-3.5 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/85 backdrop-blur-xs shadow-md transition hover:scale-105 active:scale-95 focus:outline-none"
 							title="Tutup Preview"
 						>
-							<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
 							</svg>
 						</button>
-						<img :src="previewingImage" alt="Zoomed Preview" class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl" />
+						<img
+							:src="previewingImage"
+							alt="Zoomed Preview"
+							class="max-h-[82vh] max-w-[88vw] w-auto h-auto min-w-[280px] sm:min-w-[460px] rounded-xl object-contain shadow-2xl"
+						/>
 					</div>
 				</Transition>
 			</div>

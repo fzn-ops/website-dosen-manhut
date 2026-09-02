@@ -318,7 +318,7 @@ const confirmDeleteProfile = () => {
 						<button
 							type="button"
 							@click="isFilterOpen = !isFilterOpen"
-							class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition-colors focus:outline-none"
+							class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition-colors focus:outline-none focus:ring-0 focus-visible:outline-none select-none"
 							:class="isFilterOpen
 								? 'border-[#183669]'
 								: 'border-[#d6e0ee] hover:border-[#8ea9cb]'"
@@ -363,13 +363,17 @@ const confirmDeleteProfile = () => {
 						</div>
 					</div>
 
-					<!-- Tambah Button -->
+					<!-- Tambah Button (Icon + on Mobile, Text on Desktop) -->
 					<button
 						type="button"
-						@click="openCreateModal"
-						class="flex h-[46px] shrink-0 items-center justify-center rounded-[10px] bg-[#183669] px-7 font-poppins text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#122b54]"
+						@click="(e) => { e.currentTarget?.blur(); openCreateModal(); }"
+						class="flex h-[46px] w-[46px] sm:w-auto shrink-0 items-center justify-center rounded-[10px] bg-[#183669] px-0 sm:px-7 font-poppins text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-95 focus:outline-none focus:ring-0 focus-visible:outline-none select-none"
+						title="Tambah Profile Dosen"
 					>
-						Tambah
+						<svg class="h-5 w-5 sm:hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+						</svg>
+						<span class="hidden sm:inline">Tambah</span>
 					</button>
 				</div>
 

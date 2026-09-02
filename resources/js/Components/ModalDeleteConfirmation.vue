@@ -46,6 +46,7 @@ const handleConfirm = () => {
 
 const handleKeyDown = (e) => {
 	if (e.key === 'Escape' && props.show && !props.loading) {
+		e.stopPropagation();
 		handleClose();
 	}
 };
@@ -100,9 +101,9 @@ const handleBackdropMouseUp = (e) => {
 						v-if="show"
 						class="relative w-full max-w-[440px] transform rounded-[18px] bg-white p-6 sm:p-7 shadow-2xl text-center font-poppins border border-[#e2e8f0]"
 					>
-						<!-- Warning Icon Badge -->
-						<div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600 ring-8 ring-red-50">
-							<svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<!-- Warning Icon Badge (Single clean circle) -->
+						<div class="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#c93b2b]">
+							<svg class="h-6 w-6 text-[#c93b2b]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -112,21 +113,28 @@ const handleBackdropMouseUp = (e) => {
 						</div>
 
 						<!-- Title -->
-						<h3 class="text-[20px] font-bold leading-tight text-[#173a63]">
+						<h3 class="text-[19px] font-bold leading-snug text-[#183669]">
 							{{ title }}
 						</h3>
 
-						<!-- Description / Message -->
-						<p class="mt-2.5 font-inter text-[14px] leading-relaxed text-[#5c738e]">
-							<template v-if="itemName">
-								Apakah Anda yakin ingin menghapus <span class="font-semibold text-[#173a63]">"{{ itemName }}"</span>? Tindakan ini tidak dapat dibatalkan.
-							</template>
-							<template v-else-if="message">
-								{{ message }}
-							</template>
-							<template v-else>
-								Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
-							</template>
+						<!-- Primary Instruction Message -->
+						<p class="mt-1.5 font-inter text-[13px] text-[#7188a3]">
+							{{ message || 'Apakah Anda yakin ingin menghapus data ini?' }}
+						</p>
+
+						<!-- Item Highlight Card (if itemName is provided) -->
+						<div v-if="itemName" class="mt-3.5 rounded-[10px] border border-[#e2e8f0] bg-[#f8fafc] px-3.5 py-2.5 text-center">
+							<p class="font-poppins text-[13px] font-semibold text-[#183669] line-clamp-2 break-words">
+								"{{ itemName }}"
+							</p>
+						</div>
+
+						<!-- Warning Subtext -->
+						<p class="mt-3 flex items-center justify-center gap-1.5 font-inter text-[11.5px] text-[#8ca1b9]">
+							<svg class="h-3.5 w-3.5 shrink-0 text-[#8ca1b9]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+							</svg>
+							<span>Tindakan ini tidak dapat dibatalkan.</span>
 						</p>
 
 						<!-- Buttons Action -->
@@ -136,7 +144,7 @@ const handleBackdropMouseUp = (e) => {
 								type="button"
 								@click="handleClose"
 								:disabled="loading"
-								class="flex-1 rounded-[10px] border-2 border-[#d6e0ee] bg-transparent py-2.5 px-4 font-poppins text-[14px] font-semibold text-[#435b76] transition-colors hover:border-[#8ea9cb] hover:bg-[#f8fafc] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+								class="flex-1 rounded-[10px] border border-[#d6e0ee] bg-white py-2.5 px-4 font-poppins text-[13.5px] font-semibold text-[#435b76] shadow-xs transition hover:bg-[#f0f4f9] hover:text-[#183669] focus:outline-none focus:ring-0 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
 							>
 								{{ cancelButtonText }}
 							</button>
@@ -146,7 +154,7 @@ const handleBackdropMouseUp = (e) => {
 								type="button"
 								@click="handleConfirm"
 								:disabled="loading"
-								class="flex-1 rounded-[10px] bg-[#dc2626] py-2.5 px-4 font-poppins text-[14px] font-semibold text-white shadow-sm shadow-red-500/25 transition-all hover:bg-[#b91c1c] active:scale-[0.98] focus:outline-none disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2"
+								class="flex-1 rounded-[10px] bg-[#c93b2b] py-2.5 px-4 font-poppins text-[13.5px] font-semibold text-white shadow-sm transition-all hover:bg-[#a82d1f] active:scale-95 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2"
 							>
 								<!-- Loading Spinner -->
 								<svg

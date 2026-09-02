@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as XLSX from 'xlsx';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
@@ -44,6 +44,20 @@ watch(
 const handleClose = () => {
 	emit('close');
 };
+
+const handleKeyDown = (e) => {
+	if (e.key === 'Escape' && props.show) {
+		handleClose();
+	}
+};
+
+onMounted(() => {
+	document.addEventListener('keydown', handleKeyDown);
+});
+
+onBeforeUnmount(() => {
+	document.removeEventListener('keydown', handleKeyDown);
+});
 
 // Revalidate all parsed rows for duplicates & completeness (only NIP and Username cannot be duplicated)
 const revalidateParsedData = () => {
