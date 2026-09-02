@@ -76,7 +76,7 @@ for dosen in dosen_list:
             cited_by = cited_by_element.text.strip() if cited_by_element and cited_by_element.text.strip() else '0'
             cited_by = int(cited_by) if cited_by.isdigit() else 0
             
-            # Ambil Tahun
+            # Ambil Tahun   
             year_element = row.find('span', class_='gsc_a_h')
             year = year_element.text.strip() if year_element and year_element.text.strip() else None
             

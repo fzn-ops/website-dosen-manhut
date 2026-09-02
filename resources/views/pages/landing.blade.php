@@ -11,20 +11,20 @@
     {{-- =======================================
          1. HERO SECTION
          ======================================= --}}
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <section class="w-full h-full mb-8">
         {{-- Container Hero dengan Rounded Corners --}}
-        <div class="relative w-full h-[550px] md:h-[600px] rounded-[2rem] overflow-hidden shadow-2xl flex flex-col items-center justify-center text-center">
+        <div class="relative w-full h-[600px] md:h-[700px] overflow-hidden shadow-2xl flex flex-col items-center justify-center text-center">
             
             {{-- Background Image (Ganti URL dengan gambar aslimu di folder public) --}}
             <div class="absolute inset-0 bg-cover bg-center" 
-                 style="background-image: url('{{ asset('images/hero-dosen.jpg') }}');">
+                 style="background-image: url('{{ asset('/images/hero_section.jpg') }}');">
             </div>
             
             {{-- Dark Overlay untuk memperjelas teks --}}
             <div class="absolute inset-0 bg-black/60"></div>
 
             {{-- Konten Hero --}}
-            <div class="relative z-10 px-6 max-w-4xl flex flex-col items-center mt-8">
+            <div class="relative z-10 px-6 max-w-4xl flex flex-col items-center mt-8 animate-spin">
                 <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-md">
                     Selamat Datang!
                 </h1>
@@ -40,7 +40,7 @@
                 </a>
 
                 {{-- Scroll Down Indicator (Dots & Arrow) --}}
-                <div class="flex flex-col items-center space-y-2 animate-bounce">
+                <div class="flex flex-col items-center space-y-2 animate-spin">
                     <div class="w-2 h-2 bg-white rounded-full"></div>
                     <div class="w-2 h-2 bg-white rounded-full"></div>
                     <div class="w-2 h-2 bg-white rounded-full"></div>

@@ -62,7 +62,7 @@
             {{-- 2. Gambar Besar (Banner) --}}
             <div class="w-full h-[250px] sm:h-[400px] md:h-[500px] rounded-2xl md:rounded-[2rem] overflow-hidden shadow-xl mb-20 group cursor-pointer">
                 {{-- Pastikan file gambar tim/pengurus ini ada di public/images/ --}}
-                <img src="{{ asset('images/tim-dosen.jpg') }}" 
+                <img src="{{ asset('images/hero_section.jpg') }}" 
                      alt="Tim Dosen" 
                      class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
             </div>
@@ -84,24 +84,33 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 
                 {{-- Card Divisi 1 --}}
-                <div class="bg-[#fafafc] border-2 border-white rounded-2xl shadow-[5px_5px_15px_#e6e6e6,-5px_-5px_15px_#ffffff] p-8 h-48 md:h-64 flex items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-[8px_8px_20px_#d9d9d9,-8px_-8px_20px_#ffffff] cursor-pointer group">
-                    <h3 class="text-xl md:text-xl font-bold text-gray-800 group-hover:text-[#1a3675] transition-colors leading-snug">
+                <div class="bg-[#fafafc] border-2 border-white rounded-2xl shadow-[5px_5px_15px_#e6e6e6,-5px_-5px_15px_#ffffff] p-8 h-48 md:h-64 flex items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-[8px_8px_20px_#d9d9d9,-8px_-8px_20px_#ffffff] cursor-pointer group flex-col">
+                    <h3 class="text-xl md:text-xl font-bold text-gray-800 group-hover:text-[#1a3675] transition-colors leading-snug py-6">
                         Perencanaan Hutan
                     </h3>
+                    <span class="text-sm">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    </span>
                 </div>
 
                 {{-- Card Divisi 2 --}}
-                <div class="bg-[#fafafc] border-2 border-white rounded-2xl shadow-[5px_5px_15px_#e6e6e6,-5px_-5px_15px_#ffffff] p-8 h-48 md:h-64 flex items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-[8px_8px_20px_#d9d9d9,-8px_-8px_20px_#ffffff] cursor-pointer group">
-                    <h3 class="text-xl md:text-xl font-bold text-gray-800 group-hover:text-[#1a3675] transition-colors leading-snug">
+                <div class="bg-[#fafafc] border-2 border-white rounded-2xl shadow-[5px_5px_15px_#e6e6e6,-5px_-5px_15px_#ffffff] p-8 h-48 md:h-64 flex items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-[8px_8px_20px_#d9d9d9,-8px_-8px_20px_#ffffff] cursor-pointer group flex-col">
+                    <h3 class="text-xl md:text-xl font-bold text-gray-800 group-hover:text-[#1a3675] transition-colors leading-snug py-3">
                         Pemanfaatan<br>Sumber Daya Hutan
                     </h3>
+                    <span class="text-sm">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    </span>
                 </div>
 
                 {{-- Card Divisi 3 --}}
-                <div class="bg-[#fafafc] border-2 border-white rounded-2xl shadow-[5px_5px_15px_#e6e6e6,-5px_-5px_15px_#ffffff] p-8 h-48 md:h-64 flex items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-[8px_8px_20px_#d9d9d9,-8px_-8px_20px_#ffffff] cursor-pointer group">
-                    <h3 class="text-xl md:text-xl font-bold text-gray-800 group-hover:text-[#1a3675] transition-colors leading-snug">
+                <div class="bg-[#fafafc] border-2 border-white rounded-2xl shadow-[5px_5px_15px_#e6e6e6,-5px_-5px_15px_#ffffff] p-8 h-48 md:h-64 flex items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-[8px_8px_20px_#d9d9d9,-8px_-8px_20px_#ffffff] cursor-pointer group flex-col">
+                    <h3 class="text-xl md:text-xl font-bold text-gray-800 group-hover:text-[#1a3675] transition-colors leading-snug py-4">
                         Kebijakan Kehutanan
                     </h3>
+                    <span class="text-sm">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    </span>
                 </div>
 
             </div>
