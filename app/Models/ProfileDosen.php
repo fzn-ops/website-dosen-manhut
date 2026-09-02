@@ -47,10 +47,10 @@ class ProfileDosen extends Model
      */
     public function getImageUrlAttribute(): ?string
     {
-        if ($this->image && Storage::disk('public')->exists($this->image)) {
+        if (!empty($this->image)) {
             return asset('storage/' . $this->image);
         }
-        if (!empty($this->user?->profile_picture) && Storage::disk('public')->exists($this->user->profile_picture)) {
+        if ($this->relationLoaded('user') && !empty($this->user?->profile_picture)) {
             return asset('storage/' . $this->user->profile_picture);
         }
         return null;

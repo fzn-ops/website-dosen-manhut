@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormAktivitasDosen from '@/Components/admin/ModalFormAktivitasDosen.vue';
@@ -79,6 +79,13 @@ watch(
 	},
 	{ immediate: true, deep: true }
 );
+
+const isLoading = ref(true);
+onMounted(() => {
+	setTimeout(() => {
+		isLoading.value = false;
+	}, 350);
+});
 
 // Chart Data Setup
 const chartData = computed(() => ({
@@ -336,7 +343,25 @@ const confirmDeleteActivity = () => {
 					</div>
 
 					<div class="mt-4 rounded-[10px] border border-[#dbe4f0] p-2 sm:p-4">
-						<div class="h-[240px] w-full sm:h-[320px] lg:h-[360px]">
+						<div v-if="isLoading" class="h-[240px] w-full sm:h-[320px] lg:h-[360px] animate-pulse flex flex-col justify-between p-4 bg-slate-50/50 rounded-lg">
+							<div class="flex items-center justify-between">
+								<div class="h-4 w-32 rounded bg-slate-200"></div>
+								<div class="flex gap-4">
+									<div class="h-3 w-16 rounded bg-slate-200"></div>
+									<div class="h-3 w-16 rounded bg-slate-200"></div>
+									<div class="h-3 w-16 rounded bg-slate-200"></div>
+								</div>
+							</div>
+							<div class="space-y-4 my-auto">
+								<div class="h-1.5 w-full rounded bg-slate-200/60"></div>
+								<div class="h-1.5 w-full rounded bg-slate-200/60"></div>
+								<div class="h-1.5 w-full rounded bg-slate-200/60"></div>
+							</div>
+							<div class="flex justify-between">
+								<div v-for="y in 4" :key="y" class="h-3 w-12 rounded bg-slate-200"></div>
+							</div>
+						</div>
+						<div v-else class="h-[240px] w-full sm:h-[320px] lg:h-[360px]">
 							<Line :data="chartData" :options="chartOptions" aria-label="Grafik aktivitas dosen" />
 						</div>
 					</div>
@@ -416,39 +441,76 @@ const confirmDeleteActivity = () => {
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-[#d6e0ee] font-inter text-[14px] text-[#435b76]">
-								<tr
-									v-for="(activity, idx) in sortedActivities"
-									:key="activity.id"
-									class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
-								>
-									<td class="px-3 py-2.5 text-center font-medium">{{ idx + 1 }}</td>
-									<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name || activity.title">
-										<span class="block truncate">{{ activity.name || activity.title }}</span>
-									</td>
-									<td class="px-3 py-2.5 text-left" :title="activity.lecturer || activity.lecturerName">
-										<span class="block truncate">{{ activity.lecturer || activity.lecturerName }}</span>
-									</td>
-									<td class="px-3 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
-										<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
-									</td>
-									<td class="px-3 py-2.5 text-left" :title="activity.role">
-										<span class="block truncate">{{ activity.role }}</span>
-									</td>
-									<td class="px-3 py-2.5 text-center" :title="activity.publishDate || activity.date">
-										<span class="block truncate">{{ activity.publishDate || activity.date }}</span>
-									</td>
-									<td class="px-3 py-2.5 text-center">
-										<div class="flex items-center justify-center gap-2">
-											<EditButtonTable :label="`Edit Aktivitas ${activity.name || activity.title}`" @click="openEditModal(activity)" />
-											<DeleteButtonTable :label="`Hapus Aktivitas ${activity.name || activity.title}`" @click="openDeleteModal(activity)" />
-										</div>
-									</td>
-								</tr>
-								<tr v-if="sortedActivities.length === 0">
-									<td colspan="7" class="py-8 text-center text-[#7890a8]">
-										Tidak ada data aktivitas yang tersedia.
-									</td>
-								</tr>
+								<!-- Skeleton Loading Rows -->
+								<template v-if="isLoading">
+									<tr
+										v-for="n in 5"
+										:key="`skeleton-dash-${n}`"
+										class="h-[52px] animate-pulse bg-white"
+									>
+										<td class="px-3 py-2.5 text-center">
+											<div class="mx-auto h-4 w-5 rounded-md bg-slate-200"></div>
+										</td>
+										<td class="px-3 py-2.5">
+											<div class="h-4 w-44 rounded-md bg-slate-200"></div>
+										</td>
+										<td class="px-3 py-2.5">
+											<div class="h-4 w-36 rounded-md bg-slate-200"></div>
+										</td>
+										<td class="px-3 py-2.5">
+											<div class="h-5 w-20 rounded-full bg-slate-200"></div>
+										</td>
+										<td class="px-3 py-2.5">
+											<div class="h-4 w-24 rounded-md bg-slate-200"></div>
+										</td>
+										<td class="px-3 py-2.5 text-center">
+											<div class="mx-auto h-4 w-24 rounded-md bg-slate-200"></div>
+										</td>
+										<td class="px-3 py-2.5 text-center">
+											<div class="flex items-center justify-center gap-2">
+												<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+												<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+											</div>
+										</td>
+									</tr>
+								</template>
+
+								<!-- Real Data Rows -->
+								<template v-else>
+									<tr
+										v-for="(activity, idx) in sortedActivities"
+										:key="activity.id"
+										class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
+									>
+										<td class="px-3 py-2.5 text-center font-medium">{{ idx + 1 }}</td>
+										<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name || activity.title">
+											<span class="block truncate">{{ activity.name || activity.title }}</span>
+										</td>
+										<td class="px-3 py-2.5 text-left" :title="activity.lecturer || activity.lecturerName">
+											<span class="block truncate">{{ activity.lecturer || activity.lecturerName }}</span>
+										</td>
+										<td class="px-3 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
+											<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
+										</td>
+										<td class="px-3 py-2.5 text-left" :title="activity.role">
+											<span class="block truncate">{{ activity.role }}</span>
+										</td>
+										<td class="px-3 py-2.5 text-center" :title="activity.publishDate || activity.date">
+											<span class="block truncate">{{ activity.publishDate || activity.date }}</span>
+										</td>
+										<td class="px-3 py-2.5 text-center">
+											<div class="flex items-center justify-center gap-2">
+												<EditButtonTable :label="`Edit Aktivitas ${activity.name || activity.title}`" @click="openEditModal(activity)" />
+												<DeleteButtonTable :label="`Hapus Aktivitas ${activity.name || activity.title}`" @click="openDeleteModal(activity)" />
+											</div>
+										</td>
+									</tr>
+									<tr v-if="sortedActivities.length === 0">
+										<td colspan="7" class="py-8 text-center text-[#7890a8]">
+											Belum ada data aktivitas dosen.
+										</td>
+									</tr>
+								</template>
 							</tbody>
 						</table>
 					</div>

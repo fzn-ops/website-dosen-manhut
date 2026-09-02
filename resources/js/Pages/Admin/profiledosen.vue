@@ -69,6 +69,13 @@ watch(
 	{ deep: true }
 );
 
+const isLoading = ref(true);
+onMounted(() => {
+	setTimeout(() => {
+		isLoading.value = false;
+	}, 350);
+});
+
 // Search & Filter Query
 const searchQuery = ref('');
 const selectedDivisionFilter = ref('');
@@ -437,44 +444,78 @@ const confirmDeleteProfile = () => {
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-[#d6e0ee] font-inter text-[14px] text-[#435b76]">
-							<tr
-								v-for="(profile, idx) in paginatedProfiles"
-								:key="profile.id"
-								class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
-							>
-								<td class="px-3 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
-								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="profile.name">
-									<span class="block truncate">{{ profile.name }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-left" :title="profile.division">
-									<span class="block truncate">{{ profile.division }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-center" :title="profile.research">
-									<span class="block truncate">{{ profile.research }}</span>
-								</td>
-								<td :class="['px-3 py-2.5', profile.contact && profile.contact !== '-' ? 'text-left' : 'text-center']" :title="profile.contact">
-									<a
-										v-if="profile.contact && profile.contact.includes('@')"
-										:href="`mailto:${profile.contact}`"
-										class="block truncate text-[#2a68c4] underline decoration-[#2a68c4] transition hover:text-[#1d4d96]"
-									>
-										{{ profile.contact }}
-									</a>
-									<span v-else-if="profile.contact && profile.contact !== '-'" class="block truncate">{{ profile.contact }}</span>
-									<span v-else class="block truncate text-[#7890a8]">-</span>
-								</td>
-								<td class="px-3 py-2.5 text-center">
-									<div class="flex items-center justify-center gap-2">
-										<EditButtonTable :label="`Edit Profile ${profile.name}`" @click="openEditModal(profile)" />
-										<DeleteButtonTable :label="`Hapus Profile ${profile.name}`" @click="openDeleteModal(profile)" />
-									</div>
-								</td>
-							</tr>
-							<tr v-if="filteredAndSortedProfiles.length === 0">
-								<td colspan="6" class="py-8 text-center text-[#7890a8]">
-									Tidak ada data profile dosen yang sesuai filter atau pencarian.
-								</td>
-							</tr>
+							<!-- Skeleton Loading Rows -->
+							<template v-if="isLoading">
+								<tr
+									v-for="n in 6"
+									:key="`skeleton-profile-${n}`"
+									class="h-[52px] animate-pulse bg-white"
+								>
+									<td class="px-3 py-2.5 text-center">
+										<div class="mx-auto h-4 w-5 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-44 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-36 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="mx-auto h-4 w-28 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-32 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="flex items-center justify-center gap-2">
+											<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+											<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+										</div>
+									</td>
+								</tr>
+							</template>
+
+							<!-- Real Data Rows -->
+							<template v-else>
+								<tr
+									v-for="(profile, idx) in paginatedProfiles"
+									:key="profile.id"
+									class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
+								>
+									<td class="px-3 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
+									<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="profile.name">
+										<span class="block truncate">{{ profile.name }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-left" :title="profile.division">
+										<span class="block truncate">{{ profile.division }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-center" :title="profile.research">
+										<span class="block truncate">{{ profile.research }}</span>
+									</td>
+									<td :class="['px-3 py-2.5', profile.contact && profile.contact !== '-' ? 'text-left' : 'text-center']" :title="profile.contact">
+										<a
+											v-if="profile.contact && profile.contact.includes('@')"
+											:href="`mailto:${profile.contact}`"
+											class="block truncate text-[#2a68c4] underline decoration-[#2a68c4] transition hover:text-[#1d4d96]"
+										>
+											{{ profile.contact }}
+										</a>
+										<span v-else-if="profile.contact && profile.contact !== '-'" class="block truncate">{{ profile.contact }}</span>
+										<span v-else class="block truncate text-[#7890a8]">-</span>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="flex items-center justify-center gap-2">
+											<EditButtonTable :label="`Edit Profile ${profile.name}`" @click="openEditModal(profile)" />
+											<DeleteButtonTable :label="`Hapus Profile ${profile.name}`" @click="openDeleteModal(profile)" />
+										</div>
+									</td>
+								</tr>
+								<tr v-if="filteredAndSortedProfiles.length === 0">
+									<td colspan="6" class="py-8 text-center text-[#7890a8]">
+										Tidak ada data profile dosen yang sesuai filter atau pencarian.
+									</td>
+								</tr>
+							</template>
 						</tbody>
 					</table>
 				</div>

@@ -112,7 +112,14 @@ const closeAllDropdowns = () => {
 	isFilterOpen.value = false;
 };
 
-onMounted(() => document.addEventListener('click', closeAllDropdowns));
+const isLoading = ref(true);
+
+onMounted(() => {
+	document.addEventListener('click', closeAllDropdowns);
+	setTimeout(() => {
+		isLoading.value = false;
+	}, 350);
+});
 onBeforeUnmount(() => document.removeEventListener('click', closeAllDropdowns));
 
 const toggleCategoryFilter = (cat) => {
@@ -502,41 +509,78 @@ const confirmDeleteActivity = () => {
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-[#d6e0ee] font-inter text-[14px] text-[#435b76]">
-						<tr
-							v-for="(activity, idx) in paginatedActivities"
-							:key="activity.id"
-							class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
-						>
-							<td class="px-3 py-2.5 text-center font-medium">
-								{{ (currentPage - 1) * rowsPerPage + idx + 1 }}
-							</td>
-							<td class="px-4 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name">
-								<span class="block truncate">{{ activity.name }}</span>
-							</td>
-							<td class="px-3 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
-								<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
-							</td>
-							<td class="px-3 py-2.5 text-left" :title="activity.role">
-								<span class="block truncate">{{ activity.role }}</span>
-							</td>
-                            <td class="px-4 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
-								<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
-							</td>
-							<td class="px-3 py-2.5 text-left" :title="activity.date">
-								<span class="block truncate">{{ activity.date }}</span>
-							</td>
-							<td class="px-3 py-2.5 text-center">
-								<div class="flex items-center justify-center gap-2">
-									<EditButtonTable :label="`Edit ${activity.name}`" @click="openEditModal(activity)" />
-									<DeleteButtonTable :label="`Hapus ${activity.name}`" @click="openDeleteModal(activity)" />
-								</div>
-							</td>
-						</tr>
-						<tr v-if="paginatedActivities.length === 0">
-							<td colspan="7" class="py-10 text-center text-[#7890a8]">
-								Belum ada aktivitas yang sesuai dengan pencarian atau filter.
-							</td>
-						</tr>
+						<!-- Skeleton Loading Rows -->
+						<template v-if="isLoading">
+							<tr
+								v-for="n in 5"
+								:key="`skeleton-dosen-act-${n}`"
+								class="h-[52px] animate-pulse bg-white"
+							>
+								<td class="px-3 py-2.5 text-center">
+									<div class="mx-auto h-4 w-5 rounded-md bg-slate-200"></div>
+								</td>
+								<td class="px-4 py-2.5">
+									<div class="h-4 w-44 rounded-md bg-slate-200"></div>
+								</td>
+								<td class="px-3 py-2.5">
+									<div class="h-5 w-20 rounded-full bg-slate-200"></div>
+								</td>
+								<td class="px-3 py-2.5">
+									<div class="h-4 w-24 rounded-md bg-slate-200"></div>
+								</td>
+								<td class="px-4 py-2.5">
+									<div class="h-4 w-56 rounded-md bg-slate-200"></div>
+								</td>
+								<td class="px-3 py-2.5">
+									<div class="h-4 w-24 rounded-md bg-slate-200"></div>
+								</td>
+								<td class="px-3 py-2.5 text-center">
+									<div class="flex items-center justify-center gap-2">
+										<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+										<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+									</div>
+								</td>
+							</tr>
+						</template>
+
+						<!-- Real Data Rows -->
+						<template v-else>
+							<tr
+								v-for="(activity, idx) in paginatedActivities"
+								:key="activity.id"
+								class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
+							>
+								<td class="px-3 py-2.5 text-center font-medium">
+									{{ (currentPage - 1) * rowsPerPage + idx + 1 }}
+								</td>
+								<td class="px-4 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name">
+									<span class="block truncate">{{ activity.name }}</span>
+								</td>
+								<td class="px-3 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
+									<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
+								</td>
+								<td class="px-3 py-2.5 text-left" :title="activity.role">
+									<span class="block truncate">{{ activity.role }}</span>
+								</td>
+								<td class="px-4 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
+									<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
+								</td>
+								<td class="px-3 py-2.5 text-left" :title="activity.date">
+									<span class="block truncate">{{ activity.date }}</span>
+								</td>
+								<td class="px-3 py-2.5 text-center">
+									<div class="flex items-center justify-center gap-2">
+										<EditButtonTable :label="`Edit ${activity.name}`" @click="openEditModal(activity)" />
+										<DeleteButtonTable :label="`Hapus ${activity.name}`" @click="openDeleteModal(activity)" />
+									</div>
+								</td>
+							</tr>
+							<tr v-if="paginatedActivities.length === 0">
+								<td colspan="7" class="py-10 text-center text-[#7890a8]">
+									Belum ada aktivitas yang sesuai dengan pencarian atau filter.
+								</td>
+							</tr>
+						</template>
 					</tbody>
 				</table>
 			</div>

@@ -69,19 +69,22 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 /* Dosen Panel Routes (Inertia Vue) */
 
 Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->group(function () {
-    
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dosen/dashboard');
-    })->name('dosen.dashboard');
+    // Rute Profile Dosen (Selalu dapat diakses)
+    Route::get('/profile', [\App\Http\Controllers\Dashboard\Dosen\DosenProfileController::class, 'index'])->name('dosen.profile');
+    Route::post('/profile/personal', [\App\Http\Controllers\Dashboard\Dosen\DosenProfileController::class, 'updatePersonal'])->name('dosen.profile.personal');
+    Route::post('/profile/account', [\App\Http\Controllers\Dashboard\Dosen\DosenProfileController::class, 'updateAccount'])->name('dosen.profile.account');
+    Route::post('/profile/password', [\App\Http\Controllers\Dashboard\Dosen\DosenProfileController::class, 'updatePassword'])->name('dosen.profile.password');
 
-    Route::get('/aktivitas', function () {
-        return Inertia::render('Dosen/aktivitas');
-    })->name('dosen.aktivitas');
+    // Rute yang Dilindungi (Wajib ganti password default terlebih dahulu)
+    Route::middleware('dosen.password_changed')->group(function () {
+        Route::get('/dashboard', function () {
+            return Inertia::render('Dosen/dashboard');
+        })->name('dosen.dashboard');
 
-    Route::get('/profile', function () {
-        return Inertia::render('Dosen/profile');
-    })->name('dosen.profile');
-
+        Route::get('/aktivitas', function () {
+            return Inertia::render('Dosen/aktivitas');
+        })->name('dosen.aktivitas');
+    });
 });
 
 /*

@@ -67,6 +67,13 @@ watch(
 	{ immediate: true, deep: true }
 );
 
+const isLoading = ref(true);
+onMounted(() => {
+	setTimeout(() => {
+		isLoading.value = false;
+	}, 350);
+});
+
 const searchQuery = ref('');
 const selectedLecturerFilter = ref('');
 const selectedCategories = ref([]);
@@ -551,39 +558,76 @@ const confirmDeleteActivity = () => {
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-[#d6e0ee] font-inter text-[14px] text-[#435b76]">
-							<tr
-								v-for="(activity, idx) in paginatedActivities"
-								:key="activity.id"
-								class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
-							>
-								<td class="px-3 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
-								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name || activity.title">
-									<span class="block truncate">{{ activity.name || activity.title }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-left" :title="activity.lecturer || activity.lecturerName">
-									<span class="block truncate">{{ activity.lecturer || activity.lecturerName }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
-									<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-left" :title="activity.role">
-									<span class="block truncate">{{ activity.role }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-center" :title="activity.date">
-									<span class="block truncate">{{ activity.date }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-center">
-									<div class="flex items-center justify-center gap-2">
-										<EditButtonTable :label="`Edit Aktivitas ${activity.name || activity.title}`" @click="openEditModal(activity)" />
-										<DeleteButtonTable :label="`Hapus Aktivitas ${activity.name || activity.title}`" @click="openDeleteModal(activity)" />
-									</div>
-								</td>
-							</tr>
-							<tr v-if="filteredAndSortedActivities.length === 0">
-								<td colspan="7" class="py-8 text-center text-[#7890a8]">
-									Tidak ada data aktivitas yang sesuai filter atau pencarian.
-								</td>
-							</tr>
+							<!-- Skeleton Loading Rows -->
+							<template v-if="isLoading">
+								<tr
+									v-for="n in 6"
+									:key="`skeleton-act-${n}`"
+									class="h-[52px] animate-pulse bg-white"
+								>
+									<td class="px-3 py-2.5 text-center">
+										<div class="mx-auto h-4 w-5 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-48 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-36 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-5 w-20 rounded-full bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-24 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="mx-auto h-4 w-24 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="flex items-center justify-center gap-2">
+											<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+											<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+										</div>
+									</td>
+								</tr>
+							</template>
+
+							<!-- Real Data Rows -->
+							<template v-else>
+								<tr
+									v-for="(activity, idx) in paginatedActivities"
+									:key="activity.id"
+									class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
+								>
+									<td class="px-3 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
+									<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="activity.name || activity.title">
+										<span class="block truncate">{{ activity.name || activity.title }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-left" :title="activity.lecturer || activity.lecturerName">
+										<span class="block truncate">{{ activity.lecturer || activity.lecturerName }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-left" :title="Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-')">
+										<span class="block truncate">{{ Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories.join(', ') : (activity.category || '-') }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-left" :title="activity.role">
+										<span class="block truncate">{{ activity.role }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-center" :title="activity.date">
+										<span class="block truncate">{{ activity.date }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="flex items-center justify-center gap-2">
+											<EditButtonTable :label="`Edit Aktivitas ${activity.name || activity.title}`" @click="openEditModal(activity)" />
+											<DeleteButtonTable :label="`Hapus Aktivitas ${activity.name || activity.title}`" @click="openDeleteModal(activity)" />
+										</div>
+									</td>
+								</tr>
+								<tr v-if="filteredAndSortedActivities.length === 0">
+									<td colspan="7" class="py-8 text-center text-[#7890a8]">
+										Tidak ada data aktivitas yang sesuai filter atau pencarian.
+									</td>
+								</tr>
+							</template>
 						</tbody>
 					</table>
 				</div>

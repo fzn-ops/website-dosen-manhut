@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ModalFormDosen from '@/Components/admin/ModalFormDosen.vue';
@@ -64,6 +64,13 @@ watch(
 	},
 	{ immediate: true, deep: true }
 );
+
+const isLoading = ref(true);
+onMounted(() => {
+	setTimeout(() => {
+		isLoading.value = false;
+	}, 350);
+});
 
 // Search Query
 const searchQuery = ref('');
@@ -346,48 +353,85 @@ const confirmDeleteLecturer = () => {
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-[#d6e0ee] font-inter text-[14px] text-[#435b76]">
-							<tr
-								v-for="(lecturer, idx) in paginatedLecturers"
-								:key="lecturer.id"
-								class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
-							>
-								<td class="px-3 py-2.5 text-center font-medium">
-									{{ (currentPage - 1) * rowsPerPage + idx + 1 }}
-								</td>
-								<td class="px-3 py-2.5 text-left" :title="lecturer.nip">
-									<span class="block truncate">{{ lecturer.nip }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="lecturer.name">
-									<span class="block truncate">{{ lecturer.name }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="lecturer.username">
-									<span class="block truncate">{{ lecturer.username }}</span>
-								</td>
-								<td :class="['px-3 py-2.5', lecturer.email && lecturer.email !== '-' ? 'text-left' : 'text-center']" :title="lecturer.email">
-									<a
-										v-if="lecturer.email && lecturer.email !== '-'"
-										:href="`mailto:${lecturer.email}`"
-										class="block truncate text-[#2a68c4] underline decoration-[#2a68c4] transition hover:text-[#1d4d96]"
-									>
-										{{ lecturer.email }}
-									</a>
-									<span v-else class="block truncate text-[#7890a8]">-</span>
-								</td>
-								<td class="px-3 py-2.5 text-center" :title="lecturer.phone">
-									<span class="block truncate">{{ lecturer.phone }}</span>
-								</td>
-								<td class="px-3 py-2.5 text-center">
-									<div class="flex items-center justify-center gap-2">
-										<EditButtonTable :label="`Edit ${lecturer.name}`" @click="openEditModal(lecturer)" />
-										<DeleteButtonTable :label="`Hapus ${lecturer.name}`" @click="openDeleteModal(lecturer)" />
-									</div>
-								</td>
-							</tr>
-							<tr v-if="filteredAndSortedLecturers.length === 0">
-								<td colspan="6" class="py-8 text-center text-[#7890a8]">
-									Tidak ada data dosen yang sesuai pencarian.
-								</td>
-							</tr>
+							<!-- Skeleton Loading Rows -->
+							<template v-if="isLoading">
+								<tr
+									v-for="n in 6"
+									:key="`skeleton-${n}`"
+									class="h-[52px] animate-pulse bg-white"
+								>
+									<td class="px-3 py-2.5 text-center">
+										<div class="mx-auto h-4 w-5 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-28 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-44 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-24 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5">
+										<div class="h-4 w-36 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="mx-auto h-4 w-24 rounded-md bg-slate-200"></div>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="flex items-center justify-center gap-2">
+											<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+											<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
+										</div>
+									</td>
+								</tr>
+							</template>
+
+							<!-- Real Data Rows -->
+							<template v-else>
+								<tr
+									v-for="(lecturer, idx) in paginatedLecturers"
+									:key="lecturer.id"
+									class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
+								>
+									<td class="px-3 py-2.5 text-center font-medium">
+										{{ (currentPage - 1) * rowsPerPage + idx + 1 }}
+									</td>
+									<td class="px-3 py-2.5 text-left" :title="lecturer.nip">
+										<span class="block truncate">{{ lecturer.nip }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="lecturer.name">
+										<span class="block truncate">{{ lecturer.name }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="lecturer.username">
+										<span class="block truncate">{{ lecturer.username }}</span>
+									</td>
+									<td :class="['px-3 py-2.5', lecturer.email && lecturer.email !== '-' ? 'text-left' : 'text-center']" :title="lecturer.email">
+										<a
+											v-if="lecturer.email && lecturer.email !== '-'"
+											:href="`mailto:${lecturer.email}`"
+											class="block truncate text-[#2a68c4] underline decoration-[#2a68c4] transition hover:text-[#1d4d96]"
+										>
+											{{ lecturer.email }}
+										</a>
+										<span v-else class="block truncate text-[#7890a8]">-</span>
+									</td>
+									<td class="px-3 py-2.5 text-center" :title="lecturer.phone">
+										<span class="block truncate">{{ lecturer.phone }}</span>
+									</td>
+									<td class="px-3 py-2.5 text-center">
+										<div class="flex items-center justify-center gap-2">
+											<EditButtonTable :label="`Edit ${lecturer.name}`" @click="openEditModal(lecturer)" />
+											<DeleteButtonTable :label="`Hapus ${lecturer.name}`" @click="openDeleteModal(lecturer)" />
+										</div>
+									</td>
+								</tr>
+								<tr v-if="filteredAndSortedLecturers.length === 0">
+									<td colspan="7" class="py-8 text-center text-[#7890a8]">
+										Tidak ada data dosen yang sesuai pencarian.
+									</td>
+								</tr>
+							</template>
 						</tbody>
 					</table>
 				</div>

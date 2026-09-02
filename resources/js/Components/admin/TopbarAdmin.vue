@@ -1,10 +1,22 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 
-defineEmits(['toggle']);
+defineEmits(['toggle', 'logout']);
 
+const page = usePage();
 const showingAccountMenu = ref(false);
+const imageLoadError = ref(false);
+
+const userName = computed(() => page.props.auth?.user?.name || 'Admin');
+const userProfilePicture = computed(() => {
+	if (imageLoadError.value) return null;
+	return page.props.auth?.user?.profile_picture || null;
+});
+
+const onImageError = () => {
+	imageLoadError.value = true;
+};
 
 const closeAccountMenu = () => {
 	showingAccountMenu.value = false;
@@ -32,15 +44,36 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 		<div class="relative" @click.stop>
 			<button
 				type="button"
-				class="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[#173653] transition-colors hover:bg-[#e2e8f0] focus:outline-none"
+				class="flex items-center gap-2 sm:gap-2.5 rounded-full md:rounded-lg py-1 px-1.5 md:px-2.5 md:py-1.5 text-[#173653] transition-colors hover:bg-[#e2e8f0] focus:outline-none"
 				aria-label="Buka menu akun"
 				:aria-expanded="showingAccountMenu"
 				@click="showingAccountMenu = !showingAccountMenu"
 			>
-				<img src="/assets/icons/default-profile.svg" alt="Profile icon" class="h-7 w-7 rounded-full object-contain" />
-				<span class="font-poppins text-sm font-semibold text-[#173653]">{{ $page.props.auth?.user?.name || 'Admin' }}</span>
+				<!-- Profile Image (Circular, object-cover object-top to focus on face) -->
+				<div class="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d6e0ee] bg-[#eef3f8] shadow-2xs">
+					<img
+						v-if="userProfilePicture"
+						:src="userProfilePicture"
+						:alt="userName"
+						class="h-full w-full object-cover object-top"
+						@error="onImageError"
+					/>
+					<img
+						v-else
+						src="/assets/icons/default-profile.svg"
+						alt="Profile icon"
+						class="h-full w-full rounded-full object-contain p-0.5"
+					/>
+				</div>
+
+				<!-- Name (Hidden on Mobile/Responsive view, visible on desktop) -->
+				<span class="hidden md:inline-block font-poppins text-sm font-semibold text-[#173653] max-w-[200px] lg:max-w-[320px] truncate" :title="userName">
+					{{ userName }}
+				</span>
+
+				<!-- Dropdown Chevron Arrow (Always visible on all screen sizes) -->
 				<svg
-					:class="['h-4 w-4 text-[#8ca1b9] transition-transform duration-200', showingAccountMenu ? 'rotate-180 text-[#173653]' : '']"
+					:class="['h-4 w-4 text-[#8ca1b9] transition-transform duration-200 shrink-0', showingAccountMenu ? 'rotate-180 text-[#173653]' : '']"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="2"
@@ -53,8 +86,18 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 			<!-- Dropdown Menu (Logout) -->
 			<div
 				v-if="showingAccountMenu"
-				class="absolute right-0 top-[48px] z-40 w-44 rounded-xl border border-[#d6e0ee] bg-white p-1.5 shadow-xl font-poppins"
+				class="absolute right-0 top-[52px] z-40 min-w-[190px] max-w-[calc(100vw-2rem)] w-max rounded-xl border border-[#d6e0ee] bg-white p-1.5 shadow-xl font-poppins space-y-0.5"
 			>
+				<!-- User Info Header (Mobile Only) -->
+				<div class="px-3 py-2 border-b border-[#eef2f8] md:hidden">
+					<p class="font-poppins text-xs font-semibold text-[#173653] whitespace-nowrap truncate" :title="userName">
+						{{ userName }}
+					</p>
+					<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">
+						Administrator
+					</p>
+				</div>
+
 				<button
 					type="button"
 					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-[#c93b2b] transition-colors hover:bg-[#feeceb] focus:outline-none"

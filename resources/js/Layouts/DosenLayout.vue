@@ -55,15 +55,7 @@ const toggleSidebar = () => {
 
 const sidebarCollapsed = computed(() => !showingSidebar.value);
 
-watch([isMobile, showingSidebar], () => {
-	if (isMobile.value && showingSidebar.value) {
-		document.body.classList.add('overflow-hidden');
-		return;
-	}
-
-	document.body.classList.remove('overflow-hidden');
-});
-
+// Mobile background scrolling is allowed
 onMounted(() => {
 	updateViewport();
 	window.addEventListener('resize', updateViewport);
@@ -77,10 +69,12 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="flex min-h-screen bg-[#eef2f7]">
+        <!-- Mobile Backdrop Overlay (Click to close, touch-action: pan-y to allow bg scroll) -->
         <div
             v-if="isMobile && showingSidebar"
-            class="fixed inset-0 z-30 bg-[#102653]/45 backdrop-blur-sm"
+            class="fixed inset-0 z-30 bg-[#102653]/20 transition-opacity"
             aria-hidden="true"
+            style="touch-action: pan-y;"
             @click="showingSidebar = false"
         ></div>
 
@@ -91,7 +85,7 @@ onBeforeUnmount(() => {
             @logout="showLogoutModal = true"
         />
 
-        <div :class="['min-w-0 flex-1', isMobile ? 'ml-[80px]' : '']">
+        <div class="min-w-0 flex-1 w-full">
             <TopbarDosen @toggle="toggleSidebar" @logout="showLogoutModal = true" />
 
             <main>

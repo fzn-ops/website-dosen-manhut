@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => CheckRole::class,
+            'dosen.password_changed' => \App\Http\Middleware\EnsureDosenPasswordChanged::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -119,7 +119,7 @@ const handleBackdropMouseUp = (e) => {
 
 						<!-- Primary Instruction Message -->
 						<p class="mt-1.5 font-inter text-[13px] text-[#7188a3]">
-							{{ message || 'Apakah Anda yakin ingin menghapus data ini?' }}
+							{{ message || 'Apakah Anda yakin ingin menghapus data ini? ' }}
 						</p>
 
 						<!-- Item Highlight Card (if itemName is provided) -->
@@ -130,12 +130,9 @@ const handleBackdropMouseUp = (e) => {
 						</div>
 
 						<!-- Warning Subtext -->
-						<p class="mt-3 flex items-center justify-center gap-1.5 font-inter text-[11.5px] text-[#8ca1b9]">
-							<svg class="h-3.5 w-3.5 shrink-0 text-[#8ca1b9]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-							</svg>
-							<span>Tindakan ini tidak dapat dibatalkan.</span>
-						</p>
+						<!-- <p class="mt-3 flex items-center justify-center gap-1.5 font-inter text-[12px] leading-none text-[#7188a3]">
+							<span class="leading-none">Data yang dihapus tidak dapat dikembalikan.</span>
+						</p> -->
 
 						<!-- Buttons Action -->
 						<div class="mt-6 flex items-center justify-center gap-3">

@@ -1,19 +1,98 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import DosenLayout from '@/Layouts/DosenLayout.vue';
-import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
+import ToastNotification from '@/Components/ToastNotification.vue';
 
-// 1. State Data Diri
-const formPersonal = ref({
-	name: 'Dr. John Doe, M.Si',
-	nip: '198503122010121002',
-	photo: null,
-	photoPreview: null,
+const props = defineProps({
+	userData: {
+		type: Object,
+		default: () => null,
+	},
+	isDefaultPassword: {
+		type: Boolean,
+		default: false,
+	},
+	isEmailEmpty: {
+		type: Boolean,
+		default: false,
+	},
+	isLocked: {
+		type: Boolean,
+		default: false,
+	},
+	hasProfileDosen: {
+		type: Boolean,
+		default: false,
+	},
+	hasPhoto: {
+		type: Boolean,
+		default: false,
+	},
 });
 
-const isDragging = ref(false);
-const fileInputRef = ref(null);
+const page = usePage();
+
+// Toast State
+const toast = ref({
+	show: false,
+	type: 'success',
+	title: '',
+	message: '',
+});
+
+const showToast = (type, title, message) => {
+	toast.value = {
+		show: true,
+		type,
+		title,
+		message,
+	};
+};
+
+// Check flash messages
+watch(
+	() => page.props.flash,
+	(newFlash) => {
+		if (newFlash?.success) {
+			showToast('success', 'Berhasil', newFlash.success);
+		}
+		if (newFlash?.error) {
+			showToast('error', 'Terjadi Kesalahan', newFlash.error);
+		}
+		if (newFlash?.warning) {
+			showToast('warning', 'Peringatan Keamanan', newFlash.warning);
+		}
+	},
+	{ immediate: true, deep: true }
+);
+
+const currentUser = computed(() => props.userData || page.props.auth?.user || {});
+const isDefaultPass = computed(() => props.isDefaultPassword ?? page.props.auth?.user?.is_default_password ?? false);
+const isEmailEmp = computed(() => props.isEmailEmpty ?? page.props.auth?.user?.is_email_empty ?? false);
+const isLockedAccount = computed(() => props.isLocked ?? page.props.auth?.user?.is_locked ?? (isDefaultPass.value || isEmailEmp.value));
+
+const isLoading = ref(true);
+onMounted(() => {
+	setTimeout(() => {
+		isLoading.value = false;
+	}, 350);
+});
+
+// 1. State Data Diri (Read-only dari tabel users & profile_dosen)
+const formPersonal = ref({
+	name: currentUser.value.name || '',
+	nip: currentUser.value.nip || currentUser.value.NIP || '',
+	photoPreview: currentUser.value.profile_picture || null,
+});
+
+const hasPhoto = computed(() => {
+	if (props.hasPhoto !== undefined && props.hasPhoto !== null) {
+		return !!props.hasPhoto;
+	}
+	return !!formPersonal.value.photoPreview;
+});
+
 const previewingImage = ref(null);
 
 const openImagePreview = (img) => {
@@ -38,67 +117,58 @@ onBeforeUnmount(() => {
 	document.removeEventListener('keydown', handleKeyDown);
 });
 
-const handleFileSelect = (e) => {
-	const file = e.target.files?.[0];
-	if (file) {
-		processFile(file);
-	}
-};
-
-const handleFileDrop = (e) => {
-	isDragging.value = false;
-	const file = e.dataTransfer?.files?.[0];
-	if (file) {
-		processFile(file);
-	}
-};
-
-const processFile = (file) => {
-	if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
-		alert('Format file harus berupa JPG, JPEG, atau PNG');
-		return;
-	}
-	if (file.size > 10 * 1024 * 1024) {
-		alert('Ukuran file maksimal 10MB');
-		return;
-	}
-	formPersonal.value.photo = file;
-	formPersonal.value.photoPreview = URL.createObjectURL(file);
-};
-
-const showDeletePhotoModal = ref(false);
-
-const confirmRemovePhoto = () => {
-	showDeletePhotoModal.value = true;
-};
-
-const executeRemovePhoto = () => {
-	removePhoto();
-	showDeletePhotoModal.value = false;
-};
-
-const removePhoto = () => {
-	formPersonal.value.photo = null;
-	formPersonal.value.photoPreview = null;
-	if (fileInputRef.value) {
-		fileInputRef.value.value = '';
-	}
-};
-
-// 2. State Data Akun (Email kosong & No Handphone terisi untuk demo)
+// 2. State Data Akun
 const formAccount = ref({
-	email: '',
-	phone: '+62 812-3456-7890',
+	username: currentUser.value.username || '',
+	email: currentUser.value.email || '',
+	phone: currentUser.value.phone || '',
 });
 
+const isEditingUsername = ref(false);
 const isEditingEmail = ref(false);
 const isEditingPhone = ref(false);
+const usernameInputRef = ref(null);
 const emailInputRef = ref(null);
 const phoneInputRef = ref(null);
+const accountErrors = ref({});
+const isSavingAccount = ref(false);
 
-// Helper untuk mengecek apakah field akun terkunci
-const isEmailLocked = computed(() => formAccount.value.email.trim() !== '' && !isEditingEmail.value);
-const isPhoneLocked = computed(() => formAccount.value.phone.trim() !== '' && !isEditingPhone.value);
+watch(
+	() => currentUser.value,
+	(val) => {
+		if (val) {
+			formPersonal.value.name = val.name || '';
+			formPersonal.value.nip = val.nip || val.NIP || '';
+			formPersonal.value.photoPreview = val.profile_picture || null;
+
+			if (!isEditingUsername.value) {
+				formAccount.value.username = val.username && val.username !== '-' ? val.username : '';
+			}
+			if (!isEditingEmail.value) {
+				formAccount.value.email = val.email && val.email !== '-' ? val.email : '';
+			}
+			if (!isEditingPhone.value) {
+				formAccount.value.phone = val.phone && val.phone !== '-' ? val.phone : '';
+			}
+		}
+	},
+	{ immediate: true, deep: true }
+);
+
+const isUsernameLocked = computed(() => !!formAccount.value.username && formAccount.value.username !== '-' && !isEditingUsername.value);
+const isEmailLocked = computed(() => !!formAccount.value.email && formAccount.value.email !== '-' && !isEditingEmail.value);
+const isPhoneLocked = computed(() => !!formAccount.value.phone && formAccount.value.phone !== '-' && !isEditingPhone.value);
+
+const toggleEditUsername = () => {
+	isEditingUsername.value = !isEditingUsername.value;
+	if (isEditingUsername.value) {
+		nextTick(() => {
+			usernameInputRef.value?.focus();
+		});
+	} else {
+		usernameInputRef.value?.blur();
+	}
+};
 
 const toggleEditEmail = () => {
 	isEditingEmail.value = !isEditingEmail.value;
@@ -122,15 +192,25 @@ const toggleEditPhone = () => {
 	}
 };
 
+const onBlurUsername = () => {
+	if (formAccount.value.username.trim()) {
+		isEditingUsername.value = false;
+	}
+};
+
 const onBlurEmail = () => {
-	isEditingEmail.value = false;
+	if (formAccount.value.email.trim()) {
+		isEditingEmail.value = false;
+	}
 };
 
 const onBlurPhone = () => {
-	isEditingPhone.value = false;
+	if (formAccount.value.phone.trim()) {
+		isEditingPhone.value = false;
+	}
 };
 
-// 3. State Ganti Password (Show / Hide toggles)
+// 3. State Ganti Password
 const formPassword = ref({
 	currentPassword: '',
 	newPassword: '',
@@ -140,45 +220,126 @@ const formPassword = ref({
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
+const passwordErrors = ref({});
+const isSavingPassword = ref(false);
 
 // Save Handlers
+const isSavingPersonal = ref(false);
 const savePersonalData = () => {
-	if (!formPersonal.value.name.trim()) {
-		alert('Nama tidak boleh kosong');
-		return;
+	isSavingPersonal.value = true;
+	const formData = new FormData();
+	if (formPersonal.value.photo) {
+		formData.append('photo', formPersonal.value.photo);
 	}
+	if (formPersonal.value.photoPreview === null && !formPersonal.value.photo) {
+		formData.append('remove_photo', '1');
+	}
+
+	router.post(route('dosen.profile.personal'), formData, {
+		preserveScroll: true,
+		onSuccess: () => {
+			showToast('success', 'Berhasil Disimpan', 'Data diri dan foto profile berhasil disimpan.');
+		},
+		onError: (errs) => {
+			showToast('error', 'Gagal Menyimpan', Object.values(errs)[0] || 'Terjadi kesalahan saat menyimpan.');
+		},
+		onFinish: () => {
+			isSavingPersonal.value = false;
+		},
+	});
 };
 
 const saveAccountData = () => {
+	accountErrors.value = {};
 	if (!formAccount.value.email.trim()) {
-		alert('Email tidak boleh kosong');
+		accountErrors.value.email = 'Email wajib diisi.';
+		showToast('error', 'Validasi Gagal', 'Email tidak boleh kosong.');
 		return;
 	}
-	isEditingEmail.value = false;
-	isEditingPhone.value = false;
+
+	isSavingAccount.value = true;
+	router.post(
+		route('dosen.profile.account'),
+		{
+			username: formAccount.value.username ? formAccount.value.username.trim() : null,
+			email: formAccount.value.email.trim(),
+			phone: formAccount.value.phone.trim(),
+		},
+		{
+			preserveScroll: true,
+			onSuccess: () => {
+				isEditingUsername.value = false;
+				isEditingEmail.value = false;
+				isEditingPhone.value = false;
+				showToast('success', 'Berhasil Disimpan', 'Data akun berhasil diperbarui.');
+			},
+			onError: (errs) => {
+				accountErrors.value = errs;
+				showToast('error', 'Gagal Menyimpan', Object.values(errs)[0] || 'Terjadi kesalahan saat menyimpan.');
+			},
+			onFinish: () => {
+				isSavingAccount.value = false;
+			},
+		}
+	);
 };
 
 const savePassword = () => {
+	passwordErrors.value = {};
+
 	if (!formPassword.value.currentPassword) {
-		alert('Password saat ini wajib diisi');
+		passwordErrors.value.currentPassword = 'Password saat ini wajib diisi.';
+		showToast('error', 'Validasi Gagal', 'Password saat ini wajib diisi.');
 		return;
 	}
 	if (!formPassword.value.newPassword) {
-		alert('Password baru wajib diisi');
+		passwordErrors.value.newPassword = 'Password baru wajib diisi.';
+		showToast('error', 'Validasi Gagal', 'Password baru wajib diisi.');
 		return;
 	}
 	if (formPassword.value.newPassword.length < 8) {
-		alert('Password baru minimal 8 karakter');
+		passwordErrors.value.newPassword = 'Password baru minimal 8 karakter.';
+		showToast('error', 'Validasi Gagal', 'Password baru minimal 8 karakter.');
 		return;
 	}
 	if (formPassword.value.newPassword !== formPassword.value.confirmPassword) {
-		alert('Konfirmasi password baru tidak cocok');
+		passwordErrors.value.confirmPassword = 'Konfirmasi password baru tidak cocok.';
+		showToast('error', 'Validasi Gagal', 'Konfirmasi password baru tidak cocok.');
+		return;
+	}
+	if (formPassword.value.newPassword === formPersonal.value.nip) {
+		passwordErrors.value.newPassword = 'Password baru tidak boleh sama dengan NIP.';
+		showToast('error', 'Validasi Gagal', 'Password baru tidak boleh sama dengan password default (NIP).');
 		return;
 	}
 
-	formPassword.value.currentPassword = '';
-	formPassword.value.newPassword = '';
-	formPassword.value.confirmPassword = '';
+	isSavingPassword.value = true;
+	router.post(
+		route('dosen.profile.password'),
+		{
+			current_password: formPassword.value.currentPassword,
+			new_password: formPassword.value.newPassword,
+			new_password_confirmation: formPassword.value.confirmPassword,
+		},
+		{
+			preserveScroll: true,
+			onSuccess: () => {
+				formPassword.value = {
+					currentPassword: '',
+					newPassword: '',
+					confirmPassword: '',
+				};
+				showToast('success', 'Password Diperbarui', 'Password berhasil diubah! Akses Dashboard & Aktivitas kini telah dibuka.');
+			},
+			onError: (errs) => {
+				passwordErrors.value = errs;
+				showToast('error', 'Gagal Mengubah Password', Object.values(errs)[0] || 'Password gagal diubah.');
+			},
+			onFinish: () => {
+				isSavingPassword.value = false;
+			},
+		}
+	);
 };
 </script>
 
@@ -198,144 +359,168 @@ const savePassword = () => {
 					</p>
 				</div>
 
+				<!-- Alert Banner Jika Dosen Belum Memiliki Profil / Foto Dosen -->
+				<div
+					v-if="!hasPhoto"
+					class="flex items-start gap-3.5 rounded-[14px] border border-blue-200 bg-blue-50/90 p-4 sm:p-5 shadow-xs"
+				>
+					<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+						</svg>
+					</div>
+					<div class="space-y-1">
+						<h3 class="font-poppins text-[15px] font-bold text-[#173a63]">
+							Profil Dosen Belum Tersedia
+						</h3>
+						<p class="font-inter text-[13px] leading-relaxed text-[#4d6786]">
+							Foto diri dan kelengkapan profile Anda dikelola terpusat dari tabel profile dosen oleh Administrator. Saat ini data profile Anda belum tersedia. Silakan <strong>hubungi Administrator</strong> untuk dibuatkan profile dosen dan ditambahkan foto profile Anda.
+						</p>
+					</div>
+				</div>
+
+				<!-- Security Warning Banner (Jika Dosen Belum Melengkapi Email ATAU Belum Mengganti Password) -->
+				<div
+					v-if="isLockedAccount"
+					class="flex items-start gap-3.5 rounded-[14px] border border-amber-300 bg-amber-50/90 p-4 sm:p-5 shadow-xs"
+				>
+					<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z" />
+						</svg>
+					</div>
+					<div class="space-y-1">
+						<h3 class="font-poppins text-[15px] font-bold text-amber-900">
+							<template v-if="isDefaultPass && isEmailEmp">
+								Perhatian: Lengkapi Email & Ubah Password Default Anda
+							</template>
+							<template v-else-if="isEmailEmp">
+								Perhatian: Lengkapi Email Aktif Anda
+							</template>
+							<template v-else>
+								Perhatian: Ubah Password Default Anda (NIP)
+							</template>
+						</h3>
+						<p class="font-inter text-[13px] leading-relaxed text-amber-800">
+							Demi keamanan akun, akses menu <strong>Dashboard</strong> dan <strong>Aktivitas</strong> masih terkunci.
+							Harap <span v-if="isEmailEmp">masukkan <strong>Email aktif</strong> Anda</span><span v-if="isEmailEmp && isDefaultPass"> serta </span><span v-if="isDefaultPass">perbarui <strong>Password baru</strong></span> pada formulir di bawah ini agar seluruh menu terbuka penuh.
+						</p>
+					</div>
+				</div>
+
 				<!-- Main Profile Form Grid -->
 				<div class="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
 					<!-- LEFT COLUMN: Data Diri (Card 1) -->
 					<div class="flex h-full flex-col justify-between rounded-[12px] bg-white p-5 shadow-sm ring-1 ring-[#d6e0ee] sm:p-6 lg:col-span-5">
 						<div>
-							<h2 class="font-poppins text-[18px] font-bold text-[#173a63] sm:text-[20px]">
-								Data diri
-							</h2>
+							<div class="flex items-center justify-between">
+								<h2 class="font-poppins text-[18px] font-bold text-[#173a63] sm:text-[20px]">
+									Data diri
+								</h2>
+								<span class="rounded-full bg-slate-100 px-2.5 py-0.5 font-inter text-[11px] font-medium text-[#7188a3]">
+									Dikelola Admin
+								</span>
+							</div>
 
-							<form @submit.prevent="savePersonalData" class="mt-5 space-y-4">
-								<!-- Upload Foto Diri (Matching ModalFormAktivitas.vue Dropzone Style) -->
+							<div class="mt-5 space-y-5">
+								<!-- Foto Diri (Dari tabel profile_dosen) -->
 								<div>
 									<div class="flex items-center justify-between">
 										<label class="block font-poppins text-[13px] font-semibold text-[#173a63]">
 											Foto diri
 										</label>
-										<span class="text-[11px] font-semibold text-[#7188a3]">
-											{{ formPersonal.photoPreview ? '1/1' : '0/1' }} Foto
-										</span>
 									</div>
 									<p class="mt-0.5 font-inter text-[12px] text-[#7188a3]">
-										Masukan foto terbaikmu berupa jpg/png/jpeg (MAX 10mb)
+										Foto resmi dosen yang terdaftar pada sistem
 									</p>
 
-									<!-- Dropzone Box Container (Fixed 250px Height, Contained Preview) -->
+									<!-- State 0: Loading Skeleton -->
 									<div
-										@dragover.prevent="isDragging = true"
-										@dragleave.prevent="isDragging = false"
-										@drop.prevent="handleFileDrop"
-										:class="[
-											'mt-2 flex h-[250px] max-h-[250px] w-full flex-col items-center justify-center overflow-hidden rounded-[12px] border-2 border-dashed p-3 text-center transition-colors',
-											isDragging
-												? 'border-[#183669] bg-[#183669]/5'
-												: 'border-[#183669]/30 bg-[#fafcff] hover:border-[#183669]/60'
-										]"
+										v-if="isLoading"
+										class="mt-3 flex h-[280px] sm:h-[320px] lg:h-[390px] xl:h-[440px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-[#d6e0ee] bg-[#fafcff] p-3 text-center transition-all animate-pulse"
 									>
-										<!-- State 1: No Photo Uploaded -->
-										<div v-if="!formPersonal.photoPreview" class="flex flex-col items-center justify-center py-2.5">
-											<svg class="h-9 w-9 text-[#8c9eb5]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-											</svg>
-											<p class="mt-1.5 font-inter text-[12px] text-[#7188a3]">
-												Upload gambar atau seret gambar ke form ini
-											</p>
+										<div class="h-full max-h-[255px] sm:max-h-[295px] lg:max-h-[360px] xl:max-h-[410px] w-auto aspect-[3/4] rounded-[10px] bg-slate-200"></div>
+									</div>
+
+									<!-- State 1: Memiliki Foto Profil Dosen -->
+									<div
+										v-else-if="hasPhoto"
+										class="mt-3 flex h-[280px] sm:h-[320px] lg:h-[390px] xl:h-[440px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-[#d6e0ee] bg-[#fafcff] p-3 text-center transition-all"
+									>
+										<div class="group relative flex h-full max-h-[255px] sm:max-h-[295px] lg:max-h-[360px] xl:max-h-[410px] w-auto items-center justify-center overflow-hidden rounded-[10px] border border-[#d6e0ee] bg-slate-100 shadow-xs aspect-[3/4]">
+											<img
+												:src="formPersonal.photoPreview"
+												alt="Foto Profil Dosen"
+												class="h-full w-full object-cover object-top"
+											/>
+
+											<!-- Zoom / Preview Button -->
 											<button
 												type="button"
-												@click="fileInputRef?.click()"
-												class="mt-2 rounded-[8px] border border-[#a6b7cb] bg-white px-5 py-1 font-inter text-[12px] font-semibold text-[#5a718d] transition hover:bg-slate-50 shadow-xs"
+												@click.stop="openImagePreview(formPersonal.photoPreview)"
+												class="absolute right-2 bottom-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/80 text-white shadow-md backdrop-blur-xs transition hover:bg-slate-900 hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
+												title="Lihat Foto Ukuran Penuh"
 											>
-												Upload
+												<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+												</svg>
 											</button>
 										</div>
+									</div>
 
-										<!-- State 2: 1 Single Image Preview with Contained Size & Responsive Actions -->
-										<div v-else class="flex h-full w-full items-center justify-center p-1">
-											<div class="group relative flex max-h-[220px] w-auto items-center justify-center overflow-hidden rounded-[10px] border border-[#d6e0ee] bg-slate-100 shadow-xs aspect-[3/4]">
-												<img
-													:src="formPersonal.photoPreview"
-													alt="Preview Foto Diri"
-													class="h-full w-full object-cover"
-												/>
-
-												<!-- 1. Edit / Ganti Foto Button (Top-Left) -->
-												<button
-													type="button"
-													@click.stop="fileInputRef?.click()"
-													class="absolute left-1.5 top-1.5 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[#183669] shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
-													title="Ganti Foto"
-												>
-													<img src="/assets/icons/edit.svg" alt="Ganti Foto" class="h-3 w-3 object-contain" />
-												</button>
-
-												<!-- 2. Delete / Hapus Button (Top-Right) -->
-												<button
-													type="button"
-													@click.stop="confirmRemovePhoto"
-													class="absolute right-1.5 top-1.5 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
-													title="Hapus Foto"
-												>
-													<img src="/assets/icons/delete.svg" alt="Hapus" class="h-3 w-3 object-contain" />
-												</button>
-
-												<!-- 3. Zoom / Preview Button (Bottom-Right) -->
-												<button
-													type="button"
-													@click.stop="openImagePreview(formPersonal.photoPreview)"
-													class="absolute right-1.5 bottom-1.5 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/80 text-white shadow-md backdrop-blur-xs transition hover:bg-slate-900 hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
-													title="Lihat Ukuran Penuh"
-												>
-													<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
-													</svg>
-												</button>
-											</div>
+									<!-- State 2: Belum Memiliki Foto Profil / Profile Dosen -->
+									<div
+										v-else
+										class="mt-3 flex h-[280px] sm:h-[320px] lg:h-[390px] xl:h-[440px] w-full flex-col items-center justify-center rounded-[12px] border-2 border-dashed border-[#d6e0ee] bg-[#f8fafc] p-4 text-center transition-all"
+									>
+										<div class="flex h-14 w-14 items-center justify-center rounded-full bg-[#e8eef8] text-[#173a63]">
+											<svg class="h-7 w-7 text-[#173a63]/70" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+											</svg>
 										</div>
-
-										<input
-											ref="fileInputRef"
-											type="file"
-											accept="image/jpeg,image/png,image/jpg"
-											class="hidden"
-											@change="handleFileSelect"
-										/>
+										<p class="mt-3 font-poppins text-[14px] font-semibold text-[#173a63]">
+											Belum Ada Foto Profile
+										</p>
+										<p class="mt-1 font-inter text-[13px] leading-relaxed text-[#7188a3] max-w-[280px]">
+											Data profile dan foto diri belum ditambahkan. Silakan hubungi Administrator.
+										</p>
 									</div>
 								</div>
 
-								<!-- Nama (Non-editable / Non-selectable) -->
+								<!-- Nama -->
 								<div>
 									<label class="block font-poppins text-[13px] font-semibold text-[#173a63]">
 										Nama
 									</label>
-									<div class="mt-1 flex h-[42px] items-center border-b border-[#d6e0ee] font-inter text-[14px] font-medium text-[#173a63] select-none cursor-default">
+									<div v-if="isLoading" class="mt-1 flex h-[42px] items-center border-b border-[#d6e0ee]">
+										<div class="h-4 w-44 rounded bg-slate-200 animate-pulse"></div>
+									</div>
+									<div v-else class="mt-1 flex h-[42px] items-center border-b border-[#d6e0ee] font-inter text-[14px] font-medium text-[#173a63] select-none cursor-default">
 										{{ formPersonal.name }}
 									</div>
 								</div>
 
-								<!-- NIP (Non-editable / Non-selectable) -->
+								<!-- NIP -->
 								<div>
 									<label class="block font-poppins text-[13px] font-semibold text-[#173a63]">
 										NIP
 									</label>
-									<div class="mt-1 flex h-[42px] items-center border-b border-[#d6e0ee] font-inter text-[14px] font-medium text-[#173a63] select-none cursor-default">
+									<div v-if="isLoading" class="mt-1 flex h-[42px] items-center border-b border-[#d6e0ee]">
+										<div class="h-4 w-32 rounded bg-slate-200 animate-pulse"></div>
+									</div>
+									<div v-else class="mt-1 flex h-[42px] items-center border-b border-[#d6e0ee] font-inter text-[14px] font-medium text-[#173a63] select-none cursor-default">
 										{{ formPersonal.nip }}
 									</div>
 								</div>
-							</form>
+							</div>
 						</div>
 
-						<!-- Submit Button Data Diri (Always at the bottom) -->
-						<div class="flex justify-end pt-4">
-							<button
-								type="button"
-								@click="savePersonalData"
-								class="inline-flex items-center gap-2 rounded-[8px] bg-[#183669] px-6 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98]"
-							>
-								<img src="/assets/icons/save.svg" alt="Save Icon" class="h-4 w-4 object-contain" />
-								<span>Simpan</span>
-							</button>
+						<!-- Footer Note Card 1 -->
+						<div class="mt-6 border-t border-[#f1f5f9] pt-3 text-[12px] text-[#8c9eb5] font-inter flex items-center gap-1.5">
+							<svg class="h-4 w-4 shrink-0 text-[#8c9eb5]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+							</svg>
+							<span>Perubahan data diri dilakukan melalui Administrator.</span>
 						</div>
 					</div>
 
@@ -349,7 +534,7 @@ const savePassword = () => {
 
 							<form @submit.prevent="saveAccountData" class="mt-5 space-y-4">
 								<div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-									<!-- Email Field -->
+									<!-- Email Field (Required) -->
 									<div class="flex flex-col">
 										<label class="block font-poppins text-[13px] font-semibold text-[#173a63]">
 											Email<span class="text-red-500">*</span>
@@ -357,7 +542,8 @@ const savePassword = () => {
 										<p class="mt-0.5 min-h-[20px] font-inter text-[12px] leading-snug text-[#7188a3] sm:min-h-[36px] xl:min-h-[20px]">
 											Masukkan email aktif yang kamu gunakan
 										</p>
-										<div class="relative mt-1">
+										<div v-if="isLoading" class="relative mt-1 h-[46px] w-full rounded-[10px] bg-slate-100 border border-[#d6e0ee] animate-pulse"></div>
+										<div v-else class="relative mt-1">
 											<input
 												ref="emailInputRef"
 												v-model="formAccount.email"
@@ -365,22 +551,21 @@ const savePassword = () => {
 												:readonly="isEmailLocked"
 												:tabindex="isEmailLocked ? -1 : 0"
 												@blur="onBlurEmail"
+												@focus="isEmailLocked && $event.target.blur()"
 												placeholder="contoh: nama@email.com"
 												:class="[
 													'custom-input h-[46px] w-full rounded-[10px] bg-transparent pl-3.5 pr-10 font-inter text-[14px] text-[#173a63] placeholder-[#a8bed4] transition-colors focus:outline-none',
-													isEditingEmail
-														? 'border-[#183669]'
-														: isEmailLocked
-															? 'border-[#d6e0ee] cursor-not-allowed select-none pointer-events-none'
-															: 'border-[#d6e0ee] hover:border-[#183669]'
+													isEmailLocked
+														? 'border-[#d6e0ee] cursor-not-allowed select-none bg-slate-50/60'
+														: 'border-[#d6e0ee] hover:border-[#183669]'
 												]"
 											/>
 											<button
 												type="button"
 												@mousedown.prevent
 												@click="toggleEditEmail"
-												class="absolute inset-y-0 right-0 flex items-center pr-3 transition hover:opacity-80 focus:outline-none"
-												:title="isEditingEmail ? 'Kunci input email' : 'Buka untuk mengedit email'"
+												class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 transition hover:opacity-80 focus:outline-none cursor-pointer"
+												:title="isEmailLocked ? 'Buka untuk mengedit email' : 'Kunci input email'"
 											>
 												<svg class="h-4 w-4 text-[#183669]" viewBox="0 0 19 19" fill="currentColor">
 													<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
@@ -388,9 +573,56 @@ const savePassword = () => {
 												</svg>
 											</button>
 										</div>
+										<p v-if="accountErrors.email" class="mt-1 font-inter text-[11px] font-medium text-red-500">
+											{{ accountErrors.email }}
+										</p>
 									</div>
 
-									<!-- Nomor Handphone Field -->
+									<!-- Username Field (Opsional) -->
+									<div class="flex flex-col">
+										<label class="block font-poppins text-[13px] font-semibold text-[#173a63]">
+											Username
+										</label>
+										<p class="mt-0.5 min-h-[20px] font-inter text-[12px] leading-snug text-[#7188a3] sm:min-h-[36px] xl:min-h-[20px]">
+											Masukkan username akun kamu (opsional)
+										</p>
+										<div v-if="isLoading" class="relative mt-1 h-[46px] w-full rounded-[10px] bg-slate-100 border border-[#d6e0ee] animate-pulse"></div>
+										<div v-else class="relative mt-1">
+											<input
+												ref="usernameInputRef"
+												v-model="formAccount.username"
+												type="text"
+												:readonly="isUsernameLocked"
+												:tabindex="isUsernameLocked ? -1 : 0"
+												@blur="onBlurUsername"
+												@focus="isUsernameLocked && $event.target.blur()"
+												placeholder="contoh: farhan_dosen"
+												:class="[
+													'custom-input h-[46px] w-full rounded-[10px] bg-transparent pl-3.5 pr-10 font-inter text-[14px] text-[#173a63] placeholder-[#a8bed4] transition-colors focus:outline-none',
+													isUsernameLocked
+														? 'border-[#d6e0ee] cursor-not-allowed select-none bg-slate-50/60'
+														: 'border-[#d6e0ee] hover:border-[#183669]'
+												]"
+											/>
+											<button
+												type="button"
+												@mousedown.prevent
+												@click="toggleEditUsername"
+												class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 transition hover:opacity-80 focus:outline-none cursor-pointer"
+												:title="isUsernameLocked ? 'Buka untuk mengedit username' : 'Kunci input username'"
+											>
+												<svg class="h-4 w-4 text-[#183669]" viewBox="0 0 19 19" fill="currentColor">
+													<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
+													<path d="M11.413 2.96342L15.7358 7.2861L9.55481 13.4896C9.4634 13.5813 9.3548 13.6541 9.23522 13.7037C9.11564 13.7534 8.98744 13.779 8.85797 13.779H5.90526C5.64422 13.779 5.39388 13.6753 5.2093 13.4907C5.02472 13.3061 4.92102 13.0558 4.92102 12.7948V9.84211C4.92105 9.71264 4.94662 9.58444 4.99628 9.46487C5.04593 9.34529 5.11869 9.23669 5.21039 9.14528L11.413 2.96342ZM17.8067 0.893608C18.3495 1.43606 18.6678 2.16332 18.6979 2.93014C18.728 3.69697 18.4677 4.44693 17.9691 5.03027L17.8076 5.20743L17.1256 5.89048L12.8077 1.57272L13.4918 0.893608C14.064 0.32144 14.84 0 15.6492 0C16.4584 0 17.2345 0.32144 17.8067 0.893608Z" />
+												</svg>
+											</button>
+										</div>
+										<p v-if="accountErrors.username" class="mt-1 font-inter text-[11px] font-medium text-red-500">
+											{{ accountErrors.username }}
+										</p>
+									</div>
+
+									<!-- Nomor Handphone Field (Opsional) -->
 									<div class="flex flex-col">
 										<label class="block font-poppins text-[13px] font-semibold text-[#173a63]">
 											Nomor Handphone
@@ -398,7 +630,8 @@ const savePassword = () => {
 										<p class="mt-0.5 min-h-[20px] font-inter text-[12px] leading-snug text-[#7188a3] sm:min-h-[36px] xl:min-h-[20px]">
 											Masukkan nomor handphone aktif yang kamu gunakan
 										</p>
-										<div class="relative mt-1">
+										<div v-if="isLoading" class="relative mt-1 h-[46px] w-full rounded-[10px] bg-slate-100 border border-[#d6e0ee] animate-pulse"></div>
+										<div v-else class="relative mt-1">
 											<input
 												ref="phoneInputRef"
 												v-model="formAccount.phone"
@@ -406,22 +639,21 @@ const savePassword = () => {
 												:readonly="isPhoneLocked"
 												:tabindex="isPhoneLocked ? -1 : 0"
 												@blur="onBlurPhone"
+												@focus="isPhoneLocked && $event.target.blur()"
 												placeholder="contoh: +62 812-3456-7890"
 												:class="[
 													'custom-input h-[46px] w-full rounded-[10px] bg-transparent pl-3.5 pr-10 font-inter text-[14px] text-[#173a63] placeholder-[#a8bed4] transition-colors focus:outline-none',
-													isEditingPhone
-														? 'border-[#183669]'
-														: isPhoneLocked
-															? 'border-[#d6e0ee] cursor-not-allowed select-none pointer-events-none'
-															: 'border-[#d6e0ee] hover:border-[#183669]'
+													isPhoneLocked
+														? 'border-[#d6e0ee] cursor-not-allowed select-none bg-slate-50/60'
+														: 'border-[#d6e0ee] hover:border-[#183669]'
 												]"
 											/>
 											<button
 												type="button"
 												@mousedown.prevent
 												@click="toggleEditPhone"
-												class="absolute inset-y-0 right-0 flex items-center pr-3 transition hover:opacity-80 focus:outline-none"
-												:title="isEditingPhone ? 'Kunci input handphone' : 'Buka untuk mengedit nomor handphone'"
+												class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 transition hover:opacity-80 focus:outline-none cursor-pointer"
+												:title="isPhoneLocked ? 'Buka untuk mengedit nomor handphone' : 'Kunci input handphone'"
 											>
 												<svg class="h-4 w-4 text-[#183669]" viewBox="0 0 19 19" fill="currentColor">
 													<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
@@ -429,6 +661,9 @@ const savePassword = () => {
 												</svg>
 											</button>
 										</div>
+										<p v-if="accountErrors.phone" class="mt-1 font-inter text-[11px] font-medium text-red-500">
+											{{ accountErrors.phone }}
+										</p>
 									</div>
 								</div>
 
@@ -436,10 +671,15 @@ const savePassword = () => {
 								<div class="flex justify-end pt-2">
 									<button
 										type="submit"
-										class="inline-flex items-center gap-2 rounded-[8px] bg-[#183669] px-6 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98]"
+										:disabled="isSavingAccount"
+										class="inline-flex items-center gap-2 rounded-[8px] bg-[#183669] px-6 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98] disabled:opacity-60"
 									>
-										<img src="/assets/icons/save.svg" alt="Save Icon" class="h-4 w-4 object-contain" />
-										<span>Simpan</span>
+										<svg v-if="isSavingAccount" class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+										</svg>
+										<img v-else src="/assets/icons/save.svg" alt="Save Icon" class="h-4 w-4 object-contain" />
+										<span>{{ isSavingAccount ? 'Menyimpan...' : 'Simpan' }}</span>
 									</button>
 								</div>
 							</form>
@@ -488,6 +728,9 @@ const savePassword = () => {
 												/>
 											</button>
 										</div>
+										<p v-if="passwordErrors.current_password" class="mt-1 font-inter text-[11px] font-medium text-red-500">
+											{{ passwordErrors.current_password }}
+										</p>
 									</div>
 
 									<!-- Kolom Kanan: Password Baru & Konfirmasi Password Baru -->
@@ -527,6 +770,9 @@ const savePassword = () => {
 													/>
 												</button>
 											</div>
+											<p v-if="passwordErrors.new_password" class="mt-1 font-inter text-[11px] font-medium text-red-500">
+												{{ passwordErrors.new_password }}
+											</p>
 										</div>
 
 										<!-- Konfirmasi Password Baru -->
@@ -564,6 +810,9 @@ const savePassword = () => {
 													/>
 												</button>
 											</div>
+											<p v-if="passwordErrors.confirmPassword" class="mt-1 font-inter text-[11px] font-medium text-red-500">
+												{{ passwordErrors.confirmPassword }}
+											</p>
 										</div>
 									</div>
 								</div>
@@ -572,10 +821,15 @@ const savePassword = () => {
 								<div class="flex justify-end pt-2">
 									<button
 										type="submit"
-										class="inline-flex items-center gap-2 rounded-[8px] bg-[#183669] px-6 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98]"
+										:disabled="isSavingPassword"
+										class="inline-flex items-center gap-2 rounded-[8px] bg-[#183669] px-6 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98] disabled:opacity-60"
 									>
-										<img src="/assets/icons/save.svg" alt="Save Icon" class="h-4 w-4 object-contain" />
-										<span>Simpan</span>
+										<svg v-if="isSavingPassword" class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+										</svg>
+										<img v-else src="/assets/icons/save.svg" alt="Save Icon" class="h-4 w-4 object-contain" />
+										<span>{{ isSavingPassword ? 'Menyimpan...' : 'Simpan' }}</span>
 									</button>
 								</div>
 							</form>
@@ -633,15 +887,13 @@ const savePassword = () => {
 				</Transition>
 			</Teleport>
 
-			<!-- Modal Delete Confirmation for Photo -->
-			<ModalDeleteConfirmation
-				:show="showDeletePhotoModal"
-				title="Hapus Foto Diri?"
-				item-name="Foto Profil"
-				message="Apakah Anda yakin ingin menghapus foto profil ini?"
-				confirm-button-text="Hapus Foto"
-				@close="showDeletePhotoModal = false"
-				@confirm="executeRemovePhoto"
+			<!-- Toast Notification -->
+			<ToastNotification
+				:show="toast.show"
+				:type="toast.type"
+				:title="toast.title"
+				:message="toast.message"
+				@close="toast.show = false"
 			/>
 		</section>
 	</DosenLayout>
@@ -669,6 +921,12 @@ const savePassword = () => {
 
 .custom-input:not([readonly]):focus {
 	border-color: #183669 !important;
+}
+
+.custom-input[readonly] {
+	border-color: #d6e0ee !important;
+	cursor: not-allowed !important;
+	user-select: none !important;
 }
 
 .custom-input[readonly]:focus {
