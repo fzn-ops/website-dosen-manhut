@@ -4,6 +4,7 @@ use App\Http\Controllers\Dashboard\Admin\AktivitasDosenController;
 use App\Http\Controllers\Dashboard\Admin\DashboardController;
 use App\Http\Controllers\Dashboard\Admin\DosenController;
 use App\Http\Controllers\Dashboard\Admin\ProfileDosenController;
+use App\Http\Controllers\Dashboard\Admin\ScholarController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +63,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/aktivitas', [AktivitasDosenController::class, 'store'])->name('admin.aktivitasdosen.store');
     Route::post('/aktivitas/{id}', [AktivitasDosenController::class, 'update'])->name('admin.aktivitasdosen.update');
     Route::delete('/aktivitas/{id}', [AktivitasDosenController::class, 'destroy'])->name('admin.aktivitasdosen.destroy');
+    
+    // Scholar Sync Route
+    Route::get('/scholar', [ScholarController::class, 'index'])->name('admin.scholar');
+    Route::post('/scholar/run', [ScholarController::class, 'runScraper'])->name('admin.scholar.sync');
+
 });
 
 

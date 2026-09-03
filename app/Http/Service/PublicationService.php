@@ -14,4 +14,9 @@ class PublicationService
     {
         return Publication::where('user_id', $userId)->get();
     }
+
+    public function getAllPublications(): Collection
+    {
+        return Publication::all();
+    }
 }

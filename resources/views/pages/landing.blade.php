@@ -1,6 +1,6 @@
 <x-layouts.main>
     <x-slot:title>
-        Beranda | DosenManhut
+        Beranda |   DosenManhut
     </x-slot>
 
     <style>
