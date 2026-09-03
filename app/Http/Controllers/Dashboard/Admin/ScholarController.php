@@ -39,4 +39,26 @@ class ScholarController extends Controller
             'message' => 'Gagal sinkronisasi: ' . $result->errorOutput()
         ], 500);
     }
+
+    public function destroyPublication($id)
+    {
+        $deleted = $this->publicationService->destroyPublication($id);
+    }
+
+    public function destroyAllPublications()
+    {
+        $deleted = $this->publicationService->destroyAllPublications();
+
+        if ($deleted) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Semua publikasi berhasil dihapus.'
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal menghapus publikasi.'
+        ], 500);
+    }
 }

@@ -67,7 +67,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Scholar Sync Route
     Route::get('/scholar', [ScholarController::class, 'index'])->name('admin.scholar');
     Route::post('/scholar/run', [ScholarController::class, 'runScraper'])->name('admin.scholar.sync');
-
+    Route::delete('/admin/scholar/delete-all', [ScholarController::class, 'destroyAllPublications'])->name('admin.scholar.destroyAll');
+    Route::delete('/admin/scholar/{id}', [ScholarController::class, 'destroy'])->name('admin.scholar.destroy');
 });
 
 

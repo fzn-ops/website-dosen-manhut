@@ -19,4 +19,25 @@ class PublicationService
     {
         return Publication::all();
     }
+
+    public function destroyPublication(int $publicationId): bool
+    {
+        $publication = Publication::find($publicationId);
+        if ($publication) {
+            return $publication->delete();
+        }
+        return false;
+    }
+
+    public function destroyAllPublications(): bool
+    {
+        try {
+            Publication::query()->delete();
+            return true;
+        } catch (\Exception $e){
+            // Log error jika ingin melihat alasannya di console
+            \Illuminate\Support\Facades\Log::error('Gagal hapus semua: ' . $e->getMessage());
+            return false;
+        }
+    }
 }
