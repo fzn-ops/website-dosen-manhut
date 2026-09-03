@@ -461,6 +461,7 @@ defineExpose({
 		<!-- Tombol Pemilih Kode Negara (National Calling Code) -->
 		<button
 			type="button"
+			@mousedown.prevent
 			@click.stop="toggleDropdown"
 			:disabled="readonly || disabled"
 			:tabindex="readonly || disabled ? -1 : 0"

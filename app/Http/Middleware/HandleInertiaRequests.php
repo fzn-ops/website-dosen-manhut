@@ -46,15 +46,14 @@ class HandleInertiaRequests extends Middleware
                     $request->session()->put($pwdSessionKey, $isDefaultPassword);
                 }
 
-                $picSessionKey = 'auth_profile_picture_' . $user->id;
-                if ($request->session()->has($picSessionKey)) {
-                    $profilePic = $request->session()->get($picSessionKey);
-                } else {
-                    $profileDosen = $user->profileDosen;
-                    $profilePic = $profileDosen?->image_url
-                        ?? ($profileDosen?->image ? asset('storage/' . $profileDosen->image) : null)
-                        ?? ($user->profile_picture ? asset('storage/' . $user->profile_picture) : null);
-                    $request->session()->put($picSessionKey, $profilePic);
+                $user->load('profileDosen');
+                $profileDosen = $user->profileDosen;
+                $profilePic = $profileDosen?->image_url
+                    ?? ($profileDosen?->image ? asset('storage/' . $profileDosen->image) : null)
+                    ?? ($user->profile_picture ? asset('storage/' . $user->profile_picture) : null);
+
+                if ($request->session()->has('auth_profile_picture_' . $user->id)) {
+                    $request->session()->forget('auth_profile_picture_' . $user->id);
                 }
             } else {
                 $profilePic = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;

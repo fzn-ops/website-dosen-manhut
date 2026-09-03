@@ -55,26 +55,69 @@ const toggleSidebar = () => {
 
 const sidebarCollapsed = computed(() => !showingSidebar.value);
 
-// Mobile background scrolling is allowed
+// Lock background scroll when any modal/pop up or mobile sidebar overlay is open
+let modalObserver = null;
+let removeRouterListener = null;
+
+const checkHasOpenModal = () => {
+    if (typeof document === 'undefined') return false;
+    const overlays = document.querySelectorAll('.fixed.inset-0');
+    return overlays.length > 0;
+};
+
+const updateBodyScrollLock = () => {
+    if (typeof document === 'undefined') return;
+    const shouldLock = checkHasOpenModal() || showLogoutModal.value || (isMobile.value && showingSidebar.value);
+    if (shouldLock) {
+        document.body.classList.add('overflow-hidden');
+        document.documentElement.classList.add('overflow-hidden');
+    } else {
+        document.body.classList.remove('overflow-hidden');
+        document.documentElement.classList.remove('overflow-hidden');
+    }
+};
+
+watch([showLogoutModal, isMobile, showingSidebar], updateBodyScrollLock);
+
 onMounted(() => {
 	updateViewport();
 	window.addEventListener('resize', updateViewport);
+
+    // Observe body for teleported modals to lock/unlock background scroll
+    modalObserver = new MutationObserver(() => {
+        updateBodyScrollLock();
+    });
+    modalObserver.observe(document.body, { childList: true, subtree: true });
+
+    // Clean up scroll lock on Inertia navigation
+    removeRouterListener = router.on('navigate', () => {
+        document.body.classList.remove('overflow-hidden');
+        document.documentElement.classList.remove('overflow-hidden');
+    });
 });
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', updateViewport);
+    if (modalObserver) {
+        modalObserver.disconnect();
+        modalObserver = null;
+    }
+    if (removeRouterListener) {
+        removeRouterListener();
+        removeRouterListener = null;
+    }
 	document.body.classList.remove('overflow-hidden');
+    document.documentElement.classList.remove('overflow-hidden');
 });
 </script>
 
 <template>
     <div class="flex min-h-screen bg-[#eef2f7]">
-        <!-- Mobile Backdrop Overlay (Click to close, touch-action: pan-y to allow bg scroll) -->
+        <!-- Mobile Backdrop Overlay (Click to close) -->
         <div
             v-if="isMobile && showingSidebar"
             class="fixed inset-0 z-30 bg-[#102653]/20 transition-opacity"
             aria-hidden="true"
-            style="touch-action: pan-y;"
             @click="showingSidebar = false"
         ></div>
 

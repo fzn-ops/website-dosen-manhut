@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 
 defineEmits(['toggle', 'logout']);
@@ -14,6 +14,13 @@ const userProfilePicture = computed(() => {
 	return page.props.auth?.user?.profile_picture || null;
 });
 
+watch(
+	() => page.props.auth?.user?.profile_picture,
+	() => {
+		imageLoadError.value = false;
+	}
+);
+
 const onImageError = () => {
 	imageLoadError.value = true;
 };
@@ -27,7 +34,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 </script>
 
 <template>
-	<header class="sticky top-0 z-20 flex h-[70px] items-center justify-between border-b border-[#e2e8f0] bg-[#f8fafc] px-4 sm:px-8">
+	<header class="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-[#e2e8f0] bg-[#f8fafc] px-4 sm:px-8">
 		<!-- Hamburger Toggle Button -->
 		<button
 			type="button"

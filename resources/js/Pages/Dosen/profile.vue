@@ -230,37 +230,6 @@ const toggleEditPhone = () => {
 	}
 };
 
-const onBlurUsername = () => {
-	const orig = (props.userData?.username && props.userData.username !== '-' ? props.userData.username : '').trim();
-	if ((formAccount.value.username || '').trim() === orig) {
-		isEditingUsername.value = false;
-		if (accountErrors.value?.username) {
-			delete accountErrors.value.username;
-		}
-	}
-};
-
-const onBlurEmail = () => {
-	const orig = (props.userData?.email && props.userData.email !== '-' ? props.userData.email : '').trim();
-	if ((formAccount.value.email || '').trim() === orig) {
-		isEditingEmail.value = false;
-		if (accountErrors.value?.email) {
-			delete accountErrors.value.email;
-		}
-	}
-};
-
-const onBlurPhone = () => {
-	const orig = (props.userData?.phone && props.userData.phone !== '-' ? props.userData.phone : '').trim().replace(/[\s-]/g, '');
-	const current = (formAccount.value.phone || '').trim().replace(/[\s-]/g, '');
-	if (current === orig) {
-		isEditingPhone.value = false;
-		if (accountErrors.value?.phone) {
-			delete accountErrors.value.phone;
-		}
-	}
-};
-
 // Clear error secara otomatis saat user mengetik atau mengubah field akun
 watch(() => formAccount.value.email, () => {
 	if (accountErrors.value?.email) {
@@ -579,7 +548,7 @@ const savePassword = () => {
 											<button
 												type="button"
 												@click.stop="openImagePreview(formPersonal.photoPreview)"
-												class="absolute right-2 bottom-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/80 text-white shadow-md backdrop-blur-xs transition hover:bg-slate-900 hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
+												class="absolute right-2 bottom-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/80 text-white shadow-md backdrop-blur-xs transition hover:bg-slate-900 hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
 												title="Lihat Foto Ukuran Penuh"
 											>
 												<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -594,16 +563,26 @@ const savePassword = () => {
 										v-else
 										class="mt-3 flex h-[260px] sm:h-[280px] lg:h-[290px] xl:h-[310px] w-full flex-col items-center justify-center rounded-[12px] border-2 border-dashed border-[#d6e0ee] bg-[#f8fafc] p-4 text-center transition-all"
 									>
-										<div class="flex h-14 w-14 items-center justify-center rounded-full bg-[#e8eef8] text-[#173a63]">
-											<svg class="h-7 w-7 text-[#173a63]/70" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-											</svg>
+										<div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#e8eef8] text-[#173a63]">
+											<img
+												v-if="userProfilePicture"
+												:src="userProfilePicture"
+												:alt="userName"
+												class="h-full w-full object-cover object-top"
+												@error="onImageError"
+											/>
+											<img
+												v-else
+												src="/assets/icons/default-profile.svg"
+												alt="Profile icon"
+												class="h-full w-full rounded-full object-contain p-0.5"
+											/>
 										</div>
 										<p class="mt-3 font-poppins text-[14px] font-semibold text-[#173a63]">
 											Belum Ada Foto Profile
 										</p>
 										<p class="mt-1 font-inter text-[13px] leading-relaxed text-[#7188a3] max-w-[280px]">
-											Data profile dan foto diri belum ditambahkan. Silakan hubungi Administrator.
+											Data profile publik dan foto diri belum ditambahkan. Silakan hubungi Administrator.
 										</p>
 									</div>
 								</div>
@@ -671,7 +650,6 @@ const savePassword = () => {
 												type="email"
 												:readonly="isEmailLocked"
 												:tabindex="isEmailLocked ? -1 : 0"
-												@blur="onBlurEmail"
 												@focus="isEmailLocked && $event.target.blur()"
 												placeholder="contoh: nama@email.com"
 												:class="[
@@ -688,7 +666,7 @@ const savePassword = () => {
 												@mousedown.prevent
 												@click="toggleEditEmail"
 												class="absolute inset-y-0 right-0 z-10 flex items-center pr-2.5 focus:outline-none cursor-pointer"
-												:title="isEditingEmail ? 'Batalkan perubahan email' : 'Buka untuk mengedit email'"
+												:title="isEditingEmail ? 'Batalkan perubahan email' : 'Edit Email'"
 											>
 												<span class="flex h-7 w-7 items-center justify-center rounded-[7px] text-[#183669] transition-colors hover:bg-[#dbe4ef] active:bg-[#ccd9e7]">
 													<svg
@@ -734,7 +712,6 @@ const savePassword = () => {
 												type="text"
 												:readonly="isUsernameLocked"
 												:tabindex="isUsernameLocked ? -1 : 0"
-												@blur="onBlurUsername"
 												@focus="isUsernameLocked && $event.target.blur()"
 												placeholder="contoh: johndosen"
 												:class="[
@@ -751,7 +728,7 @@ const savePassword = () => {
 												@mousedown.prevent
 												@click="toggleEditUsername"
 												class="absolute inset-y-0 right-0 z-10 flex items-center pr-2.5 focus:outline-none cursor-pointer"
-												:title="isEditingUsername ? 'Batalkan perubahan username' : 'Buka untuk mengedit username'"
+												:title="isEditingUsername ? 'Batalkan perubahan username' : 'Edit Username'"
 											>
 												<span class="flex h-7 w-7 items-center justify-center rounded-[7px] text-[#183669] transition-colors hover:bg-[#dbe4ef] active:bg-[#ccd9e7]">
 													<svg
@@ -795,9 +772,8 @@ const savePassword = () => {
 												ref="phoneInputRef"
 												v-model="formAccount.phone"
 												:readonly="isPhoneLocked"
-												placeholder="812-3456-7890"
+												placeholder="XXX-XXXX-XXXX"
 												:has-error="!!accountErrors.phone"
-												@blur="onBlurPhone"
 											>
 												<template v-if="hasInitialPhone || isEditingPhone" #append>
 													<button
@@ -805,7 +781,7 @@ const savePassword = () => {
 														@mousedown.prevent
 														@click="toggleEditPhone"
 														class="flex items-center focus:outline-none cursor-pointer"
-														:title="isEditingPhone ? 'Batalkan perubahan nomor handphone' : 'Buka untuk mengedit nomor handphone'"
+														:title="isEditingPhone ? 'Batalkan perubahan nomor handphone' : 'Edit Nomor Handphone'"
 													>
 														<span class="flex h-7 w-7 items-center justify-center rounded-[7px] text-[#183669] transition-colors hover:bg-[#dbe4ef] active:bg-[#ccd9e7]">
 															<svg
