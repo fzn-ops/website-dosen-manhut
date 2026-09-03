@@ -130,9 +130,6 @@ const selectLecturer = (lec) => {
 	if (lec.email && lec.email !== '-') {
 		form.value.contact = lec.email;
 		errors.value.contact = '';
-	} else if (lec.phone && lec.phone !== '-') {
-		form.value.contact = lec.phone;
-		errors.value.contact = '';
 	}
 	isNameDropdownOpen.value = false;
 	lecturerSearchQuery.value = '';
@@ -363,7 +360,7 @@ const handleSubmit = () => {
 		errors.value.research = 'Ketertarikan penelitian Dosen wajib diisi.';
 	}
 	if (!form.value.contact.trim()) {
-		errors.value.contact = 'Kontak Dosen wajib diisi.';
+		errors.value.contact = 'Email Dosen wajib diisi.';
 	}
 	if (!form.value.imagePreview && !form.value.image) {
 		errors.value.image = 'Foto Dosen wajib diunggah.';
@@ -816,16 +813,16 @@ const handleBackdropMouseUp = (e) => {
 							</p>
 						</div>
 
-						<!-- Kontak -->
+						<!-- Email Dosen -->
 						<div>
 							<label class="block text-[14px] font-bold text-[#183669]">
-								Kontak<span class="text-red-500">*</span>
+								Email Dosen<span class="text-red-500">*</span>
 							</label>
-							<p class="font-inter text-[11px] text-[#7188a3]">Masukkan Email atau Nomor Handphone Dosen</p>
+							<p class="font-inter text-[11px] text-[#7188a3]">Masukkan alamat email aktif Dosen</p>
 							<input
 								v-model="form.contact"
-								type="text"
-								placeholder="sulana@email.com"
+								type="email"
+								placeholder="contoh: dosen@apps.ipb.ac.id"
 								@input="errors.contact = ''"
 								class="mt-1.5 h-[44px] w-full rounded-[10px] border bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 focus:outline-none focus:ring-0"
 								:class="errors.contact ? 'border-red-400 focus:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white'"

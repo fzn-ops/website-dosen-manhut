@@ -21,6 +21,10 @@ const props = defineProps({
 		type: String,
 		default: 'Farhan Hakim',
 	},
+	loading: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const emit = defineEmits(['close', 'submit']);
@@ -38,7 +42,6 @@ const form = ref({
 	primaryImageIndex: 0,
 	lecturerQuote: '',
 	categories: [],
-	releaseDate: '',
 });
 
 const formError = ref('');
@@ -70,19 +73,6 @@ const toggleCategory = (cat) => {
 	}
 };
 
-// Format Current Date in Indonesian (e.g., "21 Januari 2026")
-const getFormattedToday = () => {
-	const months = [
-		'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-		'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-	];
-	const now = new Date();
-	const day = now.getDate();
-	const month = months[now.getMonth()];
-	const year = now.getFullYear();
-	return `${day} ${month} ${year}`;
-};
-
 watch(
 	() => props.show,
 	(isOpen) => {
@@ -110,7 +100,6 @@ watch(
 					primaryImageIndex: Number(props.initialData.primaryImageIndex ?? 0),
 					lecturerQuote: props.initialData.lecturerQuote !== '-' ? (props.initialData.lecturerQuote || '') : '',
 					categories: cats,
-					releaseDate: props.initialData.date || props.initialData.releaseDate || getFormattedToday(),
 				};
 			} else {
 				form.value = {
@@ -124,7 +113,6 @@ watch(
 					primaryImageIndex: 0,
 					lecturerQuote: '',
 					categories: [], // Kosong default untuk tambah data baru
-					releaseDate: getFormattedToday(),
 				};
 			}
 		}
@@ -278,18 +266,16 @@ const handleSubmit = () => {
 	emit('submit', {
 		name: title,
 		title: title,
-		lecturer: props.lecturerName,
-		lecturerName: props.lecturerName,
 		description: rawDescription,
 		role: role,
 		startDate: form.value.startDate,
 		endDate: form.value.endDate || form.value.startDate,
 		images: form.value.images,
 		imagePreviews: form.value.imagePreviews,
+		primaryImageIndex: form.value.primaryImageIndex,
 		lecturerQuote: form.value.lecturerQuote.trim() || '-',
 		category: form.value.categories.length > 0 ? form.value.categories[0] : 'Lainnya',
 		categories: [...form.value.categories],
-		date: form.value.releaseDate || getFormattedToday(),
 	});
 
 	handleClose();
@@ -611,22 +597,6 @@ const handleSubmit = () => {
 								class="mt-1.5 h-[245px] min-h-[230px] max-h-[360px] w-full rounded-[10px] border border-[#d6e0ee] bg-white p-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0 resize-y leading-relaxed"
 							></textarea>
 						</div>
-
-						<!-- Release Date (Tanggal Publish / Rilis) -->
-						<div>
-							<label class="block text-[14px] font-bold text-[#183669]">
-								Tanggal Publish<span class="text-red-500">*</span>
-							</label>
-							<p class="font-inter text-[11px] text-[#7188a3] mt-0.5">
-								Tanggal rilis informasi aktivitas
-							</p>
-							<input
-								v-model="form.releaseDate"
-								type="text"
-								required
-								class="mt-1.5 h-[44px] w-full rounded-[10px] border border-[#d6e0ee] bg-[#f8fafc] px-3.5 font-inter text-[14px] text-[#1e3456] transition-colors focus:border-[#183669] focus:bg-white focus:outline-none"
-							/>
-						</div>
 					</div>
 				</div>
 
@@ -641,9 +611,14 @@ const handleSubmit = () => {
 					</button>
 					<button
 						type="submit"
-						class="rounded-[8px] bg-[#183669] px-7 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-xs transition hover:bg-[#122b54] focus:outline-none"
+						:disabled="loading"
+						class="inline-flex items-center gap-2 rounded-[8px] bg-[#183669] px-7 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-xs transition hover:bg-[#122b54] focus:outline-none disabled:opacity-60"
 					>
-						{{ isEditing ? 'Simpan Perubahan' : 'Tambah Aktivitas' }}
+						<svg v-if="loading" class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+						</svg>
+						<span>{{ isEditing ? (loading ? 'Menyimpan...' : 'Simpan Perubahan') : (loading ? 'Menyimpan...' : 'Tambah Aktivitas') }}</span>
 					</button>
 				</div>
 			</form>

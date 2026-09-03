@@ -50,67 +50,89 @@ class ActivityService
         return Activity::with(['user.profileDosen', 'pictures'])
             ->latest('id')
             ->get()
-            ->map(function ($act) {
-                $pictures = $act->pictures;
-                $images = $pictures->map(fn($p) => $p->path)->values()->all();
-
-                $primaryPic = $act->primaryPicture ?? $pictures->first();
-                $primaryIndex = 0;
-                if ($primaryPic) {
-                    $foundIdx = $pictures->search(fn($p) => $p->id === $primaryPic->id);
-                    if ($foundIdx !== false) {
-                        $primaryIndex = $foundIdx;
-                    }
-                }
-
-                $publishDate = $act->created_at
-                    ? Carbon::parse($act->created_at)->translatedFormat('d F Y')
-                    : ($act->activity_date_start ? Carbon::parse($act->activity_date_start)->translatedFormat('d F Y') : '-');
-
-                $dateSort = $act->created_at
-                    ? Carbon::parse($act->created_at)->format('Y-m-d H:i:s')
-                    : ($act->activity_date_start ? Carbon::parse($act->activity_date_start)->format('Y-m-d') : '');
-
-                $formattedEventDate = '-';
-                if ($act->activity_date_start) {
-                    $startStr = Carbon::parse($act->activity_date_start)->translatedFormat('d F Y');
-                    if ($act->activity_date_end && $act->activity_date_end != $act->activity_date_start) {
-                        $endStr = Carbon::parse($act->activity_date_end)->translatedFormat('d F Y');
-                        $formattedEventDate = "{$startStr} - {$endStr}";
-                    } else {
-                        $formattedEventDate = $startStr;
-                    }
-                }
-
-                $categories = is_array($act->activity_type)
-                    ? $act->activity_type
-                    : (json_decode($act->activity_type, true) ?? []);
-
-                return [
-                    'id' => $act->id,
-                    'user_id' => $act->user_id,
-                    'name' => $act->activity_name,
-                    'title' => $act->activity_name,
-                    'lecturer' => $act->user?->name ?? 'Tanpa Nama',
-                    'lecturerName' => $act->user?->name ?? 'Tanpa Nama',
-                    'description' => $act->description ?? '',
-                    'role' => $act->job ?? '',
-                    'startDate' => $act->activity_date_start ? Carbon::parse($act->activity_date_start)->format('Y-m-d') : '',
-                    'endDate' => $act->activity_date_end ? Carbon::parse($act->activity_date_end)->format('Y-m-d') : '',
-                    'categories' => $categories,
-                    'category' => count($categories) ? $categories[0] : 'Lainnya',
-                    'publishDate' => $publishDate,
-                    'date' => $publishDate,
-                    'eventDate' => $formattedEventDate,
-                    'dateSort' => $dateSort,
-                    'images' => $images,
-                    'imagePreviews' => $images,
-                    'primaryImageIndex' => $primaryIndex,
-                    'lecturerQuote' => $act->quote && $act->quote !== '-' ? $act->quote : '-',
-                ];
-            })
+            ->map(fn($act) => $this->formatActivityItem($act))
             ->values()
             ->all();
+    }
+
+    /**
+     * Mengambil data aktivitas untuk satu dosen (Dosen Panel).
+     */
+    public function getActivitiesForLecturer(int $userId): array
+    {
+        Carbon::setLocale('id');
+
+        return Activity::with(['user.profileDosen', 'pictures'])
+            ->where('user_id', $userId)
+            ->latest('id')
+            ->get()
+            ->map(fn($act) => $this->formatActivityItem($act))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Format item aktivitas untuk response Inertia.
+     */
+    protected function formatActivityItem(Activity $act): array
+    {
+        $pictures = $act->pictures;
+        $images = $pictures->map(fn($p) => $p->path)->values()->all();
+
+        $primaryPic = $act->primaryPicture ?? $pictures->first();
+        $primaryIndex = 0;
+        if ($primaryPic) {
+            $foundIdx = $pictures->search(fn($p) => $p->id === $primaryPic->id);
+            if ($foundIdx !== false) {
+                $primaryIndex = $foundIdx;
+            }
+        }
+
+        $publishDate = $act->created_at
+            ? Carbon::parse($act->created_at)->translatedFormat('d F Y')
+            : ($act->activity_date_start ? Carbon::parse($act->activity_date_start)->translatedFormat('d F Y') : '-');
+
+        $dateSort = $act->created_at
+            ? Carbon::parse($act->created_at)->format('Y-m-d H:i:s')
+            : ($act->activity_date_start ? Carbon::parse($act->activity_date_start)->format('Y-m-d') : '');
+
+        $formattedEventDate = '-';
+        if ($act->activity_date_start) {
+            $startStr = Carbon::parse($act->activity_date_start)->translatedFormat('d F Y');
+            if ($act->activity_date_end && $act->activity_date_end != $act->activity_date_start) {
+                $endStr = Carbon::parse($act->activity_date_end)->translatedFormat('d F Y');
+                $formattedEventDate = "{$startStr} - {$endStr}";
+            } else {
+                $formattedEventDate = $startStr;
+            }
+        }
+
+        $categories = is_array($act->activity_type)
+            ? $act->activity_type
+            : (json_decode($act->activity_type, true) ?? []);
+
+        return [
+            'id' => $act->id,
+            'user_id' => $act->user_id,
+            'name' => $act->activity_name,
+            'title' => $act->activity_name,
+            'lecturer' => $act->user?->name ?? 'Tanpa Nama',
+            'lecturerName' => $act->user?->name ?? 'Tanpa Nama',
+            'description' => $act->description ?? '',
+            'role' => $act->job ?? '',
+            'startDate' => $act->activity_date_start ? Carbon::parse($act->activity_date_start)->format('Y-m-d') : '',
+            'endDate' => $act->activity_date_end ? Carbon::parse($act->activity_date_end)->format('Y-m-d') : '',
+            'categories' => $categories,
+            'category' => count($categories) ? $categories[0] : 'Lainnya',
+            'publishDate' => $publishDate,
+            'date' => $publishDate,
+            'eventDate' => $formattedEventDate,
+            'dateSort' => $dateSort,
+            'images' => $images,
+            'imagePreviews' => $images,
+            'primaryImageIndex' => $primaryIndex,
+            'lecturerQuote' => $act->quote && $act->quote !== '-' ? $act->quote : '-',
+        ];
     }
 
     /**

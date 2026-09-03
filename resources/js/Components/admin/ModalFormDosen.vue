@@ -1,5 +1,6 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import PhoneInput from '@/Components/PhoneInput.vue';
 
 const props = defineProps({
 	show: {
@@ -348,11 +349,11 @@ const handleBackdropMouseUp = (e) => {
 						Nomor Handphone
 					</label>
 					<p class="font-inter text-[11px] text-[#7188a3]">Masukkan nomor aktif Dosen (optional)</p>
-					<input
+					<PhoneInput
 						v-model="form.phone"
-						type="text"
-						placeholder="+62 8XX-XXXX-XXXX"
-						class="mt-1.5 h-[42px] w-full rounded-[10px] border border-[#d6e0ee] bg-white px-3.5 font-inter text-[14px] text-[#1e3456] placeholder-[#a6b7cb] transition-colors duration-150 hover:border-[#a6b7cb] hover:bg-[#fafcff] focus:border-[#183669] focus:bg-white focus:outline-none focus:ring-0"
+						height-class="h-[42px]"
+						class="mt-1.5"
+						placeholder="812-3456-7890"
 					/>
 				</div>
 

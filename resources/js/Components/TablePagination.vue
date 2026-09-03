@@ -9,7 +9,11 @@ const props = defineProps({
 	},
 	totalPages: {
 		type: Number,
-		required: true,
+		default: null,
+	},
+	totalItems: {
+		type: Number,
+		default: null,
 	},
 	rowsPerPage: {
 		type: Number,
@@ -19,10 +23,26 @@ const props = defineProps({
 		type: Array,
 		default: () => [5, 10, 20, 50],
 	},
+	disabled: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 // Emits
 const emit = defineEmits(['update:currentPage', 'update:rowsPerPage']);
+
+// Menghitung total halaman secara akurat (baik dari totalPages langsung atau dari totalItems / rowsPerPage)
+const computedTotalPages = computed(() => {
+	if (props.totalPages !== null && props.totalPages !== undefined) {
+		return Math.max(1, Number(props.totalPages) || 1);
+	}
+	if (props.totalItems !== null && props.totalItems !== undefined) {
+		const count = Math.ceil(Number(props.totalItems) / (props.rowsPerPage || 10));
+		return Math.max(1, count);
+	}
+	return 1;
+});
 
 // Internal page input for direct jump
 const pageInput = ref(props.currentPage);
@@ -35,34 +55,38 @@ watch(
 );
 
 const handlePageInput = () => {
+	if (props.disabled) return;
 	let page = parseInt(pageInput.value, 10);
 	if (isNaN(page) || page < 1) page = 1;
-	if (page > props.totalPages) page = props.totalPages;
+	if (page > computedTotalPages.value) page = computedTotalPages.value;
 	pageInput.value = page;
 	emit('update:currentPage', page);
 };
 
 const goToPage = (page) => {
-	if (typeof page === 'number' && page >= 1 && page <= props.totalPages) {
+	if (props.disabled) return;
+	if (typeof page === 'number' && page >= 1 && page <= computedTotalPages.value) {
 		emit('update:currentPage', page);
 	}
 };
 
 const prevPage = () => {
+	if (props.disabled) return;
 	if (props.currentPage > 1) {
 		emit('update:currentPage', props.currentPage - 1);
 	}
 };
 
 const nextPage = () => {
-	if (props.currentPage < props.totalPages) {
+	if (props.disabled) return;
+	if (props.currentPage < computedTotalPages.value) {
 		emit('update:currentPage', props.currentPage + 1);
 	}
 };
 
-// Visible page window
+// Visible page window - hanya menampilkan jumlah tombol sesuai total halaman yang ada
 const visiblePages = computed(() => {
-	const total = props.totalPages;
+	const total = computedTotalPages.value;
 	const current = props.currentPage;
 
 	if (total <= 7) {
@@ -81,6 +105,7 @@ const visiblePages = computed(() => {
 const isRowsDropdownOpen = ref(false);
 
 const setRowsPerPage = (r) => {
+	if (props.disabled) return;
 	isRowsDropdownOpen.value = false;
 	emit('update:rowsPerPage', r);
 };
@@ -102,13 +127,14 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDropup));
 			<input
 				type="number"
 				min="1"
-				:max="totalPages"
+				:max="computedTotalPages"
+				:disabled="disabled"
 				v-model.number="pageInput"
 				@keydown.enter="handlePageInput"
 				@blur="handlePageInput"
-				class="h-8 w-11 rounded-[6px] border border-[#d6e0ee] bg-white p-0 text-center font-inter text-[13px] font-medium text-[#173a63] focus:border-[#183669] focus:outline-none focus:ring-1 focus:ring-[#183669]"
+				class="h-8 w-11 rounded-[6px] border border-[#d6e0ee] bg-white p-0 text-center font-inter text-[13px] font-medium text-[#173a63] focus:border-[#183669] focus:outline-none focus:ring-1 focus:ring-[#183669] disabled:cursor-not-allowed disabled:bg-[#f0f4f9] disabled:border-[#d6e0ee] disabled:opacity-60"
 			/>
-			<span>of {{ totalPages }}</span>
+			<span>of {{ computedTotalPages }}</span>
 
 			<span class="mx-1.5 text-[#cbd6e2]">|</span>
 
@@ -118,8 +144,9 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDropup));
 			<div class="relative" @click.stop>
 				<button
 					type="button"
-					@click="isRowsDropdownOpen = !isRowsDropdownOpen"
-					class="flex h-8 min-w-[56px] items-center justify-between gap-2 rounded-[6px] border border-[#d6e0ee] bg-white px-2.5 font-inter text-[13px] font-medium text-[#173a63] transition hover:border-[#183669] focus:border-[#183669] focus:outline-none"
+					:disabled="disabled"
+					@click="!disabled && (isRowsDropdownOpen = !isRowsDropdownOpen)"
+					class="flex h-8 min-w-[56px] items-center justify-between gap-2 rounded-[6px] border border-[#d6e0ee] bg-white px-2.5 font-inter text-[13px] font-medium text-[#173a63] transition hover:border-[#183669] focus:border-[#183669] focus:outline-none disabled:cursor-not-allowed disabled:bg-[#f0f4f9] disabled:border-[#d6e0ee] disabled:opacity-60 disabled:hover:border-[#d6e0ee]"
 					:class="{ 'border-[#183669] ring-1 ring-[#183669]/20': isRowsDropdownOpen }"
 				>
 					<span>{{ rowsPerPage }}</span>
@@ -136,7 +163,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDropup));
 
 				<!-- Dropup Popover -->
 				<div
-					v-if="isRowsDropdownOpen"
+					v-if="isRowsDropdownOpen && !disabled"
 					class="absolute bottom-full left-0 z-30 mb-1.5 w-20 rounded-[8px] border border-[#d6e0ee] bg-white p-1 shadow-xl font-inter space-y-0.5"
 				>
 					<button
@@ -163,7 +190,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDropup));
 			<button
 				type="button"
 				@click="goToPage(1)"
-				:disabled="currentPage === 1"
+				:disabled="disabled || currentPage === 1"
 				class="flex h-8 w-8 items-center justify-center rounded-[6px] border border-[#d6e0ee] bg-white text-[#4d6786] transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
 				aria-label="First Page"
 			>
@@ -176,7 +203,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDropup));
 			<button
 				type="button"
 				@click="prevPage"
-				:disabled="currentPage === 1"
+				:disabled="disabled || currentPage === 1"
 				class="flex h-8 w-8 items-center justify-center rounded-[6px] border border-[#d6e0ee] bg-white text-[#4d6786] transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
 				aria-label="Previous Page"
 			>
@@ -190,12 +217,14 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDropup));
 				<button
 					v-if="p !== '...'"
 					type="button"
+					:disabled="disabled"
 					@click="goToPage(p)"
 					:class="[
 						'flex h-8 min-w-[32px] items-center justify-center rounded-[6px] px-1 text-[13px] transition-colors',
 						p === currentPage
 							? 'border border-[#cbd8e8] bg-[#f0f4f9] font-bold text-[#183669]'
-							: 'border border-transparent text-[#4d6786] hover:bg-slate-100'
+							: 'border border-transparent text-[#4d6786] hover:bg-slate-100',
+						disabled ? 'cursor-not-allowed opacity-50 hover:bg-transparent' : ''
 					]"
 				>
 					{{ p }}
@@ -207,7 +236,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDropup));
 			<button
 				type="button"
 				@click="nextPage"
-				:disabled="currentPage === totalPages"
+				:disabled="disabled || currentPage >= computedTotalPages"
 				class="flex h-8 w-8 items-center justify-center rounded-[6px] border border-[#d6e0ee] bg-white text-[#4d6786] transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
 				aria-label="Next Page"
 			>
@@ -219,8 +248,8 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDropup));
 			<!-- Last Page (>>) -->
 			<button
 				type="button"
-				@click="goToPage(totalPages)"
-				:disabled="currentPage === totalPages"
+				@click="goToPage(computedTotalPages)"
+				:disabled="disabled || currentPage >= computedTotalPages"
 				class="flex h-8 w-8 items-center justify-center rounded-[6px] border border-[#d6e0ee] bg-white text-[#4d6786] transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
 				aria-label="Last Page"
 			>

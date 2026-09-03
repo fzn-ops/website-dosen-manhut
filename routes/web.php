@@ -81,9 +81,10 @@ Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->group(function () {
             return Inertia::render('Dosen/dashboard');
         })->name('dosen.dashboard');
 
-        Route::get('/aktivitas', function () {
-            return Inertia::render('Dosen/aktivitas');
-        })->name('dosen.aktivitas');
+        Route::get('/aktivitas', [\App\Http\Controllers\Dashboard\Dosen\DosenAktivitasController::class, 'index'])->name('dosen.aktivitas');
+        Route::post('/aktivitas', [\App\Http\Controllers\Dashboard\Dosen\DosenAktivitasController::class, 'store'])->name('dosen.aktivitas.store');
+        Route::post('/aktivitas/{id}', [\App\Http\Controllers\Dashboard\Dosen\DosenAktivitasController::class, 'update'])->name('dosen.aktivitas.update');
+        Route::delete('/aktivitas/{id}', [\App\Http\Controllers\Dashboard\Dosen\DosenAktivitasController::class, 'destroy'])->name('dosen.aktivitas.destroy');
     });
 });
 

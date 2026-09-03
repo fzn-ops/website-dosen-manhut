@@ -3,6 +3,7 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import DosenLayout from '@/Layouts/DosenLayout.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
+import PhoneInput from '@/Components/PhoneInput.vue';
 
 const props = defineProps({
 	userData: {
@@ -155,60 +156,129 @@ watch(
 	{ immediate: true, deep: true }
 );
 
-const isUsernameLocked = computed(() => !!formAccount.value.username && formAccount.value.username !== '-' && !isEditingUsername.value);
-const isEmailLocked = computed(() => !!formAccount.value.email && formAccount.value.email !== '-' && !isEditingEmail.value);
-const isPhoneLocked = computed(() => !!formAccount.value.phone && formAccount.value.phone !== '-' && !isEditingPhone.value);
+const hasInitialUsername = computed(() => !!props.userData?.username && props.userData.username !== '-');
+const hasInitialEmail = computed(() => !!props.userData?.email && props.userData.email !== '-');
+const hasInitialPhone = computed(() => !!props.userData?.phone && props.userData.phone !== '-');
+
+const isUsernameLocked = computed(() => hasInitialUsername.value && !isEditingUsername.value);
+const isEmailLocked = computed(() => hasInitialEmail.value && !isEditingEmail.value);
+const isPhoneLocked = computed(() => hasInitialPhone.value && !isEditingPhone.value);
+
+const cancelEditUsername = () => {
+	formAccount.value.username = props.userData?.username && props.userData.username !== '-' ? props.userData.username : '';
+	isEditingUsername.value = false;
+	if (accountErrors.value?.username) {
+		delete accountErrors.value.username;
+	}
+	usernameInputRef.value?.blur();
+};
+
+const cancelEditEmail = () => {
+	formAccount.value.email = props.userData?.email && props.userData.email !== '-' ? props.userData.email : '';
+	isEditingEmail.value = false;
+	if (accountErrors.value?.email) {
+		delete accountErrors.value.email;
+	}
+	emailInputRef.value?.blur();
+};
+
+const cancelEditPhone = () => {
+	formAccount.value.phone = props.userData?.phone && props.userData.phone !== '-' ? props.userData.phone : '';
+	isEditingPhone.value = false;
+	if (accountErrors.value?.phone) {
+		delete accountErrors.value.phone;
+	}
+	phoneInputRef.value?.blur();
+};
 
 const toggleEditUsername = () => {
-	isEditingUsername.value = !isEditingUsername.value;
 	if (isEditingUsername.value) {
+		cancelEditUsername();
+	} else {
+		if (isEditingEmail.value) cancelEditEmail();
+		if (isEditingPhone.value) cancelEditPhone();
+		isEditingUsername.value = true;
 		nextTick(() => {
 			usernameInputRef.value?.focus();
 		});
-	} else {
-		usernameInputRef.value?.blur();
 	}
 };
 
 const toggleEditEmail = () => {
-	isEditingEmail.value = !isEditingEmail.value;
 	if (isEditingEmail.value) {
+		cancelEditEmail();
+	} else {
+		if (isEditingUsername.value) cancelEditUsername();
+		if (isEditingPhone.value) cancelEditPhone();
+		isEditingEmail.value = true;
 		nextTick(() => {
 			emailInputRef.value?.focus();
 		});
-	} else {
-		emailInputRef.value?.blur();
 	}
 };
 
 const toggleEditPhone = () => {
-	isEditingPhone.value = !isEditingPhone.value;
 	if (isEditingPhone.value) {
+		cancelEditPhone();
+	} else {
+		if (isEditingEmail.value) cancelEditEmail();
+		if (isEditingUsername.value) cancelEditUsername();
+		isEditingPhone.value = true;
 		nextTick(() => {
 			phoneInputRef.value?.focus();
 		});
-	} else {
-		phoneInputRef.value?.blur();
 	}
 };
 
 const onBlurUsername = () => {
-	if (formAccount.value.username.trim()) {
+	const orig = (props.userData?.username && props.userData.username !== '-' ? props.userData.username : '').trim();
+	if ((formAccount.value.username || '').trim() === orig) {
 		isEditingUsername.value = false;
+		if (accountErrors.value?.username) {
+			delete accountErrors.value.username;
+		}
 	}
 };
 
 const onBlurEmail = () => {
-	if (formAccount.value.email.trim()) {
+	const orig = (props.userData?.email && props.userData.email !== '-' ? props.userData.email : '').trim();
+	if ((formAccount.value.email || '').trim() === orig) {
 		isEditingEmail.value = false;
+		if (accountErrors.value?.email) {
+			delete accountErrors.value.email;
+		}
 	}
 };
 
 const onBlurPhone = () => {
-	if (formAccount.value.phone.trim()) {
+	const orig = (props.userData?.phone && props.userData.phone !== '-' ? props.userData.phone : '').trim().replace(/[\s-]/g, '');
+	const current = (formAccount.value.phone || '').trim().replace(/[\s-]/g, '');
+	if (current === orig) {
 		isEditingPhone.value = false;
+		if (accountErrors.value?.phone) {
+			delete accountErrors.value.phone;
+		}
 	}
 };
+
+// Clear error secara otomatis saat user mengetik atau mengubah field akun
+watch(() => formAccount.value.email, () => {
+	if (accountErrors.value?.email) {
+		delete accountErrors.value.email;
+	}
+});
+
+watch(() => formAccount.value.username, () => {
+	if (accountErrors.value?.username) {
+		delete accountErrors.value.username;
+	}
+});
+
+watch(() => formAccount.value.phone, () => {
+	if (accountErrors.value?.phone) {
+		delete accountErrors.value.phone;
+	}
+});
 
 // 3. State Ganti Password
 const formPassword = ref({
@@ -217,11 +287,60 @@ const formPassword = ref({
 	confirmPassword: '',
 });
 
+// Clear error secara otomatis saat user mengetik password
+watch(() => formPassword.value.currentPassword, () => {
+	if (passwordErrors.value?.currentPassword) {
+		delete passwordErrors.value.currentPassword;
+	}
+});
+
+watch(() => formPassword.value.newPassword, () => {
+	if (passwordErrors.value?.newPassword) {
+		delete passwordErrors.value.newPassword;
+	}
+});
+
+watch(() => formPassword.value.confirmPassword, () => {
+	if (passwordErrors.value?.confirmPassword) {
+		delete passwordErrors.value.confirmPassword;
+	}
+});
+
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const passwordErrors = ref({});
 const isSavingPassword = ref(false);
+
+// State periksa apakah ada perubahan data akun dibanding data semula
+const isAccountChanged = computed(() => {
+	const current = currentUser.value || {};
+	const origEmail = (current.email && current.email !== '-' ? current.email : '').trim();
+	const origUsername = (current.username && current.username !== '-' ? current.username : '').trim();
+	const origPhone = (current.phone && current.phone !== '-' ? current.phone : '').trim();
+
+	const newEmail = (formAccount.value.email || '').trim();
+	const newUsername = (formAccount.value.username || '').trim();
+	const newPhone = (formAccount.value.phone || '').trim();
+
+	const normOrigPhone = origPhone.replace(/[\s-]/g, '');
+	const normNewPhone = newPhone.replace(/[\s-]/g, '');
+
+	return (
+		newEmail !== origEmail ||
+		newUsername !== origUsername ||
+		normNewPhone !== normOrigPhone
+	);
+});
+
+// State periksa apakah form password ada isinya
+const isPasswordChanged = computed(() => {
+	return (
+		!!(formPassword.value.currentPassword || '').trim() ||
+		!!(formPassword.value.newPassword || '').trim() ||
+		!!(formPassword.value.confirmPassword || '').trim()
+	);
+});
 
 // Save Handlers
 const isSavingPersonal = ref(false);
@@ -250,6 +369,7 @@ const savePersonalData = () => {
 };
 
 const saveAccountData = () => {
+	if (!isAccountChanged.value || isSavingAccount.value) return;
 	accountErrors.value = {};
 	if (!formAccount.value.email.trim()) {
 		accountErrors.value.email = 'Email wajib diisi.';
@@ -285,6 +405,7 @@ const saveAccountData = () => {
 };
 
 const savePassword = () => {
+	if (!isPasswordChanged.value || isSavingPassword.value) return;
 	passwordErrors.value = {};
 
 	if (!formPassword.value.currentPassword) {
@@ -371,10 +492,10 @@ const savePassword = () => {
 					</div>
 					<div class="space-y-1">
 						<h3 class="font-poppins text-[15px] font-bold text-[#173a63]">
-							Profil Dosen Belum Tersedia
+							Profil Publik Belum Tersedia
 						</h3>
 						<p class="font-inter text-[13px] leading-relaxed text-[#4d6786]">
-							Foto diri dan kelengkapan profile Anda dikelola terpusat dari tabel profile dosen oleh Administrator. Saat ini data profile Anda belum tersedia. Silakan <strong>hubungi Administrator</strong> untuk dibuatkan profile dosen dan ditambahkan foto profile Anda.
+							Foto diri Anda dikelola oleh Administrator. Saat ini data profile Anda belum tersedia secara publik. Silakan <strong>hubungi Administrator</strong> untuk membuat profile publik agar dapat mengelola aktivitas anda!
 						</p>
 					</div>
 				</div>
@@ -437,17 +558,17 @@ const savePassword = () => {
 									<!-- State 0: Loading Skeleton -->
 									<div
 										v-if="isLoading"
-										class="mt-3 flex h-[280px] sm:h-[320px] lg:h-[390px] xl:h-[440px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-[#d6e0ee] bg-[#fafcff] p-3 text-center transition-all animate-pulse"
+										class="mt-3 flex h-[260px] sm:h-[280px] lg:h-[290px] xl:h-[310px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-[#d6e0ee] bg-[#fafcff] p-3 text-center transition-all animate-pulse"
 									>
-										<div class="h-full max-h-[255px] sm:max-h-[295px] lg:max-h-[360px] xl:max-h-[410px] w-auto aspect-[3/4] rounded-[10px] bg-slate-200"></div>
+										<div class="h-full max-h-[235px] sm:max-h-[255px] lg:max-h-[265px] xl:max-h-[285px] w-auto aspect-[3/4] rounded-[10px] bg-slate-200"></div>
 									</div>
 
 									<!-- State 1: Memiliki Foto Profil Dosen -->
 									<div
 										v-else-if="hasPhoto"
-										class="mt-3 flex h-[280px] sm:h-[320px] lg:h-[390px] xl:h-[440px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-[#d6e0ee] bg-[#fafcff] p-3 text-center transition-all"
+										class="mt-3 flex h-[260px] sm:h-[280px] lg:h-[290px] xl:h-[310px] w-full items-center justify-center overflow-hidden rounded-[12px] border border-[#d6e0ee] bg-[#fafcff] p-3 text-center transition-all"
 									>
-										<div class="group relative flex h-full max-h-[255px] sm:max-h-[295px] lg:max-h-[360px] xl:max-h-[410px] w-auto items-center justify-center overflow-hidden rounded-[10px] border border-[#d6e0ee] bg-slate-100 shadow-xs aspect-[3/4]">
+										<div class="group relative flex h-full max-h-[235px] sm:max-h-[255px] lg:max-h-[265px] xl:max-h-[285px] w-auto items-center justify-center overflow-hidden rounded-[10px] border border-[#d6e0ee] bg-slate-100 shadow-xs aspect-[3/4]">
 											<img
 												:src="formPersonal.photoPreview"
 												alt="Foto Profil Dosen"
@@ -471,7 +592,7 @@ const savePassword = () => {
 									<!-- State 2: Belum Memiliki Foto Profil / Profile Dosen -->
 									<div
 										v-else
-										class="mt-3 flex h-[280px] sm:h-[320px] lg:h-[390px] xl:h-[440px] w-full flex-col items-center justify-center rounded-[12px] border-2 border-dashed border-[#d6e0ee] bg-[#f8fafc] p-4 text-center transition-all"
+										class="mt-3 flex h-[260px] sm:h-[280px] lg:h-[290px] xl:h-[310px] w-full flex-col items-center justify-center rounded-[12px] border-2 border-dashed border-[#d6e0ee] bg-[#f8fafc] p-4 text-center transition-all"
 									>
 										<div class="flex h-14 w-14 items-center justify-center rounded-full bg-[#e8eef8] text-[#173a63]">
 											<svg class="h-7 w-7 text-[#173a63]/70" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -554,23 +675,42 @@ const savePassword = () => {
 												@focus="isEmailLocked && $event.target.blur()"
 												placeholder="contoh: nama@email.com"
 												:class="[
-													'custom-input h-[46px] w-full rounded-[10px] bg-transparent pl-3.5 pr-10 font-inter text-[14px] text-[#173a63] placeholder-[#a8bed4] transition-colors focus:outline-none',
+													'custom-input h-[46px] w-full rounded-[10px] pl-3.5 font-inter text-[14px] text-[#173a63] placeholder-[#a8bed4] transition-colors focus:outline-none',
+													hasInitialEmail || isEditingEmail ? 'pr-11' : 'pr-3.5',
 													isEmailLocked
-														? 'border-[#d6e0ee] cursor-not-allowed select-none bg-slate-50/60'
-														: 'border-[#d6e0ee] hover:border-[#183669]'
+														? 'border-[#d6e0ee] cursor-not-allowed select-none bg-[#f0f4f9]'
+														: 'border-[#d6e0ee] bg-white hover:border-[#183669] focus:border-[#183669]'
 												]"
 											/>
 											<button
+												v-if="hasInitialEmail || isEditingEmail"
 												type="button"
 												@mousedown.prevent
 												@click="toggleEditEmail"
-												class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 transition hover:opacity-80 focus:outline-none cursor-pointer"
-												:title="isEmailLocked ? 'Buka untuk mengedit email' : 'Kunci input email'"
+												class="absolute inset-y-0 right-0 z-10 flex items-center pr-2.5 focus:outline-none cursor-pointer"
+												:title="isEditingEmail ? 'Batalkan perubahan email' : 'Buka untuk mengedit email'"
 											>
-												<svg class="h-4 w-4 text-[#183669]" viewBox="0 0 19 19" fill="currentColor">
-													<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
-													<path d="M11.413 2.96342L15.7358 7.2861L9.55481 13.4896C9.4634 13.5813 9.3548 13.6541 9.23522 13.7037C9.11564 13.7534 8.98744 13.779 8.85797 13.779H5.90526C5.64422 13.779 5.39388 13.6753 5.2093 13.4907C5.02472 13.3061 4.92102 13.0558 4.92102 12.7948V9.84211C4.92105 9.71264 4.94662 9.58444 4.99628 9.46487C5.04593 9.34529 5.11869 9.23669 5.21039 9.14528L11.413 2.96342ZM17.8067 0.893608C18.3495 1.43606 18.6678 2.16332 18.6979 2.93014C18.728 3.69697 18.4677 4.44693 17.9691 5.03027L17.8076 5.20743L17.1256 5.89048L12.8077 1.57272L13.4918 0.893608C14.064 0.32144 14.84 0 15.6492 0C16.4584 0 17.2345 0.32144 17.8067 0.893608Z" />
-												</svg>
+												<span class="flex h-7 w-7 items-center justify-center rounded-[7px] text-[#183669] transition-colors hover:bg-[#dbe4ef] active:bg-[#ccd9e7]">
+													<svg
+														v-if="isEditingEmail"
+														class="h-4 w-4"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+														stroke-width="2.5"
+													>
+														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+													</svg>
+													<svg
+														v-else
+														class="h-3.5 w-3.5"
+														viewBox="0 0 19 19"
+														fill="currentColor"
+													>
+														<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
+														<path d="M11.413 2.96342L15.7358 7.2861L9.55481 13.4896C9.4634 13.5813 9.3548 13.6541 9.23522 13.7037C9.11564 13.7534 8.98744 13.779 8.85797 13.779H5.90526C5.64422 13.779 5.39388 13.6753 5.2093 13.4907C5.02472 13.3061 4.92102 13.0558 4.92102 12.7948V9.84211C4.92105 9.71264 4.94662 9.58444 4.99628 9.46487C5.04593 9.34529 5.11869 9.23669 5.21039 9.14528L11.413 2.96342ZM17.8067 0.893608C18.3495 1.43606 18.6678 2.16332 18.6979 2.93014C18.728 3.69697 18.4677 4.44693 17.9691 5.03027L17.8076 5.20743L17.1256 5.89048L12.8077 1.57272L13.4918 0.893608C14.064 0.32144 14.84 0 15.6492 0C16.4584 0 17.2345 0.32144 17.8067 0.893608Z" />
+													</svg>
+												</span>
 											</button>
 										</div>
 										<p v-if="accountErrors.email" class="mt-1 font-inter text-[11px] font-medium text-red-500">
@@ -596,25 +736,44 @@ const savePassword = () => {
 												:tabindex="isUsernameLocked ? -1 : 0"
 												@blur="onBlurUsername"
 												@focus="isUsernameLocked && $event.target.blur()"
-												placeholder="contoh: farhan_dosen"
+												placeholder="contoh: johndosen"
 												:class="[
-													'custom-input h-[46px] w-full rounded-[10px] bg-transparent pl-3.5 pr-10 font-inter text-[14px] text-[#173a63] placeholder-[#a8bed4] transition-colors focus:outline-none',
+													'custom-input h-[46px] w-full rounded-[10px] pl-3.5 font-inter text-[14px] text-[#173a63] placeholder-[#a8bed4] transition-colors focus:outline-none',
+													hasInitialUsername || isEditingUsername ? 'pr-11' : 'pr-3.5',
 													isUsernameLocked
-														? 'border-[#d6e0ee] cursor-not-allowed select-none bg-slate-50/60'
-														: 'border-[#d6e0ee] hover:border-[#183669]'
+														? 'border-[#d6e0ee] cursor-not-allowed select-none bg-[#f0f4f9]'
+														: 'border-[#d6e0ee] bg-white hover:border-[#183669] focus:border-[#183669]'
 												]"
 											/>
 											<button
+												v-if="hasInitialUsername || isEditingUsername"
 												type="button"
 												@mousedown.prevent
 												@click="toggleEditUsername"
-												class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 transition hover:opacity-80 focus:outline-none cursor-pointer"
-												:title="isUsernameLocked ? 'Buka untuk mengedit username' : 'Kunci input username'"
+												class="absolute inset-y-0 right-0 z-10 flex items-center pr-2.5 focus:outline-none cursor-pointer"
+												:title="isEditingUsername ? 'Batalkan perubahan username' : 'Buka untuk mengedit username'"
 											>
-												<svg class="h-4 w-4 text-[#183669]" viewBox="0 0 19 19" fill="currentColor">
-													<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
-													<path d="M11.413 2.96342L15.7358 7.2861L9.55481 13.4896C9.4634 13.5813 9.3548 13.6541 9.23522 13.7037C9.11564 13.7534 8.98744 13.779 8.85797 13.779H5.90526C5.64422 13.779 5.39388 13.6753 5.2093 13.4907C5.02472 13.3061 4.92102 13.0558 4.92102 12.7948V9.84211C4.92105 9.71264 4.94662 9.58444 4.99628 9.46487C5.04593 9.34529 5.11869 9.23669 5.21039 9.14528L11.413 2.96342ZM17.8067 0.893608C18.3495 1.43606 18.6678 2.16332 18.6979 2.93014C18.728 3.69697 18.4677 4.44693 17.9691 5.03027L17.8076 5.20743L17.1256 5.89048L12.8077 1.57272L13.4918 0.893608C14.064 0.32144 14.84 0 15.6492 0C16.4584 0 17.2345 0.32144 17.8067 0.893608Z" />
-												</svg>
+												<span class="flex h-7 w-7 items-center justify-center rounded-[7px] text-[#183669] transition-colors hover:bg-[#dbe4ef] active:bg-[#ccd9e7]">
+													<svg
+														v-if="isEditingUsername"
+														class="h-4 w-4"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+														stroke-width="2.5"
+													>
+														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+													</svg>
+													<svg
+														v-else
+														class="h-3.5 w-3.5"
+														viewBox="0 0 19 19"
+														fill="currentColor"
+													>
+														<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
+														<path d="M11.413 2.96342L15.7358 7.2861L9.55481 13.4896C9.4634 13.5813 9.3548 13.6541 9.23522 13.7037C9.11564 13.7534 8.98744 13.779 8.85797 13.779H5.90526C5.64422 13.779 5.39388 13.6753 5.2093 13.4907C5.02472 13.3061 4.92102 13.0558 4.92102 12.7948V9.84211C4.92105 9.71264 4.94662 9.58444 4.99628 9.46487C5.04593 9.34529 5.11869 9.23669 5.21039 9.14528L11.413 2.96342ZM17.8067 0.893608C18.3495 1.43606 18.6678 2.16332 18.6979 2.93014C18.728 3.69697 18.4677 4.44693 17.9691 5.03027L17.8076 5.20743L17.1256 5.89048L12.8077 1.57272L13.4918 0.893608C14.064 0.32144 14.84 0 15.6492 0C16.4584 0 17.2345 0.32144 17.8067 0.893608Z" />
+													</svg>
+												</span>
 											</button>
 										</div>
 										<p v-if="accountErrors.username" class="mt-1 font-inter text-[11px] font-medium text-red-500">
@@ -632,35 +791,47 @@ const savePassword = () => {
 										</p>
 										<div v-if="isLoading" class="relative mt-1 h-[46px] w-full rounded-[10px] bg-slate-100 border border-[#d6e0ee] animate-pulse"></div>
 										<div v-else class="relative mt-1">
-											<input
+											<PhoneInput
 												ref="phoneInputRef"
 												v-model="formAccount.phone"
-												type="tel"
 												:readonly="isPhoneLocked"
-												:tabindex="isPhoneLocked ? -1 : 0"
+												placeholder="812-3456-7890"
+												:has-error="!!accountErrors.phone"
 												@blur="onBlurPhone"
-												@focus="isPhoneLocked && $event.target.blur()"
-												placeholder="contoh: +62 812-3456-7890"
-												:class="[
-													'custom-input h-[46px] w-full rounded-[10px] bg-transparent pl-3.5 pr-10 font-inter text-[14px] text-[#173a63] placeholder-[#a8bed4] transition-colors focus:outline-none',
-													isPhoneLocked
-														? 'border-[#d6e0ee] cursor-not-allowed select-none bg-slate-50/60'
-														: 'border-[#d6e0ee] hover:border-[#183669]'
-												]"
-											/>
-											<button
-												type="button"
-												@mousedown.prevent
-												@click="toggleEditPhone"
-												class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 transition hover:opacity-80 focus:outline-none cursor-pointer"
-												:title="isPhoneLocked ? 'Buka untuk mengedit nomor handphone' : 'Kunci input handphone'"
 											>
-												<svg class="h-4 w-4 text-[#183669]" viewBox="0 0 19 19" fill="currentColor">
-													<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
-													<path d="M11.413 2.96342L15.7358 7.2861L9.55481 13.4896C9.4634 13.5813 9.3548 13.6541 9.23522 13.7037C9.11564 13.7534 8.98744 13.779 8.85797 13.779H5.90526C5.64422 13.779 5.39388 13.6753 5.2093 13.4907C5.02472 13.3061 4.92102 13.0558 4.92102 12.7948V9.84211C4.92105 9.71264 4.94662 9.58444 4.99628 9.46487C5.04593 9.34529 5.11869 9.23669 5.21039 9.14528L11.413 2.96342ZM17.8067 0.893608C18.3495 1.43606 18.6678 2.16332 18.6979 2.93014C18.728 3.69697 18.4677 4.44693 17.9691 5.03027L17.8076 5.20743L17.1256 5.89048L12.8077 1.57272L13.4918 0.893608C14.064 0.32144 14.84 0 15.6492 0C16.4584 0 17.2345 0.32144 17.8067 0.893608Z" />
-												</svg>
+												<template v-if="hasInitialPhone || isEditingPhone" #append>
+													<button
+														type="button"
+														@mousedown.prevent
+														@click="toggleEditPhone"
+														class="flex items-center focus:outline-none cursor-pointer"
+														:title="isEditingPhone ? 'Batalkan perubahan nomor handphone' : 'Buka untuk mengedit nomor handphone'"
+													>
+														<span class="flex h-7 w-7 items-center justify-center rounded-[7px] text-[#183669] transition-colors hover:bg-[#dbe4ef] active:bg-[#ccd9e7]">
+															<svg
+																v-if="isEditingPhone"
+																class="h-4 w-4"
+																fill="none"
+																viewBox="0 0 24 24"
+																stroke="currentColor"
+																stroke-width="2.5"
+															>
+																<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+															</svg>
+															<svg
+																v-else
+																class="h-3.5 w-3.5"
+																viewBox="0 0 19 19"
+																fill="currentColor"
+															>
+																<path d="M4.92119 4.92074C4.92119 5.18177 4.81749 5.43211 4.63291 5.61669C4.44833 5.80126 4.19798 5.90496 3.93695 5.90496H2.95271C2.69168 5.90496 2.44133 6.00865 2.25675 6.19323C2.07217 6.3778 1.96847 6.62814 1.96847 6.88917V15.7471C1.96847 16.0082 2.07217 16.2585 2.25675 16.4431C2.44133 16.6277 2.69168 16.7313 2.95271 16.7313H11.8108C12.0719 16.7313 12.3222 16.6277 12.5068 16.4431C12.6914 16.2585 12.7951 16.0082 12.7951 15.7471V14.7629C12.7951 14.5019 12.8988 14.2515 13.0834 14.067C13.2679 13.8824 13.5183 13.7787 13.7793 13.7787C14.0404 13.7787 14.2907 13.8824 14.4753 14.067C14.6599 14.2515 14.7636 14.5019 14.7636 14.7629V15.7471C14.7636 16.5302 14.4525 17.2812 13.8987 17.835C13.345 18.3887 12.594 18.6998 11.8108 18.6998H2.95271C2.1696 18.6998 1.41857 18.3887 0.864829 17.835C0.311088 17.2812 0 16.5302 0 15.7471V6.88917C0 6.10608 0.311088 5.35506 0.864829 4.80134C1.41857 4.24761 2.1696 3.93652 2.95271 3.93652H3.93695C4.19798 3.93652 4.44833 4.04022 4.63291 4.22479C4.81749 4.40937 4.92119 4.65971 4.92119 4.92074Z" />
+														<path d="M11.413 2.96342L15.7358 7.2861L9.55481 13.4896C9.4634 13.5813 9.3548 13.6541 9.23522 13.7037C9.11564 13.7534 8.98744 13.779 8.85797 13.779H5.90526C5.64422 13.779 5.39388 13.6753 5.2093 13.4907C5.02472 13.3061 4.92102 13.0558 4.92102 12.7948V9.84211C4.92105 9.71264 4.94662 9.58444 4.99628 9.46487C5.04593 9.34529 5.11869 9.23669 5.21039 9.14528L11.413 2.96342ZM17.8067 0.893608C18.3495 1.43606 18.6678 2.16332 18.6979 2.93014C18.728 3.69697 18.4677 4.44693 17.9691 5.03027L17.8076 5.20743L17.1256 5.89048L12.8077 1.57272L13.4918 0.893608C14.064 0.32144 14.84 0 15.6492 0C16.4584 0 17.2345 0.32144 17.8067 0.893608Z" />
+													</svg>
+												</span>
 											</button>
-										</div>
+										</template>
+									</PhoneInput>
+								</div>
 										<p v-if="accountErrors.phone" class="mt-1 font-inter text-[11px] font-medium text-red-500">
 											{{ accountErrors.phone }}
 										</p>
@@ -671,15 +842,28 @@ const savePassword = () => {
 								<div class="flex justify-end pt-2">
 									<button
 										type="submit"
-										:disabled="isSavingAccount"
-										class="inline-flex items-center gap-2 rounded-[8px] bg-[#183669] px-6 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98] disabled:opacity-60"
+										:disabled="!isAccountChanged || isSavingAccount"
+										:class="[
+											'inline-flex items-center justify-center gap-2 rounded-[8px] px-6 py-2.5 font-poppins text-[14px] font-semibold transition duration-150',
+											!isAccountChanged || isSavingAccount
+												? 'cursor-not-allowed bg-[#f0f4f9] text-[#8c9eb5] border-[1.5px] border-[#d6e0ee] shadow-none'
+												: 'cursor-pointer bg-[#183669] text-white border-[1.5px] border-[#183669] shadow-sm hover:bg-[#122b54] hover:border-[#122b54] active:scale-[0.98]'
+										]"
+										:title="!isAccountChanged ? 'Tidak ada perubahan data untuk disimpan' : 'Simpan perubahan akun'"
 									>
 										<svg v-if="isSavingAccount" class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
 											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
 											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
 										</svg>
-										<img v-else src="/assets/icons/save.svg" alt="Save Icon" class="h-4 w-4 object-contain" />
-										<span>{{ isSavingAccount ? 'Menyimpan...' : 'Simpan' }}</span>
+										<svg
+											v-else
+											class="h-[15px] w-[15px] shrink-0 translate-y-[0.5px]"
+											viewBox="0 0 16 16"
+											fill="currentColor"
+										>
+											<path d="M13.3333 16V8.88889H2.66667V16H0.888889C0.653141 16 0.427048 15.9064 0.260349 15.7397C0.0936505 15.573 0 15.3469 0 15.1111V0.888889C0 0.653141 0.0936505 0.427048 0.260349 0.260349C0.427048 0.0936505 0.653141 0 0.888889 0H12.4444L16 3.55556V15.1111C16 15.3469 15.9064 15.573 15.7397 15.7397C15.573 15.9064 15.3469 16 15.1111 16H13.3333ZM11.5556 16H4.44444V10.6667H11.5556V16Z" />
+										</svg>
+										<span class="leading-none pt-[0.5px]">{{ isSavingAccount ? 'Menyimpan...' : 'Simpan' }}</span>
 									</button>
 								</div>
 							</form>
@@ -821,15 +1005,28 @@ const savePassword = () => {
 								<div class="flex justify-end pt-2">
 									<button
 										type="submit"
-										:disabled="isSavingPassword"
-										class="inline-flex items-center gap-2 rounded-[8px] bg-[#183669] px-6 py-2.5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98] disabled:opacity-60"
+										:disabled="!isPasswordChanged || isSavingPassword"
+										:class="[
+											'inline-flex items-center justify-center gap-2 rounded-[8px] px-6 py-2.5 font-poppins text-[14px] font-semibold transition duration-150',
+											!isPasswordChanged || isSavingPassword
+												? 'cursor-not-allowed bg-[#f0f4f9] text-[#8c9eb5] border-[1.5px] border-[#d6e0ee] shadow-none'
+												: 'cursor-pointer bg-[#183669] text-white border-[1.5px] border-[#183669] shadow-sm hover:bg-[#122b54] hover:border-[#122b54] active:scale-[0.98]'
+										]"
+										:title="!isPasswordChanged ? 'Silakan isi form password terlebih dahulu' : 'Simpan password baru'"
 									>
 										<svg v-if="isSavingPassword" class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
 											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
 											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
 										</svg>
-										<img v-else src="/assets/icons/save.svg" alt="Save Icon" class="h-4 w-4 object-contain" />
-										<span>{{ isSavingPassword ? 'Menyimpan...' : 'Simpan' }}</span>
+										<svg
+											v-else
+											class="h-[15px] w-[15px] shrink-0 translate-y-[0.5px]"
+											viewBox="0 0 16 16"
+											fill="currentColor"
+										>
+											<path d="M13.3333 16V8.88889H2.66667V16H0.888889C0.653141 16 0.427048 15.9064 0.260349 15.7397C0.0936505 15.573 0 15.3469 0 15.1111V0.888889C0 0.653141 0.0936505 0.427048 0.260349 0.260349C0.427048 0.0936505 0.653141 0 0.888889 0H12.4444L16 3.55556V15.1111C16 15.3469 15.9064 15.573 15.7397 15.7397C15.573 15.9064 15.3469 16 15.1111 16H13.3333ZM11.5556 16H4.44444V10.6667H11.5556V16Z" />
+										</svg>
+										<span class="leading-none pt-[0.5px]">{{ isSavingPassword ? 'Menyimpan...' : 'Simpan' }}</span>
 									</button>
 								</div>
 							</form>
@@ -919,17 +1116,24 @@ const savePassword = () => {
 	border-width: 1.5px !important;
 }
 
+.custom-input:not([readonly]) {
+	background-color: #ffffff !important;
+}
+
 .custom-input:not([readonly]):focus {
 	border-color: #183669 !important;
+	background-color: #ffffff !important;
 }
 
 .custom-input[readonly] {
 	border-color: #d6e0ee !important;
+	background-color: #f0f4f9 !important;
 	cursor: not-allowed !important;
 	user-select: none !important;
 }
 
 .custom-input[readonly]:focus {
 	border-color: #d6e0ee !important;
+	background-color: #f0f4f9 !important;
 }
 </style>

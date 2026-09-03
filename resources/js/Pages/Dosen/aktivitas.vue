@@ -1,6 +1,6 @@
 <script setup>
 import DosenLayout from '@/Layouts/DosenLayout.vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
@@ -10,94 +10,30 @@ import SearchBarTable from '@/Components/SearchBarTable.vue';
 import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
 
+const props = defineProps({
+	activities: {
+		type: Array,
+		default: () => [],
+	},
+	hasProfile: {
+		type: Boolean,
+		default: true,
+	},
+});
+
 const page = usePage();
-const currentLecturerName = computed(() => page.props.auth?.user?.name || 'Dr. John Doe, M.Si');
+const currentLecturerName = computed(() => page.props.auth?.user?.name || 'Dosen');
 
-// Initial Activities Data for the Lecturer
-const initialActivities = [
-	{
-		id: 5,
-		title: 'Rapat Evaluasi Akademik',
-		name: 'Rapat Evaluasi Akademik',
-		description: 'Evaluasi capaian semester ganjil dan rencana perbaikan kurikulum.',
-		role: 'Peserta',
-		startDate: '2026-01-22',
-		endDate: '2026-01-22',
-		categories: ['Lainnya'],
-		category: 'Lainnya',
-		date: '22 Januari 2026',
-		dateSort: '2026-01-22',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Diskusi yang sangat produktif untuk kemajuan departemen.',
-	},
-	{
-		id: 4,
-		title: 'Lokakarya Desa Siman',
-		name: 'Lokakarya Desa Siman',
-		description: 'Pendampingan pengelolaan UMKM desa berbasis digital.',
-		role: 'Narasumber',
-		startDate: '2026-01-21',
-		endDate: '2026-01-21',
-		categories: ['Lokakarya'],
-		category: 'Lokakarya',
-		date: '21 Januari 2026',
-		dateSort: '2026-01-21',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Pelatihan ini sangat berkesan dan bermanfaat, saya merasa berkembang setelah mengikuti kegiatan ini.',
-	},
-	{
-		id: 3,
-		title: 'Seminar Kurikulum Merdeka',
-		name: 'Seminar Kurikulum Merdeka',
-		description: 'Pemaparan strategi implementasi kurikulum adaptif di kampus.',
-		role: 'Pemateri Utama',
-		startDate: '2026-01-18',
-		endDate: '2026-01-18',
-		categories: ['Seminar'],
-		category: 'Seminar',
-		date: '18 Januari 2026',
-		dateSort: '2026-01-18',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Antusiasme peserta sangat luar biasa dalam menyerap materi.',
-	},
-	{
-		id: 2,
-		title: 'Workshop Metodologi Riset',
-		name: 'Workshop Metodologi Riset',
-		description: 'Pelatihan teknik sampling dan validasi instrumen penelitian.',
-		role: 'Fasilitator',
-		startDate: '2026-01-15',
-		endDate: '2026-01-15',
-		categories: ['Workshop'],
-		category: 'Workshop',
-		date: '15 Januari 2026',
-		dateSort: '2026-01-15',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Semoga mahasiswa dapat mengaplikasikan metode penelitian dengan tepat.',
-	},
-	{
-		id: 1,
-		title: 'Pelatihan SPSS Dasar',
-		name: 'Pelatihan SPSS Dasar',
-		description: 'Praktik olah data kuantitatif untuk tugas akhir mahasiswa.',
-		role: 'Instruktur',
-		startDate: '2026-01-12',
-		endDate: '2026-01-12',
-		categories: ['Workshop'],
-		category: 'Workshop',
-		date: '12 Januari 2026',
-		dateSort: '2026-01-12',
-		images: [],
-		imagePreviews: [],
-		lecturerQuote: 'Pemahaman statistik sangat penting dalam penyusunan tugas akhir.',
-	},
-];
+const activities = ref([...(props.activities || [])]);
 
-const activities = ref([...initialActivities]);
+watch(
+	() => props.activities,
+	(val) => {
+		activities.value = [...(val || [])];
+	},
+	{ deep: true }
+);
+
 const searchQuery = ref('');
 const selectedCategories = ref([]);
 const isFilterOpen = ref(false);
@@ -152,7 +88,7 @@ const columns = [
 	{ key: 'category', label: 'Kategori', sortable: true, align: 'left', width: 'w-[14%]' },
     { key: 'role', label: 'Peran', sortable: true, align: 'left', width: 'w-[13%]' },
 	{ key: 'description', label: 'Deskripsi', sortable: true, align: 'left', width: 'w-[26%]' },
-	{ key: 'dateSort', label: 'Tanggal', sortable: true, align: 'left', width: 'w-[14%]' },
+	{ key: 'dateSort', label: 'Tanggal Publish', sortable: true, align: 'center', width: 'w-[14%]' },
 	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
 
@@ -245,12 +181,14 @@ const isEditing = ref(false);
 const editingActivityData = ref(null);
 
 const openAddModal = () => {
+	if (!props.hasProfile) return;
 	isEditing.value = false;
 	editingActivityData.value = null;
 	isModalOpen.value = true;
 };
 
 const openEditModal = (activity) => {
+	if (!props.hasProfile) return;
 	isEditing.value = true;
 	editingActivityData.value = { ...activity };
 	isModalOpen.value = true;
@@ -261,32 +199,76 @@ const closeModal = () => {
 	editingActivityData.value = null;
 };
 
+const isSaving = ref(false);
+
 const handleSaveActivity = (formData) => {
-	if (isEditing.value && editingActivityData.value) {
-		// Update existing activity
-		const idx = activities.value.findIndex((a) => a.id === editingActivityData.value.id);
-		if (idx !== -1) {
-			activities.value[idx] = {
-				...activities.value[idx],
-				...formData,
-				name: formData.name || formData.title,
-				title: formData.name || formData.title,
-				dateSort: formData.startDate || activities.value[idx].dateSort,
-			};
-		}
-	} else {
-		// Create new activity
-		const newId = Date.now();
-		activities.value.unshift({
-			id: newId,
-			...formData,
-			name: formData.name || formData.title,
-			title: formData.name || formData.title,
-			dateSort: formData.startDate || new Date().toISOString().split('T')[0],
-		});
-		showToast('success', 'Berhasil Ditambahkan', 'Aktivitas baru berhasil disimpan.');
+	if (!props.hasProfile) {
+		showToast('error', 'Profil Belum Tersedia', 'Profil publik belum dibuat oleh Administrator. Anda belum dapat mengelola aktivitas.');
+		return;
 	}
-	closeModal();
+	isSaving.value = true;
+	const data = new FormData();
+	data.append('title', formData.title || formData.name);
+	data.append('role', formData.role);
+	data.append('description', formData.description);
+	data.append('startDate', formData.startDate);
+	if (formData.endDate) {
+		data.append('endDate', formData.endDate);
+	}
+	if (formData.lecturerQuote) {
+		data.append('lecturerQuote', formData.lecturerQuote);
+	}
+	data.append('primaryImageIndex', formData.primaryImageIndex ?? 0);
+
+	if (Array.isArray(formData.categories)) {
+		formData.categories.forEach((cat, idx) => {
+			data.append(`categories[${idx}]`, cat);
+		});
+	}
+
+	if (Array.isArray(formData.images)) {
+		let fileIndex = 0;
+		let existingIndex = 0;
+		formData.images.forEach((img) => {
+			if (img instanceof File || img instanceof Blob) {
+				data.append(`images[${fileIndex}]`, img);
+				fileIndex++;
+			} else if (typeof img === 'string') {
+				data.append(`existingImages[${existingIndex}]`, img);
+				existingIndex++;
+			}
+		});
+	}
+
+	if (isEditing.value && editingActivityData.value?.id) {
+		router.post(route('dosen.aktivitas.update', editingActivityData.value.id), data, {
+			forceFormData: true,
+			onSuccess: () => {
+				isSaving.value = false;
+				isModalOpen.value = false;
+				editingActivityData.value = null;
+				showToast('success', 'Berhasil Diperbarui', 'Data aktivitas berhasil diperbarui.');
+			},
+			onError: (err) => {
+				isSaving.value = false;
+				showToast('error', 'Gagal Memperbarui', Object.values(err)[0] || 'Terjadi kesalahan.');
+			},
+		});
+	} else {
+		router.post(route('dosen.aktivitas.store'), data, {
+			forceFormData: true,
+			onSuccess: () => {
+				isSaving.value = false;
+				isModalOpen.value = false;
+				editingActivityData.value = null;
+				showToast('success', 'Berhasil Ditambahkan', 'Aktivitas baru berhasil ditambahkan.');
+			},
+			onError: (err) => {
+				isSaving.value = false;
+				showToast('error', 'Gagal Menambahkan', Object.values(err)[0] || 'Terjadi kesalahan.');
+			},
+		});
+	}
 };
 
 // Toast State
@@ -313,19 +295,32 @@ const closeToast = () => {
 // Delete Confirmation Modal State
 const isDeleteModalOpen = ref(false);
 const deletingActivity = ref(null);
+const isDeleting = ref(false);
 
 const openDeleteModal = (activity) => {
+	if (!props.hasProfile) return;
 	deletingActivity.value = activity;
 	isDeleteModalOpen.value = true;
 };
 
 const confirmDeleteActivity = () => {
-	if (!deletingActivity.value) return;
+	if (!props.hasProfile || !deletingActivity.value) return;
 	const activity = deletingActivity.value;
-	activities.value = activities.value.filter((a) => a.id !== activity.id);
-	isDeleteModalOpen.value = false;
-	deletingActivity.value = null;
-	showToast('success', 'Berhasil Dihapus', `Aktivitas "${activity.name || activity.title}" berhasil dihapus.`);
+	isDeleting.value = true;
+	router.delete(route('dosen.aktivitas.destroy', activity.id), {
+		preserveScroll: true,
+		onSuccess: () => {
+			isDeleteModalOpen.value = false;
+			deletingActivity.value = null;
+			isDeleting.value = false;
+			showToast('success', 'Berhasil Dihapus', `Aktivitas "${activity.name || activity.title}" berhasil dihapus.`);
+		},
+		onError: (errors) => {
+			isDeleting.value = false;
+			const firstError = Object.values(errors)[0] || 'Gagal menghapus aktivitas.';
+			showToast('error', 'Gagal Menghapus', firstError);
+		},
+	});
 };
 </script>
 
@@ -347,11 +342,32 @@ const confirmDeleteActivity = () => {
 					</p>
 				</div>
 
+				<!-- Alert Banner Jika Dosen Belum Memiliki Profil Publik -->
+				<div
+					v-if="!hasProfile"
+					class="flex items-start gap-3.5 rounded-[14px] border border-blue-200 bg-blue-50/90 p-4 sm:p-5 shadow-xs"
+				>
+					<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+						</svg>
+					</div>
+					<div class="space-y-1">
+						<h3 class="font-poppins text-[15px] font-bold text-[#173a63]">
+							Profil Publik Belum Tersedia
+						</h3>
+						<p class="font-inter text-[13px] leading-relaxed text-[#4d6786]">
+							Profil Publik Anda dikelola oleh Administrator. Saat ini data profile Anda belum tersedia secara publik. Silakan <strong>hubungi Administrator</strong> untuk membuat profile publik agar dapat mengelola aktivitas anda!
+						</p>
+					</div>
+				</div>
+
 				<!-- Action Bar (Search, Filter, Tambah Button - 100% Matching aktivitasdosen.vue) -->
 				<div class="flex items-center gap-3">
 					<!-- Search Input Component -->
 					<SearchBarTable
 						v-model="searchQuery"
+						:disabled="!hasProfile"
 						placeholder="Cari nama aktivitas disini"
 					/>
 
@@ -359,21 +375,27 @@ const confirmDeleteActivity = () => {
 					<div class="relative" @click.stop @keydown.escape="isFilterOpen = false">
 						<button
 							type="button"
-							@click="toggleFilterDropdown"
-							class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition-colors focus:outline-none"
-							:class="isFilterOpen
-								? 'border-[#183669]'
-								: 'border-[#d6e0ee] hover:border-[#8ea9cb]'"
-							title="Filter Berdasarkan Kategori"
+							:disabled="!hasProfile"
+							@click="hasProfile && toggleFilterDropdown()"
+							class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent transition-colors focus:outline-none"
+							:class="[
+								!hasProfile
+									? 'cursor-not-allowed border-[#d6e0ee] bg-[#f0f4f9] text-[#8c9eb5] opacity-60'
+									: isFilterOpen
+										? 'border-[#183669] text-[#183669]'
+										: 'border-[#d6e0ee] text-[#183669] hover:border-[#8ea9cb]'
+							]"
+							:title="!hasProfile ? 'Profil publik belum dibuat oleh Administrator.' : 'Filter Berdasarkan Kategori'"
 						>
 							<img
 								src="/assets/icons/filter.svg"
 								alt="Filter Icon"
 								class="h-5 w-5 object-contain"
+								:class="{ 'opacity-40 grayscale': !hasProfile }"
 							/>
 							<!-- Red active indicator dot -->
 							<span
-								v-if="selectedCategories.length > 0"
+								v-if="hasProfile && selectedCategories.length > 0"
 								class="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#ef4444] ring-2 ring-[#eef2f7]"
 							></span>
 						</button>
@@ -438,9 +460,15 @@ const confirmDeleteActivity = () => {
 					<!-- Tambah Aktivitas Button (Icon + on Mobile, Text on Desktop) -->
 					<button
 						type="button"
-						@click="(e) => { e.currentTarget?.blur(); openAddModal(); }"
-						class="flex h-[46px] w-[46px] sm:w-auto shrink-0 items-center justify-center rounded-[10px] bg-[#183669] px-0 sm:px-7 font-poppins text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-95 focus:outline-none focus:ring-0 focus-visible:outline-none select-none"
-						title="Tambah Aktivitas"
+						:disabled="!hasProfile"
+						@click="(e) => { e.currentTarget?.blur(); if (hasProfile) openAddModal(); }"
+						:class="[
+							'flex h-[46px] w-[46px] sm:w-auto shrink-0 items-center justify-center rounded-[10px] px-0 sm:px-7 font-poppins text-[15px] font-semibold transition select-none',
+							!hasProfile
+								? 'cursor-not-allowed bg-[#f0f4f9] text-[#8c9eb5] border-[1.5px] border-[#d6e0ee] shadow-none'
+								: 'cursor-pointer bg-[#183669] text-white shadow-sm hover:bg-[#122b54] active:scale-95 focus:outline-none'
+						]"
+						:title="!hasProfile ? 'Profil publik belum dibuat oleh Administrator. Silakan hubungi Administrator terlebih dahulu.' : 'Tambah Aktivitas'"
 					>
 						<svg class="h-5 w-5 sm:hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -454,22 +482,32 @@ const confirmDeleteActivity = () => {
 				<table class="w-full min-w-[850px] table-fixed border-collapse text-sm">
 					<thead class="bg-[#183669]">
 						<tr class="h-[48px]">
-							<th class="w-[60px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white border-r border-white/15 lg:border-r-0">No</th>
+							<th
+								:class="[
+									'w-[60px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white border-r border-white/15 lg:border-r-0 select-none',
+									!hasProfile ? 'cursor-not-allowed opacity-60' : ''
+								]"
+							>
+								No
+							</th>
 							<th
 								v-for="col in columns"
 								:key="col.key"
 								:class="[
 									col.width,
 									'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0',
-									col.align === 'center'
+									col.align === 'center',
+									!hasProfile ? 'cursor-not-allowed' : ''
 								]"
 							>
 								<button
 									v-if="col.sortable"
 									type="button"
-									@click="toggleSort(col.key)"
+									:disabled="!hasProfile"
+									@click="hasProfile && toggleSort(col.key)"
 									:class="[
-										'group transition-colors hover:text-white/80 focus:outline-none max-w-full',
+										'group transition-colors focus:outline-none max-w-full',
+										hasProfile ? 'hover:text-white/80' : 'cursor-not-allowed opacity-60',
 										col.align === 'center'
 											? 'mx-auto flex items-center justify-center'
 											: 'inline-flex items-center gap-1.5 justify-start'
@@ -504,7 +542,15 @@ const confirmDeleteActivity = () => {
 										</svg>
 									</span>
 								</button>
-								<span v-else class="block truncate">{{ col.label }}</span>
+								<span
+									v-else
+									:class="[
+										'block truncate',
+										!hasProfile ? 'cursor-not-allowed opacity-60' : ''
+									]"
+								>
+									{{ col.label }}
+								</span>
 							</th>
 						</tr>
 					</thead>
@@ -531,8 +577,8 @@ const confirmDeleteActivity = () => {
 								<td class="px-4 py-2.5">
 									<div class="h-4 w-56 rounded-md bg-slate-200"></div>
 								</td>
-								<td class="px-3 py-2.5">
-									<div class="h-4 w-24 rounded-md bg-slate-200"></div>
+								<td class="px-3 py-2.5 text-center">
+									<div class="mx-auto h-4 w-24 rounded-md bg-slate-200"></div>
 								</td>
 								<td class="px-3 py-2.5 text-center">
 									<div class="flex items-center justify-center gap-2">
@@ -565,13 +611,13 @@ const confirmDeleteActivity = () => {
 								<td class="px-4 py-2.5 text-left" :title="activity.description ? activity.description.replace(/<[^>]*>/g, '') : ''">
 									<span class="block truncate">{{ activity.description ? activity.description.replace(/<[^>]*>/g, '') : '' }}</span>
 								</td>
-								<td class="px-3 py-2.5 text-left" :title="activity.date">
-									<span class="block truncate">{{ activity.date }}</span>
+								<td class="px-3 py-2.5 text-center" :title="activity.publishDate || activity.date">
+									<span class="block truncate">{{ activity.publishDate || activity.date }}</span>
 								</td>
 								<td class="px-3 py-2.5 text-center">
 									<div class="flex items-center justify-center gap-2">
-										<EditButtonTable :label="`Edit ${activity.name}`" @click="openEditModal(activity)" />
-										<DeleteButtonTable :label="`Hapus ${activity.name}`" @click="openDeleteModal(activity)" />
+										<EditButtonTable :label="`Edit ${activity.name}`" :disabled="!hasProfile" @click="openEditModal(activity)" />
+										<DeleteButtonTable :label="`Hapus ${activity.name}`" :disabled="!hasProfile" @click="openDeleteModal(activity)" />
 									</div>
 								</td>
 							</tr>
@@ -589,11 +635,12 @@ const confirmDeleteActivity = () => {
 			<TablePagination
 				v-model:currentPage="currentPage"
 				v-model:rowsPerPage="rowsPerPage"
-				:total-rows="filteredAndSortedActivities.length"
 				:total-pages="totalPages"
+				:total-items="filteredAndSortedActivities.length"
+				:disabled="!hasProfile"
 			/>
 		</div>
-		</section>
+	</section>
 
 		<!-- Modal Form Aktivitas (Dosen Version) -->
 		<ModalFormAktivitas
@@ -601,6 +648,7 @@ const confirmDeleteActivity = () => {
 			:is-editing="isEditing"
 			:initial-data="editingActivityData"
 			:lecturer-name="currentLecturerName"
+			:loading="isSaving"
 			@close="closeModal"
 			@submit="handleSaveActivity"
 		/>
@@ -610,6 +658,7 @@ const confirmDeleteActivity = () => {
 			:show="isDeleteModalOpen"
 			title="Hapus Aktivitas"
 			:item-name="deletingActivity?.name || deletingActivity?.title"
+			:loading="isDeleting"
 			@close="isDeleteModalOpen = false"
 			@confirm="confirmDeleteActivity"
 		/>
