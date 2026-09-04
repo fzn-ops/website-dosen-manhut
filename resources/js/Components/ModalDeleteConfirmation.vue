@@ -85,7 +85,7 @@ const handleBackdropMouseUp = (e) => {
 		>
 			<div
 				v-if="show"
-				class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-4"
+				class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-3 sm:p-4"
 				@mousedown="handleBackdropMouseDown"
 				@mouseup="handleBackdropMouseUp"
 			>
@@ -99,7 +99,7 @@ const handleBackdropMouseUp = (e) => {
 				>
 					<div
 						v-if="show"
-						class="relative w-full max-w-[440px] transform rounded-[18px] bg-white p-6 sm:p-7 shadow-2xl text-center font-poppins border border-[#e2e8f0]"
+						class="relative w-full max-w-[92vw] sm:max-w-[440px] transform rounded-[18px] bg-white p-5 sm:p-7 shadow-2xl text-center font-poppins border border-[#e2e8f0]"
 					>
 						<!-- Warning Icon Badge (Single clean circle) -->
 						<div class="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-[#c93b2b]">

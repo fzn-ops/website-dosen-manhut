@@ -10,9 +10,16 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	selectedCount: {
+		type: Number,
+		default: 1,
+	},
 });
 
-const ESTIMATED_TOTAL_SECONDS = 20;
+const estimatedTotalSeconds = computed(() => {
+	const count = props.selectedCount > 0 ? props.selectedCount : 1;
+	return Math.max(6, count * 4);
+});
 
 const elapsedSeconds = ref(0);
 const progress = ref(0);
@@ -37,7 +44,8 @@ const currentStatusText = computed(() => {
 
 const estimatedTimeText = computed(() => {
 	if (progress.value >= 100) return 'Selesai';
-	const remaining = Math.max(0, Math.ceil(ESTIMATED_TOTAL_SECONDS - elapsedSeconds.value));
+	const target = estimatedTotalSeconds.value;
+	const remaining = Math.max(0, Math.ceil(target - elapsedSeconds.value));
 	if (remaining > 0) {
 		return `~${remaining} detik lagi`;
 	}
@@ -59,15 +67,20 @@ const startProgress = () => {
 		}
 
 		const t = elapsedSeconds.value;
-		if (t <= 5) {
-			progress.value = Math.min(35, Math.round((t / 5) * 35));
-		} else if (t <= 12) {
-			progress.value = Math.min(70, Math.round(35 + ((t - 5) / 7) * 35));
-		} else if (t <= 18) {
-			progress.value = Math.min(88, Math.round(70 + ((t - 12) / 6) * 18));
+		const target = estimatedTotalSeconds.value;
+		const t1 = target * 0.25;
+		const t2 = target * 0.6;
+		const t3 = target * 0.88;
+
+		if (t <= t1) {
+			progress.value = Math.min(35, Math.round((t / t1) * 35));
+		} else if (t <= t2) {
+			progress.value = Math.min(70, Math.round(35 + ((t - t1) / (t2 - t1)) * 35));
+		} else if (t <= t3) {
+			progress.value = Math.min(88, Math.round(70 + ((t - t2) / (t3 - t2)) * 18));
 		} else {
 			// Inching secara perlahan mendekati 95% sampai response API tiba
-			progress.value = Math.min(95, Math.round(88 + ((t - 18) / 10) * 7));
+			progress.value = Math.min(95, Math.round(88 + ((t - t3) / (target * 0.5)) * 7));
 		}
 	}, intervalMs);
 };
@@ -92,18 +105,14 @@ watch(
 	() => props.show,
 	(val) => {
 		if (val) {
-			document.body.style.overflow = 'hidden';
 			startProgress();
 		} else {
-			document.body.style.overflow = '';
 			stopProgress();
 		}
-	},
-	{ immediate: true }
+	}
 );
 
 onBeforeUnmount(() => {
-	document.body.style.overflow = '';
 	stopProgress();
 });
 </script>
@@ -120,7 +129,7 @@ onBeforeUnmount(() => {
 		>
 			<div
 				v-if="show"
-				class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-4 select-none"
+				class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-sm p-3 sm:p-4 select-none"
 			>
 				<Transition
 					enter-active-class="ease-out duration-200"
@@ -132,7 +141,7 @@ onBeforeUnmount(() => {
 				>
 					<div
 						v-if="show"
-						class="relative w-full max-w-[440px] transform rounded-[18px] bg-white p-6 sm:p-7 shadow-2xl text-center font-poppins border border-[#e2e8f0]"
+						class="relative w-full max-w-[92vw] sm:max-w-[440px] transform rounded-[18px] bg-white p-5 sm:p-7 shadow-2xl text-center font-poppins border border-[#e2e8f0]"
 					>
 						<!-- Circle Icon dengan Spinner Luar -->
 						<div class="relative mx-auto mb-4 flex h-20 w-20 items-center justify-center">
@@ -173,23 +182,23 @@ onBeforeUnmount(() => {
 						</div>
 
 						<!-- Title -->
-						<h3 class="text-[19px] font-bold leading-snug text-[#183669]">
+						<h3 class="text-[17px] sm:text-[19px] font-bold leading-snug text-[#183669]">
 							{{ progress === 100 ? 'Sinkronisasi Selesai!' : 'Sinkronisasi Publikasi' }}
 						</h3>
 
 						<!-- Subtitle -->
-						<p class="mt-1 text-sm font-normal text-[#435b76]">
+						<p class="mt-1 text-xs sm:text-sm font-normal text-[#435b76]">
 							{{ progress === 100 ? 'Semua data publikasi berhasil diperbarui.' : 'Sedang menarik data dari Google Scholar...' }}
 						</p>
 
 						<!-- Progress Section -->
-						<div class="mt-5 mb-4">
+						<div class="mt-4 sm:mt-5 mb-4">
 							<!-- Status & Percentage Bar Header -->
 							<div class="flex items-center justify-between text-xs font-inter mb-2">
-								<span class="font-medium text-[#435b76] truncate max-w-[270px] text-left">
+								<span class="font-medium text-[#435b76] truncate max-w-[200px] sm:max-w-[270px] text-left">
 									{{ currentStatusText }}
 								</span>
-								<span class="font-bold font-mono text-[14px] text-[#183669]">
+								<span class="font-bold font-mono text-[13px] sm:text-[14px] text-[#183669]">
 									{{ progress }}%
 								</span>
 							</div>

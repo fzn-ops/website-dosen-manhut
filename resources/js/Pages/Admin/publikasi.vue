@@ -7,11 +7,17 @@ import TablePagination from '@/Components/TablePagination.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
 import SearchBarTable from '@/Components/SearchBarTable.vue';
 import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
+import ModalBulkDeletePublication from '@/Components/admin/ModalBulkDeletePublication.vue';
 import ModalSyncLoading from '@/Components/admin/ModalSyncLoading.vue';
+import ModalSelectLecturerSync from '@/Components/admin/ModalSelectLecturerSync.vue';
 import axios from 'axios'; 
 
 const props = defineProps({
     publications: {
+        type: Array,
+        default: () => [],
+    },
+    lecturers: {
         type: Array,
         default: () => [],
     },
@@ -49,12 +55,12 @@ watch(
     { immediate: true, deep: true }
 );
 
-const publications = ref([]);
+const publications = ref(Array.isArray(props.publications) ? [...props.publications] : []);
 
 watch(
     () => props.publications,
     (val) => {
-        publications.value = val && val.length > 0 ? [...val] : [];
+        publications.value = Array.isArray(val) ? [...val] : [];
     },
     { immediate: true, deep: true }
 );
@@ -73,10 +79,21 @@ const selectedYears = ref([]);
 const isFilterOpen = ref(false);
 const filterSearchQuery = ref('');
 
-// Ambil daftar tahun unik secara otomatis dari data jurnal
-const yearOptions = computed(() => {
-    const years = publications.value.map(p => p.year).filter(y => y);
-    return [...new Set(years)].sort((a, b) => b - a); // Urutkan dari tahun terbaru
+// Daftar tahun unik dari data publikasi (terurut terbaru ke terlama)
+const availableYears = computed(() => {
+    const pubList = Array.isArray(publications.value) && publications.value.length > 0
+        ? publications.value
+        : (Array.isArray(props.publications) ? props.publications : []);
+    const set = new Set();
+    pubList.forEach((p) => {
+        if (p && p.year !== null && p.year !== undefined) {
+            const y = String(p.year).trim();
+            if (y !== '' && !isNaN(Number(y))) {
+                set.add(Number(y));
+            }
+        }
+    });
+    return Array.from(set).sort((a, b) => b - a);
 });
 
 const toggleFilterDropdown = () => {
@@ -91,15 +108,19 @@ const closeAllDropdowns = () => {
 onMounted(() => document.addEventListener('click', closeAllDropdowns));
 onBeforeUnmount(() => document.removeEventListener('click', closeAllDropdowns));
 
-const lecturerFilterList = computed(() => [
-    'Semua Dosen',
-    ...props.availableProfiles.map((p) => p.name),
-]);
+const lecturerFilterList = computed(() => {
+    const rawList = Array.isArray(props.lecturers) && props.lecturers.length > 0
+        ? props.lecturers
+        : (Array.isArray(props.availableProfiles) ? props.availableProfiles : []);
+    const list = rawList.map((p) => p?.name).filter(Boolean);
+    return ['Semua Dosen', ...list];
+});
 
 const filteredLecturerFilterList = computed(() => {
-    const q = filterSearchQuery.value.toLowerCase().trim();
-    if (!q) return lecturerFilterList.value;
-    return lecturerFilterList.value.filter((lec) => lec.toLowerCase().includes(q));
+    const q = filterSearchQuery.value ? filterSearchQuery.value.toLowerCase().trim() : '';
+    const baseList = lecturerFilterList.value || [];
+    if (!q) return baseList;
+    return baseList.filter((lec) => lec && lec.toLowerCase().includes(q));
 });
 
 const setLecturerFilter = (lec) => {
@@ -108,9 +129,10 @@ const setLecturerFilter = (lec) => {
 };
 
 const toggleYearFilter = (year) => {
-    const idx = selectedYears.value.indexOf(year);
+    const yNum = Number(year);
+    const idx = selectedYears.value.indexOf(yNum);
     if (idx > -1) selectedYears.value.splice(idx, 1);
-    else selectedYears.value.push(year);
+    else selectedYears.value.push(yNum);
     currentPage.value = 1;
 };
 
@@ -121,13 +143,25 @@ const resetAllFilters = () => {
     currentPage.value = 1;
 };
 
+const resetYearFilter = () => {
+    selectedYears.value = [];
+    currentPage.value = 1;
+};
+
+const resetLecturerFilter = () => {
+    selectedLecturerFilter.value = '';
+    filterSearchQuery.value = '';
+    currentPage.value = 1;
+};
+
 // --- TABLE COLUMNS CONFIG ---
 const columns = [
-    { key: 'title', label: 'Judul Publikasi', sortable: true, align: 'left', width: 'w-[28%]' },
-    { key: 'authors', label: 'Penulis', sortable: true, align: 'left', width: 'w-[20%]' },
-    { key: 'publisher', label: 'Publisher/Jurnal', sortable: true, align: 'left', width: 'w-[17%]' },
-    { key: 'cited_by', label: 'Sitasi', sortable: true, align: 'center', width: 'w-[10%]' },
-    { key: 'year', label: 'Tahun', sortable: true, align: 'center', width: 'w-[10%]' },
+    { key: 'dosen', label: 'Dosen', sortable: true, align: 'left', width: 'w-[15%]' },
+    { key: 'title', label: 'Judul Publikasi', sortable: true, align: 'left', width: 'w-[25%]' },
+    { key: 'authors', label: 'Penulis', sortable: true, align: 'left', width: 'w-[18%]' },
+    { key: 'publisher', label: 'Publisher/Jurnal', sortable: true, align: 'left', width: 'w-[16%]' },
+    { key: 'cited_by', label: 'Sitasi', sortable: true, align: 'center', width: 'w-[8%]' },
+    { key: 'year', label: 'Tahun', sortable: true, align: 'center', width: 'w-[8%]' },
     { key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
 
@@ -145,26 +179,31 @@ const toggleSort = (key) => {
 
 // --- FILTERING & SORTING LOGIC ---
 const filteredAndSortedPublications = computed(() => {
-    let list = [...publications.value];
+    const pubList = Array.isArray(publications.value) ? publications.value : [];
+    let list = [...pubList];
 
-    // 1. Filter by Lecturer Name (Asumsi kolom relasinya ada di data backend)
+    // 1. Filter by Lecturer Name
     if (selectedLecturerFilter.value) {
-        list = list.filter((p) => p.dosen?.name === selectedLecturerFilter.value || p.lecturerName === selectedLecturerFilter.value);
+        list = list.filter(
+            (p) => (p.user?.name || p.dosen?.name || p.lecturerName) === selectedLecturerFilter.value
+        );
     }
 
     // 2. Filter by Year (Multi-select)
     if (selectedYears.value.length > 0) {
-        list = list.filter((p) => selectedYears.value.includes(p.year));
+        const selectedYearSet = new Set(selectedYears.value.map(Number));
+        list = list.filter((p) => p && p.year && selectedYearSet.has(Number(p.year)));
     }
 
-    // 3. Search Query (Judul, Author, atau Publisher)
+    // 3. Search Query (Judul, Author, Publisher, atau Dosen)
     if (searchQuery.value.trim()) {
         const q = searchQuery.value.toLowerCase().trim();
         list = list.filter(
             (p) =>
                 (p.title && p.title.toLowerCase().includes(q)) ||
                 (p.authors && p.authors.toLowerCase().includes(q)) ||
-                (p.publisher && p.publisher.toLowerCase().includes(q))
+                (p.publisher && p.publisher.toLowerCase().includes(q)) ||
+                (p.user?.name && p.user.name.toLowerCase().includes(q))
         );
     }
 
@@ -173,6 +212,11 @@ const filteredAndSortedPublications = computed(() => {
         list.sort((a, b) => {
             let valA = a[sortKey.value] ?? '';
             let valB = b[sortKey.value] ?? '';
+
+            if (sortKey.value === 'dosen') {
+                valA = a.user?.name ?? a.dosen?.name ?? '';
+                valB = b.user?.name ?? b.dosen?.name ?? '';
+            }
 
             // Handle sorting angka (Sitasi & Tahun)
             if (sortKey.value === 'cited_by' || sortKey.value === 'year') {
@@ -213,22 +257,34 @@ watch([rowsPerPage, searchQuery, selectedLecturerFilter, selectedYears], () => {
 
 
 // --- TOMBOL SINKRONISASI GOOGLE SCHOLAR ---
+const isSelectLecturerModalOpen = ref(false);
 const isSyncing = ref(false);
 const isSyncFinished = ref(false);
+const selectedSyncCount = ref(1);
 
-const syncScholar = async () => {
+const openSyncModal = () => {
+    isSelectLecturerModalOpen.value = true;
+};
+
+const handleConfirmSync = async (selectedDosenIds) => {
+    isSelectLecturerModalOpen.value = false;
+    selectedSyncCount.value = selectedDosenIds.length;
     isSyncing.value = true;
     isSyncFinished.value = false;
+
     try {
-        const response = await axios.post('/admin/publikasi/run'); 
+        const response = await axios.post('/admin/publikasi/run', {
+            dosen_ids: selectedDosenIds,
+        });
+
         // Trigger 100% state
         isSyncFinished.value = true;
         await new Promise((resolve) => setTimeout(resolve, 700));
 
         showToast('success', 'Sinkronisasi Selesai', response.data.message);
-        
+
         // Refresh data dari database setelah sukses ditarik scraper
-        router.reload({ only: ['publications'] }); 
+        router.reload({ only: ['publications', 'lecturers', 'availableProfiles'] });
     } catch (error) {
         showToast('error', 'Gagal Sinkronisasi', error.response?.data?.message || 'Terjadi kesalahan sistem.');
     } finally {
@@ -258,6 +314,7 @@ const confirmDeletePublication = () => {
         preserveScroll: true,
         onSuccess: () => {
             isDeleteModalOpen.value = false;
+            publications.value = publications.value.filter((p) => p.id !== pub.id);
             deletingPublication.value = null;
             isDeleting.value = false;
             showToast('success', 'Berhasil Dihapus', 'Data publikasi berhasil dihapus.');
@@ -269,28 +326,69 @@ const confirmDeletePublication = () => {
     });
 };
 
-const confirmTruncatePublications = async () => {
-    isTruncating.value = true;
-    
+// --- BULK DELETE LOGIC ---
+const isBulkDeleteModalOpen = ref(false);
+const isBulkDeleting = ref(false);
+
+const openBulkDeleteModal = () => {
+    isBulkDeleteModalOpen.value = true;
+};
+
+const handleConfirmBulkDelete = async ({ type, dosen_ids, years }) => {
+    isBulkDeleting.value = true;
     try {
-        const response = await axios.delete(route('admin.publikasi.destroyAll')); 
-        
-        showToast('success', 'Berhasil Dikosongkan', response.data.message);
-        isTruncateModalOpen.value = false;
-        
-        // Refresh tabel publications di layar tanpa kedip
-        router.reload({ only: ['publications'] }); 
-        
+        const response = await axios.delete(route('admin.publikasi.destroyAll'), {
+            data: { type, dosen_ids, years },
+        });
+
+        showToast('success', 'Berhasil Dihapus', response.data.message);
+        isBulkDeleteModalOpen.value = false;
+
+        // Kosongkan / filter data publikasi di layar secara real-time
+        if (type === 'all') {
+            publications.value = [];
+        } else if (type === 'lecturers') {
+            publications.value = publications.value.filter((p) => !dosen_ids.includes(p.user_id));
+        } else if (type === 'years') {
+            publications.value = publications.value.filter((p) => !years.includes(String(p.year)));
+        }
+
+        router.reload({ only: ['publications', 'lecturers', 'availableProfiles'] });
     } catch (error) {
         showToast(
-            'error',    
-            'Gagal Mengosongkan', 
+            'error',
+            'Gagal Menghapus',
             error.response?.data?.message || 'Terjadi kesalahan sistem.'
         );
     } finally {
-        isTruncating.value = false;
+        isBulkDeleting.value = false;
     }
 };
+
+// Lock background scroll when any modal is open
+const isAnyModalOpen = computed(() => {
+    return (
+        isDeleteModalOpen.value ||
+        isBulkDeleteModalOpen.value ||
+        isSyncing.value ||
+        isSelectLecturerModalOpen.value
+    );
+});
+
+watch(isAnyModalOpen, (isOpen) => {
+    if (typeof document === 'undefined') return;
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+});
+
+onBeforeUnmount(() => {
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+    }
+});
 </script>
 
 <template>
@@ -301,28 +399,30 @@ const confirmTruncatePublications = async () => {
             <div class="space-y-6">
                 <!-- Header Title & Subtitle -->
                 <div class="space-y-1.5">
-                    <h1 class="mt-1 text-[34px] font-bold leading-[1.02] tracking-[-0.03em] text-[#173a63] sm:text-[42px] lg:text-[48px]">
+                    <h1 class="mt-1 text-[28px] font-bold leading-[1.05] tracking-[-0.03em] text-[#173a63] sm:text-[38px] lg:text-[44px]">
                         Daftar Publikasi
                     </h1>
-                    <p class="mt-1.5 font-inter text-[14px] font-medium leading-tight text-[#4d6786] sm:text-[16px]">
+                    <p class="mt-1 font-inter text-[13px] font-medium leading-tight text-[#4d6786] sm:text-[15px]">
                         Lihat data publikasi dosen hasil sinkronisasi otomatis dari Google Scholar
                     </p>
                 </div>
 
-                <!-- Action Bar -->
-                <div class="flex items-center gap-3">
-                    <!-- Search Input Component -->
-                    <SearchBarTable
-                        v-model="searchQuery"
-                        placeholder="Cari judul, penulis, atau jurnal"
-                    />
+                <!-- Action Bar (Matches dosen.vue responsive pattern: icons on mobile, text on desktop) -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Search Input Component (takes remaining width) -->
+                    <div class="flex-1 min-w-0">
+                        <SearchBarTable
+                            v-model="searchQuery"
+                            placeholder="Cari judul, penulis, atau jurnal..."
+                        />
+                    </div>
 
                     <!-- Unified Filter Dropdown -->
                     <div class="relative" @click.stop @keydown.escape="isFilterOpen = false">
                         <button
                             type="button"
                             @click="toggleFilterDropdown"
-                            class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition-colors focus:outline-none"
+                            class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition-colors focus:outline-none select-none"
                             :class="isFilterOpen ? 'border-[#183669]' : 'border-[#d6e0ee] hover:border-[#8ea9cb]'"
                             title="Filter Publikasi"
                         >
@@ -333,10 +433,18 @@ const confirmTruncatePublications = async () => {
                             ></span>
                         </button>
 
-                        <div v-if="isFilterOpen" class="absolute left-0 z-30 mt-2 w-72 rounded-[10px] border border-[#d6e0ee] bg-white p-3 shadow-xl font-inter">
+                        <div v-if="isFilterOpen" class="absolute right-0 z-30 mt-2 w-72 sm:w-80 max-w-[90vw] rounded-[16px] border border-[#d6e0ee] bg-white p-4 shadow-2xl font-inter">
                             <!-- Header -->
-                            <div class="flex items-center justify-between border-b border-[#f0f4f9] pb-2">
-                                <p class="font-poppins text-xs font-bold text-[#183669]">Filter Publikasi</p>
+                            <div class="flex items-center justify-between border-b border-[#f0f4f9] pb-2.5">
+                                <div class="flex items-center gap-2">
+                                    <p class="font-poppins text-xs font-bold text-[#183669]">Filter Publikasi</p>
+                                    <span
+                                        v-if="selectedYears.length > 0 || selectedLecturerFilter !== ''"
+                                        class="rounded-full bg-blue-100 text-[#183669] text-[10px] px-2 py-0.5 font-bold"
+                                    >
+                                        {{ (selectedYears.length > 0 ? 1 : 0) + (selectedLecturerFilter ? 1 : 0) }} Aktif
+                                    </span>
+                                </div>
                                 <button
                                     v-if="selectedYears.length > 0 || selectedLecturerFilter !== ''"
                                     type="button"
@@ -347,40 +455,70 @@ const confirmTruncatePublications = async () => {
                                 </button>
                             </div>
 
-                            <!-- 1. Tahun Section -->
-                            <div class="mt-2.5">
-                                <p class="font-poppins text-[11px] font-bold text-[#183669] mb-1.5">Tahun Terbit:</p>
-                                <div class="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto pr-1">
-                                    <label
-                                        v-for="year in yearOptions"
-                                        :key="year"
-                                        class="flex cursor-pointer items-center gap-2 rounded-[6px] px-2 py-1.5 text-left font-inter text-xs transition-colors select-none"
-                                        :class="selectedYears.includes(year) ? 'bg-[#183669]/10 font-bold text-[#183669]' : 'text-[#435b76] hover:bg-slate-100'"
+                            <!-- 1. Tahun Section (Clean simple checklist, NO presets) -->
+                            <div class="mt-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="font-poppins text-[11px] font-bold text-[#183669]">Tahun Terbit</p>
+                                        <span v-if="selectedYears.length > 0" class="rounded-full bg-[#183669] text-white text-[10px] px-1.5 py-0.2 font-mono">
+                                            {{ selectedYears.length }}
+                                        </span>
+                                    </div>
+                                    <button
+                                        v-if="selectedYears.length > 0"
+                                        type="button"
+                                        @click="resetYearFilter"
+                                        class="font-inter text-[11px] font-semibold text-[#dc2626] hover:underline"
                                     >
-                                        <input
-                                            type="checkbox"
-                                            :value="year"
-                                            :checked="selectedYears.includes(year)"
-                                            @change="toggleYearFilter(year)"
-                                            class="h-3.5 w-3.5 rounded border-[#c3d1e4] text-[#183669] focus:ring-0 focus:ring-offset-0 cursor-pointer"
-                                        />
-                                        <span class="truncate">{{ year }}</span>
-                                    </label>
-                                    <div v-if="yearOptions.length === 0" class="col-span-3 text-xs text-gray-400">Tidak ada tahun terdata</div>
+                                        Reset Tahun
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-1.5 max-h-40 overflow-y-auto pr-1">
+                                    <button
+                                        v-for="year in availableYears"
+                                        :key="year"
+                                        type="button"
+                                        @click="toggleYearFilter(year)"
+                                        :class="[
+                                            'rounded-[8px] py-1.5 px-2 text-center font-inter text-xs transition-all select-none',
+                                            selectedYears.includes(year)
+                                                ? 'bg-[#183669] font-bold text-white shadow-sm ring-1 ring-[#183669]'
+                                                : 'bg-[#f4f7fb] hover:bg-slate-200 text-[#334e68] border border-[#d6e0ee]/70'
+                                        ]"
+                                    >
+                                        {{ year }}
+                                    </button>
+                                    <div v-if="availableYears.length === 0" class="col-span-3 py-3 text-center text-xs text-gray-400">
+                                        Tidak ada data tahun
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="my-2.5 border-t border-[#f0f4f9]"></div>
+                            <div class="my-3 border-t border-[#f0f4f9]"></div>
 
                             <!-- 2. Dosen Section -->
                             <div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <p class="font-poppins text-[11px] font-bold text-[#183669]">Dosen:</p>
-                                    <span v-if="selectedLecturerFilter" class="text-[11px] text-[#183669] font-medium truncate max-w-[130px]">{{ selectedLecturerFilter }}</span>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="font-poppins text-[11px] font-bold text-[#183669]">Dosen</p>
+                                        <span v-if="selectedLecturerFilter" class="text-[11px] text-[#183669] font-semibold truncate max-w-[110px]">
+                                            : {{ selectedLecturerFilter }}
+                                        </span>
+                                    </div>
+                                    <button
+                                        v-if="selectedLecturerFilter !== ''"
+                                        type="button"
+                                        @click="resetLecturerFilter"
+                                        class="font-inter text-[11px] font-semibold text-[#dc2626] hover:underline"
+                                    >
+                                        Reset Dosen
+                                    </button>
                                 </div>
-                                <div class="relative mb-1.5">
-                                    <div class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center">
-                                        <svg class="h-3.5 w-3.5 text-[#8ca1b9]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+
+                                <div class="group relative mb-2">
+                                    <div class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-[#8ca1b9] transition-colors group-hover:text-[#183669] group-focus-within:text-[#183669]">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                                         </svg>
                                     </div>
@@ -388,10 +526,11 @@ const confirmTruncatePublications = async () => {
                                         v-model="filterSearchQuery"
                                         type="text"
                                         placeholder="Cari nama dosen..."
-                                        class="h-[32px] w-full rounded-[6px] border border-[#d6e0ee] bg-[#fafcff] pl-7 pr-2.5 text-xs text-[#1e3456] placeholder-[#8ca1b9] focus:border-[#183669] focus:outline-none focus:ring-0"
+                                        class="h-[34px] w-full rounded-[8px] border-2 border-[#d6e0ee] bg-transparent pl-8 pr-2.5 text-xs text-[#1e3456] placeholder-[#8ca1b9] transition-colors hover:border-[#8ea9cb] focus:border-[#183669] focus:outline-none focus:ring-0"
                                         @click.stop
                                     />
                                 </div>
+
                                 <div class="max-h-36 overflow-y-auto space-y-0.5 pr-0.5">
                                     <button
                                         v-for="lec in filteredLecturerFilterList"
@@ -405,41 +544,43 @@ const confirmTruncatePublications = async () => {
                                     >
                                         {{ lec }}
                                     </button>
-                                    <div v-if="filteredLecturerFilterList.length === 0" class="py-2 text-center text-xs text-[#8ca1b9]">Tidak ada dosen yang cocok</div>
+                                    <div v-if="filteredLecturerFilterList.length === 0" class="py-2 text-center text-xs text-[#8ca1b9]">
+                                        Tidak ada dosen yang cocok
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Tombol Kosongkan Semua Publikasi -->
+                    <!-- Tombol Hapus (Square Icon on Mobile, Text on Desktop) -->
                     <button
                         type="button"
-                        @click="isTruncateModalOpen = true"
-                        class="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-[10px] bg-red-500 px-4 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-red-700 active:scale-95 focus:outline-none"
-                        title="Kosongkan Seluruh Data Publikasi"
+                        @click="openBulkDeleteModal"
+                        class="flex h-[46px] w-[46px] sm:w-auto shrink-0 items-center justify-center gap-2 rounded-[10px] bg-red-600 px-0 sm:px-4 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-red-700 active:scale-95 focus:outline-none select-none"
+                        title="Hapus Data Publikasi"
                     >
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                         </svg>
-                        <span class="whitespace-nowrap">Kosongkan Data</span>
+                        <span class="hidden sm:inline">Hapus Banyak</span>
                     </button>
 
-                    <!-- Tombol Sinkronisasi -->
+                    <!-- Tombol Sinkronisasi (Square Icon on Mobile, Text on Desktop) -->
                     <button
                         type="button"
-                        @click="syncScholar"
+                        @click="openSyncModal"
                         :disabled="isSyncing"
-                        class="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-[10px] bg-[#1a3675] px-5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none"
+                        class="flex h-[46px] w-[46px] sm:w-auto shrink-0 items-center justify-center gap-2 rounded-[10px] bg-[#1a3675] px-0 sm:px-5 font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none select-none"
                         title="Tarik Data dari Google Scholar"
                     >
                         <svg v-if="isSyncing" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg v-else class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
-                        <span class="whitespace-nowrap">{{ isSyncing ? 'Menyinkronkan...' : 'Sinkron Google Scholar' }}</span>
+                        <span class="hidden sm:inline">{{ isSyncing ? 'Menyinkronkan...' : 'Sinkron Google Scholar' }}</span>
                     </button>
                 </div>
 
@@ -479,6 +620,7 @@ const confirmTruncatePublications = async () => {
                             <template v-if="isLoading">
                                 <tr v-for="n in 6" :key="`skeleton-pub-${n}`" class="h-[52px] animate-pulse bg-white">
                                     <td class="px-3 py-2.5 text-center"><div class="mx-auto h-4 w-5 rounded-md bg-slate-200"></div></td>
+                                    <td class="px-3 py-2.5"><div class="h-4 w-28 rounded-md bg-slate-200"></div></td>
                                     <td class="px-3 py-2.5"><div class="h-4 w-48 rounded-md bg-slate-200"></div></td>
                                     <td class="px-3 py-2.5"><div class="h-4 w-36 rounded-md bg-slate-200"></div></td>
                                     <td class="px-3 py-2.5"><div class="h-4 w-32 rounded-md bg-slate-200"></div></td>
@@ -491,14 +633,17 @@ const confirmTruncatePublications = async () => {
                             <template v-else>
                                 <tr v-for="(pub, idx) in paginatedPublications" :key="pub.id" class="h-[52px] transition-colors hover:bg-[#f7f9fd]">
                                     <td class="px-3 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
+                                    <td class="px-3 py-2.5 text-left font-semibold text-[#183669]" :title="pub.user?.name">
+                                        <span class="block truncate max-w-[160px]">{{ pub.user?.name || '-' }}</span>
+                                    </td>
                                     <td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="pub.title">
-                                        <span class="block truncate max-w-[280px]">{{ pub.title }}</span>
+                                        <span class="block truncate max-w-[260px]">{{ pub.title }}</span>
                                     </td>
                                     <td class="px-3 py-2.5 text-left" :title="pub.authors">
-                                        <span class="block truncate max-w-[200px]">{{ pub.authors || '-' }}</span>
+                                        <span class="block truncate max-w-[180px]">{{ pub.authors || '-' }}</span>
                                     </td>
                                     <td class="px-3 py-2.5 text-left" :title="pub.publisher">
-                                        <span class="block truncate max-w-[170px]">{{ pub.publisher || '-' }}</span>
+                                        <span class="block truncate max-w-[160px]">{{ pub.publisher || '-' }}</span>
                                     </td>
                                     <td class="px-3 py-2.5 text-center">
                                         <span class="inline-flex items-center justify-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">
@@ -512,7 +657,7 @@ const confirmTruncatePublications = async () => {
                                     </td>
                                 </tr>
                                 <tr v-if="filteredAndSortedPublications.length === 0">
-                                    <td colspan="7" class="py-8 text-center text-[#7890a8]">
+                                    <td colspan="8" class="py-8 text-center text-[#7890a8]">
                                         Tidak ada data publikasi yang sesuai filter atau pencarian.
                                     </td>
                                 </tr>
@@ -541,20 +686,30 @@ const confirmTruncatePublications = async () => {
             @confirm="confirmDeletePublication" 
         />
 
-        <!-- MODAL 2: Kosongkan Semua (Truncate) -->
-        <ModalDeleteConfirmation
-            :show="isTruncateModalOpen"
-            title="Peringatan Bahaya!"
-            item-name="SELURUH DATA PUBLIKASI (Tindakan ini permanen!)"
-            :loading="isTruncating"
-            @close="isTruncateModalOpen = false"
-            @confirm="confirmTruncatePublications" 
+        <!-- MODAL 2: Hapus Massal (Dosen, Tahun, Semua) -->
+        <ModalBulkDeletePublication
+            :show="isBulkDeleteModalOpen"
+            :lecturers="props.lecturers"
+            :publications="publications"
+            :loading="isBulkDeleting"
+            @close="isBulkDeleteModalOpen = false"
+            @confirm="handleConfirmBulkDelete"
         />
 
         <!-- MODAL 3: Loading Scraping Google Scholar -->
         <ModalSyncLoading
             :show="isSyncing"
             :finished="isSyncFinished"
+            :selected-count="selectedSyncCount"
+        />
+
+        <!-- MODAL 4: Pilih Dosen untuk Sinkronisasi -->
+        <ModalSelectLecturerSync
+            :show="isSelectLecturerModalOpen"
+            :lecturers="props.lecturers"
+            :publications="publications"
+            @close="isSelectLecturerModalOpen = false"
+            @confirm="handleConfirmSync"
         />
 
         <ToastNotification

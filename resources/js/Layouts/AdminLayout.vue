@@ -59,21 +59,13 @@ const sidebarCollapsed = computed(() => !showingSidebar.value);
 let modalObserver = null;
 let removeRouterListener = null;
 
-const checkHasOpenModal = () => {
-    if (typeof document === 'undefined') return false;
-    const overlays = document.querySelectorAll('.fixed.inset-0');
-    return overlays.length > 0;
-};
-
 const updateBodyScrollLock = () => {
     if (typeof document === 'undefined') return;
-    const shouldLock = checkHasOpenModal() || showLogoutModal.value || (isMobile.value && showingSidebar.value);
+    const shouldLock = showLogoutModal.value || (isMobile.value && showingSidebar.value);
     if (shouldLock) {
         document.body.classList.add('overflow-hidden');
-        document.documentElement.classList.add('overflow-hidden');
     } else {
         document.body.classList.remove('overflow-hidden');
-        document.documentElement.classList.remove('overflow-hidden');
     }
 };
 
@@ -83,31 +75,19 @@ onMounted(() => {
 	updateViewport();
 	window.addEventListener('resize', updateViewport);
 
-    // Observe body for teleported modals to lock/unlock background scroll
-    modalObserver = new MutationObserver(() => {
-        updateBodyScrollLock();
-    });
-    modalObserver.observe(document.body, { childList: true, subtree: true });
-
     // Clean up scroll lock on Inertia navigation
     removeRouterListener = router.on('navigate', () => {
         document.body.classList.remove('overflow-hidden');
-        document.documentElement.classList.remove('overflow-hidden');
     });
 });
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', updateViewport);
-    if (modalObserver) {
-        modalObserver.disconnect();
-        modalObserver = null;
-    }
     if (removeRouterListener) {
         removeRouterListener();
         removeRouterListener = null;
     }
 	document.body.classList.remove('overflow-hidden');
-    document.documentElement.classList.remove('overflow-hidden');
 });
 </script>
 

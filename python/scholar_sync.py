@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import mysql.connector
 from datetime import datetime
+import sys
 from urllib.parse import urlparse, parse_qs
 
 # Koneksi ke database Laravel
@@ -13,6 +14,8 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor(dictionary=True)
 
+user_ids_arg = sys.argv[1] if len(sys.argv) > 1 else None
+
 query = """
     SELECT u.id, dp.scholar_link 
     FROM users u
@@ -21,6 +24,12 @@ query = """
     AND dp.scholar_link IS NOT NULL 
     AND dp.scholar_link != ''
 """
+
+if user_ids_arg and user_ids_arg != 'all':
+    valid_ids = [str(int(x.strip())) for x in user_ids_arg.split(',') if x.strip().isdigit()]
+    if valid_ids:
+        query += f" AND u.id IN ({','.join(valid_ids)})"
+
 cursor.execute(query)
 dosen_list = cursor.fetchall()
 
