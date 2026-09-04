@@ -14,6 +14,10 @@ defineProps({
 
 const showPassword = ref(false);
 
+// State untuk membolak-balik form
+const isForgotPassword = ref(false);
+
+// --- FORM LOGIN ---
 const form = useForm({
     username: '',
     password: '',
@@ -29,10 +33,25 @@ const submit = () => {
 const togglePassword = () => {
     showPassword.value = !showPassword.value;
 };
+
+// --- FORM LUPA PASSWORD ---
+const formReset = useForm({
+    email: '',
+});
+
+const submitResetPassword = () => {
+    formReset.post(route('password.email'), {
+        onSuccess: () => {
+            isForgotPassword.value = false;
+            formReset.reset();
+            // Pesan sukses akan otomatis masuk ke variabel 'status' bawaan Laravel
+        },
+    });
+};
 </script>
 
 <template>
-    <Head title="Log in | DosenManhut" />
+    <Head :title="isForgotPassword ? 'Lupa Password | DosenManhut' : 'Log in | DosenManhut'" />
 
     <!-- Background Utama Full Screen -->
     <div class="min-h-screen bg-[#1a3675] relative overflow-hidden flex items-center justify-center font-sans">
@@ -52,17 +71,24 @@ const togglePassword = () => {
         </svg>
 
         <!-- KARTU LOGIN (FORM) -->
-        <div class="bg-[#fafafc] w-[90%] max-w-[420px] rounded-3xl p-8 md:p-10 z-10 shadow-2xl relative">
+        <div class="bg-[#fafafc] w-[90%] max-w-[420px] rounded-3xl p-8 md:p-10 z-10 shadow-2xl relative transition-all duration-300">
             
             <h2 class="text-2xl md:text-3xl font-bold text-[#1a3675] text-center mb-8 font-poppins">
-                Login DosenManhut
+                {{ isForgotPassword ? 'Lupa Password' : 'Login DosenManhut' }}
             </h2>
 
-            <div v-if="status" class="mb-4 text-sm font-medium text-green-600 text-center">
+            <p v-if="isForgotPassword" class="text-center text-sm font-medium text-gray-500 mb-6 -mt-4">
+                Masukkan email Anda untuk menerima tautan reset password.
+            </p>
+
+            <div v-if="status && !isForgotPassword" class="mb-4 text-sm font-medium text-green-600 text-center bg-green-50 p-2 rounded-lg">
                 {{ status }}
             </div>
 
-            <form @submit.prevent="submit" class="flex flex-col gap-6">
+            <!-- ============================== -->
+            <!-- TAMPILAN 1: FORM LOGIN         -->
+            <!-- ============================== -->
+            <form v-if="!isForgotPassword" @submit.prevent="submit" class="flex flex-col gap-6">
                 
                 <!-- Input USERNAME -->
                 <div>
@@ -81,15 +107,13 @@ const togglePassword = () => {
                             autocomplete="username"
                         >
                     </div>
-                    <!-- Error dikaitkan ke form.errors.username -->
                     <InputError class="mt-2" :message="form.errors.username" />
                 </div>
 
                 <!-- Input Password -->
                 <div>
                     <div class="relative flex items-center border-b-[1.5px] border-gray-400 focus-within:border-[#1a3675] pb-2 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#1a3675] mr-3" viewBox="0 0 24 24" fill="none" stroke="#17334F " stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4">
-                        </path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#1a3675] mr-3" viewBox="0 0 24 24" fill="none" stroke="#17334F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                         <input 
                             id="password"
                             :type="showPassword ? 'text' : 'password'" 
@@ -123,13 +147,15 @@ const togglePassword = () => {
                         <span class="group-hover:text-blue-800 transition-colors">Remember me</span>
                     </label>
                     
-                    <Link 
+                    <!-- Pemicu Halaman Lupa Password -->
+                    <button 
                         v-if="canResetPassword" 
-                        :href="route('password.request')" 
-                        class="hover:text-blue-800 hover:underline transition-all"
+                        type="button"
+                        @click="isForgotPassword = true" 
+                        class="hover:text-blue-800 hover:underline transition-all bg-transparent border-none p-0 cursor-pointer"
                     >
                         Lupa Password?
-                    </Link>
+                    </button>
                 </div>
 
                 <!-- Tombol Login -->
@@ -142,6 +168,51 @@ const togglePassword = () => {
                     Login
                 </button>
             </form>
+
+            <!-- ============================== -->
+            <!-- TAMPILAN 2: FORM LUPA PASSWORD -->
+            <!-- ============================== -->
+            <form v-else @submit.prevent="submitResetPassword" class="flex flex-col gap-6">
+                <!-- Input Email -->
+                <div>
+                    <div class="relative flex items-center border-b-[1.5px] border-gray-400 focus-within:border-[#1a3675] pb-2 transition-colors">
+                        <!-- Icon Email -->
+                        <svg class="w-5 h-5 text-[#1a3675] mr-3" fill="none" stroke="#17334F" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        <input 
+                            id="reset_email"
+                            type="email" 
+                            v-model="formReset.email" 
+                            placeholder="Email yang terdaftar" 
+                            class="w-full bg-transparent outline-none border-none ring-0 focus:ring-0 text-gray-700 placeholder-gray-400 text-sm font-medium p-0"
+                            required
+                            autofocus
+                        >
+                    </div>
+                    <InputError class="mt-2" :message="formReset.errors.email" />
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="flex flex-col-reverse gap-3 md:flex-row mt-2">
+                    <button 
+                        type="button" 
+                        @click="isForgotPassword = false"
+                        class="w-full bg-gray-100 hover:bg-gray-200 text-[#1a3675] font-bold py-3 md:py-3.5 rounded-full transition-all active:scale-95 border border-gray-300"
+                    >
+                        Batal
+                    </button>
+                    <button 
+                        type="submit" 
+                        :disabled="formReset.processing"
+                        class="w-full bg-[#1a3675] hover:bg-blue-900 text-white font-bold py-3 md:py-3.5 rounded-full transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(26,54,117,0.39)]"
+                        :class="{ 'opacity-50 cursor-not-allowed': formReset.processing }"
+                    >
+                        Kirim Tautan
+                    </button>
+                </div>
+            </form>
+
         </div>
     </div>
 </template>

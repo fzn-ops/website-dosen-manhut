@@ -40,6 +40,9 @@ Route::get('/login', function () {
     ]);
 });
 
+/* Route Reset Password */
+
+
 /* Admin Panel Routes (Inertia Vue) */
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
