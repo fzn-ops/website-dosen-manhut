@@ -4,7 +4,7 @@ use App\Http\Controllers\Dashboard\Admin\AktivitasDosenController;
 use App\Http\Controllers\Dashboard\Admin\DashboardController;
 use App\Http\Controllers\Dashboard\Admin\DosenController;
 use App\Http\Controllers\Dashboard\Admin\ProfileDosenController;
-use App\Http\Controllers\Dashboard\Admin\ScholarController;
+use App\Http\Controllers\Dashboard\Admin\PublikasiController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -64,11 +64,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/aktivitas/{id}', [AktivitasDosenController::class, 'update'])->name('admin.aktivitasdosen.update');
     Route::delete('/aktivitas/{id}', [AktivitasDosenController::class, 'destroy'])->name('admin.aktivitasdosen.destroy');
     
-    // Scholar Sync Route
-    Route::get('/scholar', [ScholarController::class, 'index'])->name('admin.scholar');
-    Route::post('/scholar/run', [ScholarController::class, 'runScraper'])->name('admin.scholar.sync');
-    Route::delete('/admin/scholar/delete-all', [ScholarController::class, 'destroyAllPublications'])->name('admin.scholar.destroyAll');
-    Route::delete('/admin/scholar/{id}', [ScholarController::class, 'destroy'])->name('admin.scholar.destroy');
+    // Publikasi Routes
+    Route::get('/publikasi', [PublikasiController::class, 'index'])->name('admin.publikasi');
+    Route::post('/publikasi/run', [PublikasiController::class, 'runScraper'])->name('admin.publikasi.sync');
+    Route::delete('/publikasi/delete-all', [PublikasiController::class, 'destroyAllPublications'])->name('admin.publikasi.destroyAll');
+    Route::delete('/publikasi/{id}', [PublikasiController::class, 'destroyPublication'])->name('admin.publikasi.destroy');
 });
 
 

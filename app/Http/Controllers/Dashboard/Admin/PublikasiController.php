@@ -8,7 +8,7 @@ use App\Http\Service\PublicationService;
 use Illuminate\Support\Facades\Process;
 use Inertia\Inertia;
 
-class ScholarController extends Controller
+class PublikasiController extends Controller
 {
     protected PublicationService $publicationService;
 
@@ -19,7 +19,7 @@ class ScholarController extends Controller
 
     public function index()
     {
-        return Inertia::render('Admin/scholar', [
+        return Inertia::render('Admin/publikasi', [
             'publications'=> $this->publicationService->getAllPublications(),
         ]);
     }
@@ -42,7 +42,8 @@ class ScholarController extends Controller
 
     public function destroyPublication($id)
     {
-        $deleted = $this->publicationService->destroyPublication($id);
+        $this->publicationService->destroyPublication((int) $id);
+        return redirect()->back()->with('success', 'Data publikasi berhasil dihapus.');
     }
 
     public function destroyAllPublications()

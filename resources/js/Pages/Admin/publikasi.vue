@@ -7,6 +7,7 @@ import TablePagination from '@/Components/TablePagination.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
 import SearchBarTable from '@/Components/SearchBarTable.vue';
 import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
+import ModalSyncLoading from '@/Components/admin/ModalSyncLoading.vue';
 import axios from 'axios'; 
 
 const props = defineProps({
@@ -213,11 +214,17 @@ watch([rowsPerPage, searchQuery, selectedLecturerFilter, selectedYears], () => {
 
 // --- TOMBOL SINKRONISASI GOOGLE SCHOLAR ---
 const isSyncing = ref(false);
+const isSyncFinished = ref(false);
 
 const syncScholar = async () => {
     isSyncing.value = true;
+    isSyncFinished.value = false;
     try {
-        const response = await axios.post('/admin/scholar/run'); 
+        const response = await axios.post('/admin/publikasi/run'); 
+        // Trigger 100% state
+        isSyncFinished.value = true;
+        await new Promise((resolve) => setTimeout(resolve, 700));
+
         showToast('success', 'Sinkronisasi Selesai', response.data.message);
         
         // Refresh data dari database setelah sukses ditarik scraper
@@ -226,6 +233,7 @@ const syncScholar = async () => {
         showToast('error', 'Gagal Sinkronisasi', error.response?.data?.message || 'Terjadi kesalahan sistem.');
     } finally {
         isSyncing.value = false;
+        isSyncFinished.value = false;
     }
 };
 
@@ -246,7 +254,7 @@ const confirmDeletePublication = () => {
     if (!deletingPublication.value) return;
     const pub = deletingPublication.value;
     isDeleting.value = true;
-    router.delete(route('admin.scholar.destroy', pub.id), {
+    router.delete(route('admin.publikasi.destroy', pub.id), {
         preserveScroll: true,
         onSuccess: () => {
             isDeleteModalOpen.value = false;
@@ -265,7 +273,7 @@ const confirmTruncatePublications = async () => {
     isTruncating.value = true;
     
     try {
-        const response = await axios.delete(route('admin.scholar.destroyAll')); 
+        const response = await axios.delete(route('admin.publikasi.destroyAll')); 
         
         showToast('success', 'Berhasil Dikosongkan', response.data.message);
         isTruncateModalOpen.value = false;
@@ -541,6 +549,12 @@ const confirmTruncatePublications = async () => {
             :loading="isTruncating"
             @close="isTruncateModalOpen = false"
             @confirm="confirmTruncatePublications" 
+        />
+
+        <!-- MODAL 3: Loading Scraping Google Scholar -->
+        <ModalSyncLoading
+            :show="isSyncing"
+            :finished="isSyncFinished"
         />
 
         <ToastNotification

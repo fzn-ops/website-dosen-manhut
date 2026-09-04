@@ -19,7 +19,7 @@ const menuItems = [
 	{ label: 'Daftar Dosen', href: '/admin/dosen', pattern: 'admin.dosen*', icon: 'teacher' },
 	{ label: 'Profile Dosen', href: '/admin/profile-dosen', pattern: 'admin.profiledosen*', icon: 'teacher-profile' },
 	{ label: 'Aktivitas', href: '/admin/aktivitas', pattern: 'admin.aktivitasdosen*', icon: 'activity' },
-	{ label: 'Scholar Sync', href: '/admin/scholar', pattern: 'admin.scholar*', icon: 'scholar' },
+	{ label: 'Publikasi', href: '/admin/publikasi', pattern: 'admin.publikasi*', icon: 'book' },
 ];
 
 const isActive = (item) => {
