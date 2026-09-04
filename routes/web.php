@@ -87,9 +87,7 @@ Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->group(function () {
 
     // Rute yang Dilindungi (Wajib ganti password default terlebih dahulu)
     Route::middleware('dosen.password_changed')->group(function () {
-        Route::get('/dashboard', function () {
-            return Inertia::render('Dosen/dashboard');
-        })->name('dosen.dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\Dashboard\Dosen\DosenDashboardController::class, 'index'])->name('dosen.dashboard');
 
         Route::get('/aktivitas', [\App\Http\Controllers\Dashboard\Dosen\DosenAktivitasController::class, 'index'])->name('dosen.aktivitas');
         Route::post('/aktivitas', [\App\Http\Controllers\Dashboard\Dosen\DosenAktivitasController::class, 'store'])->name('dosen.aktivitas.store');
