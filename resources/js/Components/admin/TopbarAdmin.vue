@@ -27,7 +27,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeAccountMenu));
 </script>
 
 <template>
-	<header class="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-[#e2e8f0] bg-[#f8fafc] px-4 sm:px-8">
+	<header class="shrink-0 z-20 flex h-[70px] items-center justify-between border-b border-[#e2e8f0] bg-[#f8fafc] px-4 sm:px-8">
 		<!-- Hamburger Toggle Button -->
 		<button
 			type="button"

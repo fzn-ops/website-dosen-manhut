@@ -62,13 +62,13 @@ let rafId = null;
 
 const checkHasOpenModal = () => {
     if (typeof document === 'undefined') return false;
-    const modals = document.querySelectorAll('.fixed.inset-0.z-50, .fixed.inset-0.z-40');
+    const modals = document.querySelectorAll('.fixed.inset-0.z-50, .fixed.inset-0.z-\\[60\\], .fixed.inset-0.z-\\[100\\], [role="dialog"]');
     return modals.length > 0;
 };
 
 const updateModalScrollLock = () => {
     if (typeof document === 'undefined') return;
-    const shouldLock = showLogoutModal.value || checkHasOpenModal();
+    const shouldLock = showLogoutModal.value || checkHasOpenModal() || (isMobile.value && showingSidebar.value);
     if (mainContentRef.value) {
         if (shouldLock) {
             mainContentRef.value.style.overflowY = 'hidden';
@@ -83,7 +83,7 @@ const scheduleModalCheck = () => {
     rafId = requestAnimationFrame(updateModalScrollLock);
 };
 
-watch(showLogoutModal, scheduleModalCheck);
+watch([showLogoutModal, showingSidebar], scheduleModalCheck);
 
 onMounted(() => {
 	updateViewport();
@@ -120,13 +120,22 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="flex h-screen h-[100dvh] w-full overflow-hidden bg-[#eef2f7]">
-        <!-- Mobile Backdrop Overlay (Click to close) -->
-        <div
-            v-if="isMobile && showingSidebar"
-            class="fixed inset-0 z-30 bg-[#102653]/20 transition-opacity"
-            aria-hidden="true"
-            @click="showingSidebar = false"
-        ></div>
+        <!-- Mobile Backdrop Overlay (Covers Topbar & Content, click to close) -->
+        <Transition
+            enter-active-class="ease-out duration-300"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="ease-in duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isMobile && showingSidebar"
+                class="fixed inset-0 z-40 bg-[#102653]/35 backdrop-blur-xs cursor-pointer"
+                aria-hidden="true"
+                @click="showingSidebar = false"
+            ></div>
+        </Transition>
 
         <SidebarDosen
             :collapsed="sidebarCollapsed"

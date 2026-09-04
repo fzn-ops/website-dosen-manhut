@@ -94,12 +94,12 @@ const setDivisionFilter = (div) => {
 	currentPage.value = 1;
 };
 
-// Table Columns Config (Tanpa kolom Pendidikan)
+// Table Columns Config (Lebar dan gap kolom dibuat seragam dan proporsional)
 const columns = [
-	{ key: 'name', label: 'Nama Dosen', sortable: true, align: 'left', width: 'w-[26%]' },
-	{ key: 'division', label: 'Divisi', sortable: true, align: 'left', width: 'w-[20%]' },
-	{ key: 'research', label: 'Ketertarikan', sortable: true, align: 'left', width: 'w-[26%]' },
-	{ key: 'contact', label: 'Kontak', sortable: true, align: 'left', width: 'w-[18%]' },
+	{ key: 'name', label: 'Nama Dosen', sortable: true, align: 'left', width: 'w-[23%]' },
+	{ key: 'division', label: 'Divisi', sortable: true, align: 'left', width: 'w-[21.5%]' },
+	{ key: 'research', label: 'Ketertarikan', sortable: true, align: 'left', width: 'w-[21.5%]' },
+	{ key: 'contact', label: 'Kontak', sortable: true, align: 'left', width: 'w-[21.5%]' },
 	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
 
@@ -122,8 +122,9 @@ const toggleSort = (key) => {
 		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
 	} else {
 		sortKey.value = key;
-		sortDirection.value = 'asc';
+		sortDirection.value = key === 'id' ? 'desc' : 'asc';
 	}
+	currentPage.value = 1;
 };
 
 // Filtered and Sorted Profiles
@@ -142,7 +143,13 @@ const filteredAndSortedProfiles = computed(() => {
 	}
 
 	// Sorting
-	if (sortKey.value) {
+	if (sortKey.value === 'id') {
+		list.sort((a, b) => {
+			const idA = Number(a.id) || 0;
+			const idB = Number(b.id) || 0;
+			return sortDirection.value === 'asc' ? idA - idB : idB - idA;
+		});
+	} else if (sortKey.value) {
 		list.sort((a, b) => {
 			const valA = (a[sortKey.value] ?? '').toString().toLowerCase();
 			const valB = (b[sortKey.value] ?? '').toString().toLowerCase();
@@ -389,13 +396,43 @@ const confirmDeleteProfile = () => {
 					<table class="w-full min-w-[900px] table-fixed border-collapse text-sm">
 						<thead class="bg-[#183669]">
 							<tr class="h-[48px]">
-								<th class="w-[50px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white border-r border-white/15 lg:border-r-0">No</th>
+								<th class="w-[4%] min-w-[52px] px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 lg:border-r-0">
+									<button
+										type="button"
+										@click="toggleSort('id')"
+										class="group relative inline-flex items-center justify-center mx-auto transition-colors hover:text-white/80 focus:outline-none"
+										title="Urutkan No"
+									>
+										<span>No</span>
+										<span class="absolute left-full ml-1 top-1/2 -translate-y-1/2 inline-flex items-center">
+											<svg
+												v-if="sortKey === 'id'"
+												:class="[
+													'h-3.5 w-3.5 text-white transition-transform duration-200',
+													sortDirection === 'asc' ? 'rotate-180' : ''
+												]"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+											</svg>
+											<svg
+												v-else
+												class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+											</svg>
+										</span>
+									</button>
+								</th>
 								<th
 									v-for="col in columns"
 									:key="col.key"
 									:class="[
 										col.width,
-										'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0',
+										'px-3.5 py-2.5 font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0',
 										col.align === 'center'
 									]"
 								>
@@ -409,6 +446,7 @@ const confirmDeleteProfile = () => {
 												? 'mx-auto flex items-center justify-center'
 												: 'inline-flex items-center gap-1.5 justify-start'
 										]"
+										:title="`Urutkan ${col.label}`"
 									>
 										<!-- Balanced spacer for center-aligned columns so text is optically centered and arrow never overflows cell -->
 										<span
@@ -421,7 +459,7 @@ const confirmDeleteProfile = () => {
 											<svg
 												v-if="sortKey === col.key"
 												:class="[
-													'h-3.5 w-3.5 transition-transform duration-200',
+													'h-3.5 w-3.5 text-white transition-transform duration-200',
 													sortDirection === 'asc' ? 'rotate-180' : ''
 												]"
 												viewBox="0 0 20 20"
@@ -451,22 +489,22 @@ const confirmDeleteProfile = () => {
 									:key="`skeleton-profile-${n}`"
 									class="h-[52px] animate-pulse bg-white"
 								>
-									<td class="px-3 py-2.5 text-center">
+									<td class="px-3.5 py-2.5 text-center">
 										<div class="mx-auto h-4 w-5 rounded-md bg-slate-200"></div>
 									</td>
-									<td class="px-3 py-2.5">
-										<div class="h-4 w-44 rounded-md bg-slate-200"></div>
+									<td class="px-3.5 py-2.5">
+										<div class="h-4 w-40 rounded-md bg-slate-200"></div>
 									</td>
-									<td class="px-3 py-2.5">
+									<td class="px-3.5 py-2.5">
 										<div class="h-4 w-36 rounded-md bg-slate-200"></div>
 									</td>
-									<td class="px-3 py-2.5 text-center">
-										<div class="mx-auto h-4 w-28 rounded-md bg-slate-200"></div>
+									<td class="px-3.5 py-2.5 text-left">
+										<div class="h-4 w-40 rounded-md bg-slate-200"></div>
 									</td>
-									<td class="px-3 py-2.5">
+									<td class="px-3.5 py-2.5">
 										<div class="h-4 w-32 rounded-md bg-slate-200"></div>
 									</td>
-									<td class="px-3 py-2.5 text-center">
+									<td class="px-3.5 py-2.5 text-center">
 										<div class="flex items-center justify-center gap-2">
 											<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
 											<div class="h-7 w-7 rounded-lg bg-slate-200"></div>
@@ -482,17 +520,17 @@ const confirmDeleteProfile = () => {
 									:key="profile.id"
 									class="h-[52px] transition-colors hover:bg-[#f7f9fd]"
 								>
-									<td class="px-3 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
-									<td class="px-3 py-2.5 text-left font-medium text-[#2f4b6e]" :title="profile.name">
+									<td class="px-3.5 py-2.5 text-center font-medium">{{ (currentPage - 1) * rowsPerPage + idx + 1 }}</td>
+									<td class="px-3.5 py-2.5 text-left font-medium text-[#2f4b6e]" :title="profile.name">
 										<span class="block truncate">{{ profile.name }}</span>
 									</td>
-									<td class="px-3 py-2.5 text-left" :title="profile.division">
+									<td class="px-3.5 py-2.5 text-left" :title="profile.division">
 										<span class="block truncate">{{ profile.division }}</span>
 									</td>
-									<td class="px-3 py-2.5 text-center" :title="profile.research">
+									<td class="px-3.5 py-2.5 text-left" :title="profile.research">
 										<span class="block truncate">{{ profile.research }}</span>
 									</td>
-									<td :class="['px-3 py-2.5', profile.contact && profile.contact !== '-' ? 'text-left' : 'text-center']" :title="profile.contact">
+									<td :class="['px-3.5 py-2.5', profile.contact && profile.contact !== '-' ? 'text-left' : 'text-center']" :title="profile.contact">
 										<a
 											v-if="profile.contact && profile.contact.includes('@')"
 											:href="`mailto:${profile.contact}`"
@@ -503,7 +541,7 @@ const confirmDeleteProfile = () => {
 										<span v-else-if="profile.contact && profile.contact !== '-'" class="block truncate">{{ profile.contact }}</span>
 										<span v-else class="block truncate text-[#7890a8]">-</span>
 									</td>
-									<td class="px-3 py-2.5 text-center">
+									<td class="px-3.5 py-2.5 text-center">
 										<div class="flex items-center justify-center gap-2">
 											<EditButtonTable :label="`Edit Profile ${profile.name}`" @click="openEditModal(profile)" />
 											<DeleteButtonTable :label="`Hapus Profile ${profile.name}`" @click="openDeleteModal(profile)" />

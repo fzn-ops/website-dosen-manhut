@@ -36,7 +36,7 @@ const isActive = (item) => {
 		'shrink-0 flex-col bg-[#1d3a7a] font-poppins text-white select-none',
 		mobile
 			? [
-				'fixed left-0 top-0 bottom-0 z-40 h-screen h-[100dvh] w-[265px] max-w-[82vw] overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300 ease-in-out flex',
+				'fixed left-0 top-0 bottom-0 z-50 h-screen h-[100dvh] w-[265px] max-w-[82vw] overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300 ease-in-out flex',
 				collapsed ? '-translate-x-full pointer-events-none' : 'translate-x-0 pointer-events-auto'
 			]
 			: [

@@ -165,16 +165,17 @@ const columns = [
     { key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
 ];
 
-const sortKey = ref('year');
-const sortDirection = ref('desc'); // Default: Tahun terbaru di nomor 1
+const sortKey = ref('id');
+const sortDirection = ref('desc'); // Default: Data terbaru di nomor 1
 
 const toggleSort = (key) => {
     if (sortKey.value === key) {
         sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
     } else {
         sortKey.value = key;
-        sortDirection.value = 'asc';
+        sortDirection.value = key === 'id' ? 'desc' : 'asc';
     }
+    currentPage.value = 1;
 };
 
 // --- FILTERING & SORTING LOGIC ---
@@ -208,7 +209,13 @@ const filteredAndSortedPublications = computed(() => {
     }
 
     // 4. Sorting
-    if (sortKey.value) {
+    if (sortKey.value === 'id') {
+        list.sort((a, b) => {
+            const idA = Number(a.id) || 0;
+            const idB = Number(b.id) || 0;
+            return sortDirection.value === 'asc' ? idA - idB : idB - idA;
+        });
+    } else if (sortKey.value) {
         list.sort((a, b) => {
             let valA = a[sortKey.value] ?? '';
             let valB = b[sortKey.value] ?? '';
@@ -220,8 +227,8 @@ const filteredAndSortedPublications = computed(() => {
 
             // Handle sorting angka (Sitasi & Tahun)
             if (sortKey.value === 'cited_by' || sortKey.value === 'year') {
-                valA = Number(valA);
-                valB = Number(valB);
+                valA = Number(valA) || 0;
+                valB = Number(valB) || 0;
                 return sortDirection.value === 'asc' ? valA - valB : valB - valA;
             }
 
@@ -574,7 +581,37 @@ const isAnyModalOpen = computed(() => {
                     <table class="w-full min-w-[950px] table-fixed border-collapse text-sm">
                         <thead class="bg-[#183669]">
                             <tr class="h-[48px]">
-                                <th class="w-[50px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white border-r border-white/15 lg:border-r-0">No</th>
+                                <th class="w-[50px] px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 lg:border-r-0">
+                                    <button
+                                        type="button"
+                                        @click="toggleSort('id')"
+                                        class="group relative inline-flex items-center justify-center mx-auto transition-colors hover:text-white/80 focus:outline-none"
+                                        title="Urutkan No"
+                                    >
+                                        <span>No</span>
+                                        <span class="absolute left-full ml-1 top-1/2 -translate-y-1/2 inline-flex items-center">
+                                            <svg
+                                                v-if="sortKey === 'id'"
+                                                :class="[
+                                                    'h-3.5 w-3.5 text-white transition-transform duration-200',
+                                                    sortDirection === 'asc' ? 'rotate-180' : ''
+                                                ]"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
+                                                <path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+                                            </svg>
+                                            <svg
+                                                v-else
+                                                class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
+                                                <path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </th>
                                 <th
                                     v-for="col in columns"
                                     :key="col.key"
@@ -585,14 +622,25 @@ const isAnyModalOpen = computed(() => {
                                         type="button"
                                         @click="toggleSort(col.key)"
                                         :class="['group transition-colors hover:text-white/80 focus:outline-none max-w-full', col.align === 'center' ? 'mx-auto flex items-center justify-center' : 'inline-flex items-center gap-1.5 justify-start']"
+                                        :title="`Urutkan ${col.label}`"
                                     >
                                         <span v-if="col.align === 'center'" class="h-3.5 w-3.5 shrink-0 opacity-0 pointer-events-none mr-1.5" aria-hidden="true"></span>
                                         <span class="truncate">{{ col.label }}</span>
                                         <span class="inline-flex shrink-0 items-center ml-1.5 text-white/70 group-hover:text-white">
-                                            <svg v-if="sortKey === col.key" :class="['h-3.5 w-3.5 transition-transform duration-200', sortDirection === 'asc' ? 'rotate-180' : '']" viewBox="0 0 20 20" fill="currentColor">
+                                            <svg
+                                                v-if="sortKey === col.key"
+                                                :class="['h-3.5 w-3.5 text-white transition-transform duration-200', sortDirection === 'asc' ? 'rotate-180' : '']"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
                                                 <path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
                                             </svg>
-                                            <svg v-else class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100" viewBox="0 0 20 20" fill="currentColor">
+                                            <svg
+                                                v-else
+                                                class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
                                                 <path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
                                             </svg>
                                         </span>

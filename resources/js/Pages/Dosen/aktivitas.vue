@@ -100,8 +100,9 @@ const toggleSort = (key) => {
 		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
 	} else {
 		sortKey.value = key;
-		sortDirection.value = 'asc';
+		sortDirection.value = key === 'id' ? 'desc' : 'asc';
 	}
+	currentPage.value = 1;
 };
 
 // Filtered and Sorted Activities
@@ -129,7 +130,13 @@ const filteredAndSortedActivities = computed(() => {
 	}
 
 	// Sorting
-	if (sortKey.value) {
+	if (sortKey.value === 'id') {
+		list.sort((a, b) => {
+			const idA = Number(a.id) || 0;
+			const idB = Number(b.id) || 0;
+			return sortDirection.value === 'asc' ? idA - idB : idB - idA;
+		});
+	} else if (sortKey.value) {
 		list.sort((a, b) => {
 			let valA = a[sortKey.value] ?? '';
 			let valB = b[sortKey.value] ?? '';
@@ -484,11 +491,43 @@ const confirmDeleteActivity = () => {
 						<tr class="h-[48px]">
 							<th
 								:class="[
-									'w-[60px] px-3 py-2.5 text-center font-poppins text-[13px] font-semibold text-white border-r border-white/15 lg:border-r-0 select-none',
+									'w-[60px] px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white border-r border-white/15 lg:border-r-0 select-none',
 									!hasProfile ? 'cursor-not-allowed opacity-60' : ''
 								]"
 							>
-								No
+								<button
+									type="button"
+									:disabled="!hasProfile"
+									@click="hasProfile && toggleSort('id')"
+									:class="[
+										'group relative inline-flex items-center justify-center mx-auto transition-colors focus:outline-none',
+										hasProfile ? 'hover:text-white/80' : 'cursor-not-allowed opacity-60'
+									]"
+									title="Urutkan No"
+								>
+									<span>No</span>
+									<span class="absolute left-full ml-1 top-1/2 -translate-y-1/2 inline-flex items-center">
+										<svg
+											v-if="sortKey === 'id'"
+											:class="[
+												'h-3.5 w-3.5 text-white transition-transform duration-200',
+												sortDirection === 'asc' ? 'rotate-180' : ''
+											]"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+										>
+											<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+										</svg>
+										<svg
+											v-else
+											class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+										>
+											<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+										</svg>
+									</span>
+								</button>
 							</th>
 							<th
 								v-for="col in columns"
@@ -512,6 +551,7 @@ const confirmDeleteActivity = () => {
 											? 'mx-auto flex items-center justify-center'
 											: 'inline-flex items-center gap-1.5 justify-start'
 									]"
+									:title="`Urutkan ${col.label}`"
 								>
 									<!-- Balanced spacer for center-aligned columns so text is optically centered and arrow never overflows cell -->
 									<span
@@ -524,7 +564,7 @@ const confirmDeleteActivity = () => {
 										<svg
 											v-if="sortKey === col.key"
 											:class="[
-												'h-3.5 w-3.5 transition-transform duration-200',
+												'h-3.5 w-3.5 text-white transition-transform duration-200',
 												sortDirection === 'asc' ? 'rotate-180' : ''
 											]"
 											viewBox="0 0 20 20"
