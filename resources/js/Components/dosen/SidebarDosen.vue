@@ -50,7 +50,7 @@ const isActive = (item) => {
 				collapsed ? '-translate-x-full pointer-events-none' : 'translate-x-0 pointer-events-auto'
 			]
 			: [
-				'sticky top-0 h-screen overflow-hidden transition-[width] duration-200 flex',
+				'h-full self-stretch overflow-hidden transition-[width] duration-200 flex shrink-0',
 				collapsed ? 'w-[80px]' : 'w-[275px]'
 			]
 	]">
