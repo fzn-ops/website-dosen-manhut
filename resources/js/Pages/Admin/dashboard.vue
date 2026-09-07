@@ -21,6 +21,16 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 const props = defineProps({
+	stats: {
+		type: Array,
+		default: () => [
+			{ label: 'Seminar', value: '0', color: 'bg-[#7c72ff]', isTotal: false },
+			{ label: 'Lokakarya', value: '0', color: 'bg-[#ff8b85]', isTotal: false },
+			{ label: 'Workshop', value: '0', color: 'bg-[#56d4f8]', isTotal: false },
+			{ label: 'Lainnya', value: '0', color: 'bg-[#ffbb66]', isTotal: false },
+			{ label: 'Total Aktivitas', value: '0', color: 'bg-[#183669]', isTotal: true },
+		],
+	},
 	activities: {
 		type: Array,
 		default: () => [],
@@ -85,6 +95,16 @@ onMounted(() => {
 	setTimeout(() => {
 		isLoading.value = false;
 	}, 350);
+});
+
+const stats = computed(() => {
+	return props.stats && props.stats.length ? props.stats : [
+		{ label: 'Seminar', value: '0', color: 'bg-[#7c72ff]', isTotal: false },
+		{ label: 'Lokakarya', value: '0', color: 'bg-[#ff8b85]', isTotal: false },
+		{ label: 'Workshop', value: '0', color: 'bg-[#56d4f8]', isTotal: false },
+		{ label: 'Lainnya', value: '0', color: 'bg-[#ffbb66]', isTotal: false },
+		{ label: 'Total Aktivitas', value: '0', color: 'bg-[#183669]', isTotal: true },
+	];
 });
 
 // Chart Data Setup
@@ -331,6 +351,61 @@ const confirmDeleteActivity = () => {
 				<div class="space-y-1.5">
 					<h1 class="mt-1 text-[34px] font-bold leading-[1.02] tracking-[-0.03em] text-[#173a63] sm:text-[42px] lg:text-[48px]">Dashboard</h1>
 					<p class="mt-1.5 font-inter text-[14px] font-medium leading-tight text-[#4d6786] sm:text-[16px]">Lihat ringkasan statistik dan aktivitas terbaru dosen</p>
+				</div>
+
+				<!-- Stats Cards Grid (5 Cards - Responsive: 2 cols on mobile, 3 on tablet, 5 on desktop) -->
+				<div class="grid grid-cols-2 gap-2.5 sm:gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
+					<article
+						v-for="(stat, index) in stats"
+						:key="stat.label"
+						:class="[
+							'flex flex-col justify-between rounded-[12px] p-3.5 sm:p-4 shadow-sm transition hover:shadow-md',
+							stat.isTotal
+								? 'bg-gradient-to-br from-[#183669] to-[#0f2447] text-white ring-1 ring-[#183669] shadow-md shadow-[#183669]/10'
+								: 'bg-white ring-1 ring-[#d6e0ee]',
+							index === 4 ? 'col-span-2 sm:col-span-1' : ''
+						]"
+					>
+						<div class="flex items-center justify-between gap-2">
+							<p
+								:class="[
+									'font-inter text-[12px] font-semibold sm:text-[13px] truncate',
+									stat.isTotal ? 'text-blue-100' : 'text-[#6f84a3]'
+								]"
+							>
+								{{ stat.label }}
+							</p>
+							<span
+								v-if="!stat.isTotal"
+								:class="['h-2 w-2 shrink-0 rounded-full sm:h-2.5 sm:w-2.5', stat.color]"
+								aria-hidden="true"
+							></span>
+							<span
+								v-else
+								class="inline-flex items-center justify-center rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-blue-100 ring-1 ring-inset ring-white/20"
+							>
+								Semua
+							</span>
+						</div>
+						<div class="mt-2 sm:mt-2.5">
+							<div
+								v-if="isLoading"
+								:class="[
+									'h-7 sm:h-8 w-14 rounded-md animate-pulse',
+									stat.isTotal ? 'bg-white/20' : 'bg-slate-200'
+								]"
+							></div>
+							<p
+								v-else
+								:class="[
+									'text-[26px] font-bold leading-none sm:text-[32px]',
+									stat.isTotal ? 'text-white' : 'text-[#173a63]'
+								]"
+							>
+								{{ stat.value }}
+							</p>
+						</div>
+					</article>
 				</div>
 
 				<!-- Chart Section -->

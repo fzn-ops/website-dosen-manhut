@@ -77,7 +77,64 @@ class DashboardController extends Controller
             ];
         }
 
+        // 2. Siapkan data card statistik untuk semua aktivitas dosen
+        $totalActivities = $activitiesCollection->count();
+
+        $filterByCategory = function ($categoryName) use ($activitiesCollection) {
+            return $activitiesCollection->filter(function ($act) use ($categoryName) {
+                $types = is_array($act->activity_type)
+                    ? $act->activity_type
+                    : (json_decode($act->activity_type, true) ?? []);
+
+                if ($categoryName === 'Lainnya') {
+                    $known = ['Seminar', 'Lokakarya', 'Workshop'];
+                    return in_array('Lainnya', $types) || count(array_diff($types, $known)) > 0 || count($types) === 0;
+                }
+
+                return in_array($categoryName, $types);
+            });
+        };
+
+        $seminarCount = $filterByCategory('Seminar')->count();
+        $lokakaryaCount = $filterByCategory('Lokakarya')->count();
+        $workshopCount = $filterByCategory('Workshop')->count();
+        $lainnyaCount = $filterByCategory('Lainnya')->count();
+
+        $stats = [
+            [
+                'label' => 'Seminar',
+                'value' => (string)$seminarCount,
+                'color' => 'bg-[#7c72ff]',
+                'isTotal' => false,
+            ],
+            [
+                'label' => 'Lokakarya',
+                'value' => (string)$lokakaryaCount,
+                'color' => 'bg-[#ff8b85]',
+                'isTotal' => false,
+            ],
+            [
+                'label' => 'Workshop',
+                'value' => (string)$workshopCount,
+                'color' => 'bg-[#56d4f8]',
+                'isTotal' => false,
+            ],
+            [
+                'label' => 'Lainnya',
+                'value' => (string)$lainnyaCount,
+                'color' => 'bg-[#ffbb66]',
+                'isTotal' => false,
+            ],
+            [
+                'label' => 'Total Aktivitas',
+                'value' => (string)$totalActivities,
+                'color' => 'bg-[#183669]',
+                'isTotal' => true,
+            ],
+        ];
+
         return Inertia::render('Admin/dashboard', [
+            'stats' => $stats,
             'activities' => $recentActivities,
             'availableProfiles' => $availableProfiles,
             'years' => $years,
