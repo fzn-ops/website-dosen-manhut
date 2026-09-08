@@ -189,11 +189,15 @@
                 {{-- ==========================================
                      KIRI: HIGHLIGHT (Data Pertama)
                      ========================================== --}}
+                @php
+                    $highlightImgUrl = $highlight->primary_image_url ?? $highlight->primaryPicture?->path ?? $highlight->pictures?->first()?->path;
+                    $highlightDesc = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(str_replace(['<', '>'], [' <', '> '], $highlight->description)))));
+                @endphp
                 <a href="{{ route('activity.show', $highlight->id) }}" class="lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer block text-left">
                     
                     <div class="w-full h-48 md:h-[320px] rounded-xl mb-4 overflow-hidden relative">
-                        @if($highlight->primaryPicture)
-                            <img src="{{ asset('storage/' . $highlight->primaryPicture->path) }}" 
+                        @if($highlightImgUrl)
+                            <img src="{{ $highlightImgUrl }}" 
                                  alt="{{ $highlight->activity_name }}" 
                                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                         @else
@@ -203,14 +207,14 @@
                     
                     <div class="flex flex-wrap justify-between items-center text-[11px] md:text-xs text-[#1a3675] font-bold mb-2">
                         <span>{{ $highlight->job ?? 'Partisipan' }} &bull; {{ $highlight->user->name ?? 'Nama Dosen' }}</span>
-                        <span>{{ \Carbon\Carbon::parse($highlight->activity_date_start)->translatedFormat('d F Y') }}</span>
+                        <span>{{ \Carbon\Carbon::parse($highlight->activity_date_start)->locale('id')->translatedFormat('d F Y') }}</span>
                     </div>
                     
                     <h3 class="text-xl md:text-2xl font-bold text-[#1a3675] mb-2 group-hover:text-blue-700 transition-colors">
                         {{ $highlight->activity_name }}
                     </h3>
                     <p class="text-xs md:text-sm text-gray-500 leading-relaxed line-clamp-3 md:line-clamp-4">
-                        {{ $highlight->description }}
+                        {{ \Illuminate\Support\Str::limit($highlightDesc, 180, '...') }}
                     </p>
                 </a>
 
@@ -220,11 +224,15 @@
                 <div class="lg:col-span-5 flex flex-col gap-3 md:gap-4">
                     
                     @foreach ($listActivities as $item)
+                    @php
+                        $itemImgUrl = $item->primary_image_url ?? $item->primaryPicture?->path ?? $item->pictures?->first()?->path;
+                        $itemDesc = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(str_replace(['<', '>'], [' <', '> '], $item->description)))));
+                    @endphp
                     <a href="{{ route('activity.show', $item->id) }}" class="bg-white border border-gray-200 rounded-2xl p-2.5 md:p-3 shadow-sm flex flex-row gap-3 md:gap-4 transition-all duration-300 hover:-translate-x-1 hover:shadow-lg group cursor-pointer h-full items-center md:items-start text-left">
                         
                         <div class="w-24 h-24 md:w-[140px] md:h-[120px] rounded-xl shrink-0 overflow-hidden relative">
-                            @if($item->primaryPicture)
-                                <img src="{{ $item->primaryPicture->path }}" 
+                            @if($itemImgUrl)
+                                <img src="{{ $itemImgUrl }}" 
                                      alt="{{ $item->activity_name }}" 
                                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                             @else
@@ -235,13 +243,13 @@
                         <div class="flex flex-col flex-grow py-1 justify-center">
                             <div class="flex flex-wrap justify-between items-center text-[9px] md:text-[10px] text-[#1a3675] font-bold mb-1">
                                 <span class="truncate pr-2 max-w-[65%]">{{ $item->job ?? 'Partisipan' }} &bull; {{ $item->user->name ?? 'Dosen' }}</span>
-                                <span>{{ \Carbon\Carbon::parse($item->activity_date_start)->format('d/m/y') }}</span>
+                                <span>{{ \Carbon\Carbon::parse($item->activity_date_start)->locale('id')->format('d/m/y') }}</span>
                             </div>
                             <h4 class="text-sm md:text-[15px] font-bold text-[#1a3675] mb-1 leading-tight group-hover:text-blue-700 transition-colors line-clamp-2">
                                 {{ $item->activity_name }}
                             </h4>
                             <p class="hidden md:block text-[10px] text-gray-500 leading-relaxed line-clamp-2">
-                                {{ $item->description }}
+                                {{ \Illuminate\Support\Str::limit($itemDesc, 110, '...') }}
                             </p>
                         </div>
                     </a>

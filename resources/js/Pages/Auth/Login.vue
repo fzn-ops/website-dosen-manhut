@@ -54,97 +54,134 @@ const submitResetPassword = () => {
     <Head :title="isForgotPassword ? 'Lupa Password | DosenManhut' : 'Log in | DosenManhut'" />
 
     <!-- Background Utama Full Screen -->
-    <div class="min-h-screen bg-[#1a3675] relative overflow-hidden flex items-center justify-center font-sans">
+    <div class="min-h-screen bg-[#183669] relative overflow-hidden flex items-center justify-center p-4 sm:p-6 font-sans">
         
         <!-- Ornamen Background -->
-        <svg class="absolute -top-10 -right-10 w-64 h-64 md:w-96 md:h-96 opacity-60 pointer-events-none" viewBox="0 0 200 200" fill="none">
+        <svg class="absolute -top-10 -right-10 w-64 h-64 md:w-96 md:h-96 opacity-40 pointer-events-none" viewBox="0 0 200 200" fill="none">
            <path d="M 200 0 A 150 150 0 0 0 50 200" stroke="white" stroke-width="1.5" stroke-dasharray="8 8"/>
         </svg>
-        <svg class="absolute -bottom-10 -left-10 w-64 h-64 md:w-80 md:h-80 opacity-60 pointer-events-none" viewBox="0 0 200 200" fill="none">
+        <svg class="absolute -bottom-10 -left-10 w-64 h-64 md:w-80 md:h-80 opacity-40 pointer-events-none" viewBox="0 0 200 200" fill="none">
            <path d="M 0 50 A 100 100 0 0 1 100 200" stroke="white" stroke-width="1.5" stroke-dasharray="8 8"/>
         </svg>
-        <svg class="absolute top-24 right-[15%] md:right-[25%] w-10 h-10 md:w-16 md:h-16 text-white pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+        <svg class="absolute top-24 right-[15%] md:right-[25%] w-10 h-10 md:w-14 md:h-14 text-white/30 pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z"/>
         </svg>
-        <svg class="absolute bottom-32 left-[15%] md:left-[25%] w-8 h-8 md:w-12 md:h-12 text-white pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+        <svg class="absolute bottom-32 left-[15%] md:left-[25%] w-8 h-8 md:w-10 md:h-10 text-white/30 pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z"/>
         </svg>
 
         <!-- KARTU LOGIN (FORM) -->
-        <div class="bg-[#fafafc] w-[90%] max-w-[420px] rounded-3xl p-8 md:p-10 z-10 shadow-2xl relative transition-all duration-300">
+        <div class="w-full max-w-[420px] rounded-[20px] bg-white p-7 sm:p-9 shadow-[0_20px_50px_rgba(15,36,71,0.25)] border border-[#e2e8f0] relative z-10 transition-all duration-300 font-sans">
             
-            <h2 class="text-2xl md:text-3xl font-bold text-[#1a3675] text-center mb-8 font-poppins">
+            <!-- Academic Brand Badge -->
+            <!-- <div class="mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#183669]/10 text-[#183669] ring-1 ring-[#183669]/15">
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+            </div> -->
+
+            <h2 
+                :class="[
+                    'text-[22px] sm:text-[24px] font-bold text-[#183669] text-center font-poppins leading-tight',
+                    isForgotPassword ? 'mb-1.5' : 'mb-6'
+                ]"
+            >
                 {{ isForgotPassword ? 'Lupa Password' : 'Login DosenManhut' }}
             </h2>
 
-            <p v-if="isForgotPassword" class="text-center text-sm font-medium text-gray-500 mb-6 -mt-4">
+            <p v-if="isForgotPassword" class="text-center font-inter text-[12px] sm:text-[13px] text-[#64748b] mb-6">
                 Masukkan email Anda untuk menerima tautan reset password.
             </p>
 
-            <div v-if="status && !isForgotPassword" class="mb-4 text-sm font-medium text-green-600 text-center bg-green-50 p-2 rounded-lg">
+            <div v-if="status && !isForgotPassword" class="mb-5 font-inter text-[12px] sm:text-[13px] font-medium text-emerald-700 text-center bg-emerald-50 border border-emerald-200 p-2.5 rounded-[10px]">
                 {{ status }}
             </div>
 
             <!-- ============================== -->
             <!-- TAMPILAN 1: FORM LOGIN         -->
             <!-- ============================== -->
-            <form v-if="!isForgotPassword" @submit.prevent="submit" class="flex flex-col gap-6">
+            <form v-if="!isForgotPassword" @submit.prevent="submit" class="flex flex-col gap-4">
                 
                 <!-- Input USERNAME -->
                 <div>
-                    <div class="relative flex items-center border-b-[1.5px] border-gray-400 focus-within:border-[#1a3675] pb-2 transition-colors">
-                        <svg class="w-5 h-5 text-[#1a3675] mr-3" fill="none" stroke="#17334F" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
+                    <label for="username" class="block font-inter text-[13px] font-semibold text-[#183669] mb-1.5">
+                        Username / NIP
+                    </label>
+                    <div 
+                        class="relative flex items-center rounded-[10px] border bg-white transition-colors duration-150"
+                        :class="form.errors.username ? 'border-red-400 focus-within:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] focus-within:border-[#183669]'"
+                    >
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#7188a3]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
                         <input 
                             id="username"
                             type="text" 
                             v-model="form.username" 
-                            placeholder="Username atau NIP" 
-                            class="w-full bg-transparent outline-none border-none ring-0 focus:ring-0 text-gray-700 placeholder-gray-400 text-sm font-medium p-0"
+                            placeholder="Masukkan username atau NIP" 
+                            class="h-[44px] w-full rounded-[10px] bg-transparent pl-10 pr-3.5 font-inter text-[13px] sm:text-[14px] text-[#1e293b] placeholder:text-[#94a3b8] focus:outline-none border-none ring-0 focus:ring-0"
                             required
                             autofocus
                             autocomplete="username"
                         >
                     </div>
-                    <InputError class="mt-2" :message="form.errors.username" />
+                    <InputError class="mt-1 font-inter text-[12px]" :message="form.errors.username" />
                 </div>
 
                 <!-- Input Password -->
                 <div>
-                    <div class="relative flex items-center border-b-[1.5px] border-gray-400 focus-within:border-[#1a3675] pb-2 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#1a3675] mr-3" viewBox="0 0 24 24" fill="none" stroke="#17334F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <label for="password" class="block font-inter text-[13px] font-semibold text-[#183669] mb-1.5">
+                        Password
+                    </label>
+                    <div 
+                        class="relative flex items-center rounded-[10px] border bg-white transition-colors duration-150"
+                        :class="form.errors.password ? 'border-red-400 focus-within:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] focus-within:border-[#183669]'"
+                    >
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#7188a3]">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
                         <input 
                             id="password"
                             :type="showPassword ? 'text' : 'password'" 
                             v-model="form.password" 
-                            placeholder="Password" 
-                            class="w-full bg-transparent outline-none border-none ring-0 focus:ring-0 text-gray-700 placeholder-gray-400 text-sm font-medium pr-8 p-0"
+                            placeholder="Masukkan password" 
+                            class="h-[44px] w-full rounded-[10px] bg-transparent pl-10 pr-10 font-inter text-[13px] sm:text-[14px] text-[#1e293b] placeholder:text-[#94a3b8] focus:outline-none border-none ring-0 focus:ring-0"
                             required
                             autocomplete="current-password"
                         >
                         <button 
                             type="button" 
                             @click="togglePassword" 
-                            class="absolute right-0 text-[#1a3675] hover:text-blue-800 transition-colors focus:outline-none"
+                            class="absolute right-0 inset-y-0 flex items-center pr-3 text-[#7188a3] hover:text-[#183669] transition-colors focus:outline-none"
+                            :title="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                            :aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
                         >
-                            <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
-                            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            <img 
+                                :src="showPassword ? '/assets/icons/shown.svg' : '/assets/icons/hidden.svg'" 
+                                :alt="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                                class="w-[18px] h-[14px] object-contain select-none opacity-70 hover:opacity-100 transition-opacity"
+                            />
                         </button>
                     </div>
-                    <InputError class="mt-2" :message="form.errors.password" />
+                    <InputError class="mt-1 font-inter text-[12px]" :message="form.errors.password" />
                 </div>
 
                 <!-- Checkbox & Lupa Password -->
-                <div class="flex justify-between items-center text-[11px] md:text-xs text-[#1a3675] font-bold mt-2">
-                    <label class="flex items-center cursor-pointer gap-2 group">
+                <div class="flex items-center justify-between font-inter text-[12px] sm:text-[13px] pt-1">
+                    <label class="flex items-center cursor-pointer gap-2 group select-none">
                         <input 
                             type="checkbox" 
                             name="remember"
                             v-model="form.remember" 
-                            class="w-3.5 h-3.5 md:w-4 md:h-4 rounded border-gray-400 text-[#1a3675] focus:ring-[#1a3675]"
+                            class="h-4 w-4 rounded-[4px] border-[#cbd5e1] text-[#183669] focus:ring-0 focus:ring-offset-0 focus:outline-none cursor-pointer"
                         >
-                        <span class="group-hover:text-blue-800 transition-colors">Remember me</span>
+                        <span class="font-medium text-[#526b88] group-hover:text-[#183669] transition-colors">Ingat saya</span>
                     </label>
                     
                     <!-- Pemicu Halaman Lupa Password -->
@@ -152,7 +189,7 @@ const submitResetPassword = () => {
                         v-if="canResetPassword" 
                         type="button"
                         @click="isForgotPassword = true" 
-                        class="hover:text-blue-800 hover:underline transition-all bg-transparent border-none p-0 cursor-pointer"
+                        class="font-semibold text-[#183669] hover:text-[#122b54] hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer"
                     >
                         Lupa Password?
                     </button>
@@ -162,53 +199,68 @@ const submitResetPassword = () => {
                 <button 
                     type="submit" 
                     :disabled="form.processing"
-                    class="w-full bg-[#1a3675] hover:bg-blue-900 text-white font-bold py-3 md:py-3.5 rounded-full transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(26,54,117,0.39)] mt-2"
-                    :class="{ 'opacity-50 cursor-not-allowed': form.processing }"
+                    class="mt-2 flex h-[44px] sm:h-[46px] w-full items-center justify-center rounded-[10px] bg-[#183669] font-poppins text-[14px] sm:text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98] focus:outline-none disabled:opacity-60"
+                    :class="{ 'cursor-not-allowed': form.processing }"
                 >
-                    Login
+                    <svg v-if="form.processing" class="mr-2 h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span>{{ form.processing ? 'Memproses...' : 'Login' }}</span>
                 </button>
             </form>
 
             <!-- ============================== -->
             <!-- TAMPILAN 2: FORM LUPA PASSWORD -->
             <!-- ============================== -->
-            <form v-else @submit.prevent="submitResetPassword" class="flex flex-col gap-6">
+            <form v-else @submit.prevent="submitResetPassword" class="flex flex-col gap-4">
                 <!-- Input Email -->
                 <div>
-                    <div class="relative flex items-center border-b-[1.5px] border-gray-400 focus-within:border-[#1a3675] pb-2 transition-colors">
-                        <!-- Icon Email -->
-                        <svg class="w-5 h-5 text-[#1a3675] mr-3" fill="none" stroke="#17334F" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                        </svg>
+                    <label for="reset_email" class="block font-inter text-[13px] font-semibold text-[#183669] mb-1.5">
+                        Email Terdaftar
+                    </label>
+                    <div 
+                        class="relative flex items-center rounded-[10px] border bg-white transition-colors duration-150"
+                        :class="formReset.errors.email ? 'border-red-400 focus-within:border-red-500 bg-red-50/20' : 'border-[#d6e0ee] hover:border-[#a6b7cb] focus-within:border-[#183669]'"
+                    >
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#7188a3]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
                         <input 
                             id="reset_email"
                             type="email" 
                             v-model="formReset.email" 
-                            placeholder="Email yang terdaftar" 
-                            class="w-full bg-transparent outline-none border-none ring-0 focus:ring-0 text-gray-700 placeholder-gray-400 text-sm font-medium p-0"
+                            placeholder="nama@institusi.ac.id" 
+                            class="h-[44px] w-full rounded-[10px] bg-transparent pl-10 pr-3.5 font-inter text-[13px] sm:text-[14px] text-[#1e293b] placeholder:text-[#94a3b8] focus:outline-none border-none ring-0 focus:ring-0"
                             required
                             autofocus
                         >
                     </div>
-                    <InputError class="mt-2" :message="formReset.errors.email" />
+                    <InputError class="mt-1 font-inter text-[12px]" :message="formReset.errors.email" />
                 </div>
 
                 <!-- Tombol Aksi -->
-                <div class="flex flex-col-reverse gap-3 md:flex-row mt-2">
+                <div class="flex items-center gap-3 mt-2">
                     <button 
                         type="button" 
                         @click="isForgotPassword = false"
-                        class="w-full bg-gray-100 hover:bg-gray-200 text-[#1a3675] font-bold py-3 md:py-3.5 rounded-full transition-all active:scale-95 border border-gray-300"
+                        class="flex h-[44px] sm:h-[46px] w-full items-center justify-center rounded-[10px] border border-[#d6e0ee] bg-[#f8fafc] font-poppins text-[14px] font-semibold text-[#475569] transition hover:bg-[#eef2f6] hover:text-[#1e293b] active:scale-[0.98] focus:outline-none"
                     >
                         Batal
                     </button>
                     <button 
                         type="submit" 
                         :disabled="formReset.processing"
-                        class="w-full bg-[#1a3675] hover:bg-blue-900 text-white font-bold py-3 md:py-3.5 rounded-full transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(26,54,117,0.39)]"
-                        :class="{ 'opacity-50 cursor-not-allowed': formReset.processing }"
+                        class="flex h-[44px] sm:h-[46px] w-full items-center justify-center rounded-[10px] bg-[#183669] font-poppins text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#122b54] active:scale-[0.98] focus:outline-none disabled:opacity-60"
+                        :class="{ 'cursor-not-allowed': formReset.processing }"
                     >
-                        Kirim Tautan
+                        <svg v-if="formReset.processing" class="mr-2 h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <span>{{ formReset.processing ? 'Mengirim...' : 'Kirim Tautan' }}</span>
                     </button>
                 </div>
             </form>
@@ -222,6 +274,6 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active{
-    -webkit-box-shadow: 0 0 0 30px #fafafc inset !important;
+    -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
 }
 </style>

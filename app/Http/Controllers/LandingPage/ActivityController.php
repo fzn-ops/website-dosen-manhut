@@ -42,6 +42,10 @@ class ActivityController extends Controller
     {
         $activity = $this->activityService->getActivityById($id);
 
+        if (!$activity || !$activity->user || !$activity->user->profileDosen) {
+            abort(404);
+        }
+
         $relatedActivities = $this->activityService->getRandomActivities(
             $activity->id
         );

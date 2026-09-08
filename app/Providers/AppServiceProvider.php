@@ -24,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Carbon\Carbon::setLocale('id');
+        \Illuminate\Support\Facades\App::setLocale('id');
+
         Vite::prefetch(concurrency: 3);
         Paginator::useTailwind();
 

@@ -107,7 +107,7 @@
                  data-kategori="{{ strtolower(is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type) }}"
                  data-date="{{ $item->activity_date_start ? $item->activity_date_start->format('Y-m-d') : '' }}">
                 
-                <div class="w-full h-48 md:h-[220px] rounded-xl mb-4 overflow-hidden bg-gray-100 relative">
+                <div class="w-full h-48 md:h-[220px] rounded-xl mb-3.5 overflow-hidden bg-gray-100 relative">
                     {{-- Tampilkan gambar utama jika ada, jika tidak pakai placeholder --}}
                     @if($imgUrl)
                         <img src="{{ $imgUrl }}" 
@@ -118,15 +118,38 @@
                             <span>No Image</span>
                         </div>
                     @endif
+
+                    {{-- Floating Date Badge (Ringkas di pojok atas, tidak memotong gambar) --}}
+                    @if($item->activity_date_start)
+                        <div class="absolute top-2.5 right-2.5 inline-flex items-center gap-1.5 rounded-lg bg-white/90 backdrop-blur-md px-2.5 py-1 text-[11px] font-semibold text-[#183669] shadow-xs border border-white/70 select-none pointer-events-none">
+                            <svg class="w-3 h-3 text-[#183669] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>{{ \Carbon\Carbon::parse($item->activity_date_start)->locale('id')->translatedFormat('d F Y') }}</span>
+                        </div>
+                    @endif
                 </div>
                 
-                <div class="flex items-center justify-between text-[11px] md:text-xs font-bold mb-2.5">
-                    <span class="bg-[#1a3675]/10 text-[#1a3675] px-2.5 py-0.5 rounded-md font-semibold">
-                        {{ is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type }}
-                    </span>
-                    <span class="text-gray-500 font-medium">
-                        {{ $item->activity_date_start ? $item->activity_date_start->translatedFormat('d F Y') : '-' }}
-                    </span>
+                @php
+                    $categories = is_array($item->activity_type)
+                        ? $item->activity_type
+                        : (is_string($item->activity_type) && str_starts_with($item->activity_type, '[')
+                            ? (json_decode($item->activity_type, true) ?? [$item->activity_type])
+                            : array_filter(array_map('trim', explode(',', (string)$item->activity_type))));
+                    $categories = array_values(array_filter($categories));
+                @endphp
+
+                {{-- Kategori Tags (Seluruh kategori tampil rapi tanpa +2) --}}
+                <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                    @forelse($categories as $cat)
+                        <span class="bg-[#1a3675]/10 text-[#1a3675] px-2.5 py-0.5 rounded-md font-semibold text-[11px] leading-tight">
+                            {{ $cat }}
+                        </span>
+                    @empty
+                        <span class="bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-md font-semibold text-[11px] leading-tight">
+                            Umum
+                        </span>
+                    @endforelse
                 </div>
                 
                 <h3 class="text-lg md:text-xl font-bold text-[#1a3675] mb-1.5 group-hover:text-blue-700 transition-colors line-clamp-2">

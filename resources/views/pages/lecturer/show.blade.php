@@ -179,11 +179,11 @@
                             </div>
                             <div class="text-left sm:text-right shrink-0">
                                 <h4 class="text-xl font-extrabold text-[#1a3675] leading-none mb-1">
-                                    {{ $activity->activity_date_start->translatedFormat('d F Y') }}
+                                    {{ $activity->activity_date_start->locale('id')->translatedFormat('d F Y') }}
                                 </h4>
                                 @if($activity->activity_date_end)
                                     <p class="text-[11px] font-semibold text-gray-500 mt-2">
-                                        s/d {{ $activity->activity_date_end->translatedFormat('d F Y') }}
+                                        s/d {{ $activity->activity_date_end->locale('id')->translatedFormat('d F Y') }}
                                     </p>
                                 @endif
                             </div>

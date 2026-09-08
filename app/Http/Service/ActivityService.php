@@ -18,7 +18,7 @@ class ActivityService
 
     public function countAllActivitiesByCategory()
     {
-        $categories = Activity::pluck('activity_type');
+        $categories = Activity::whereHas('user.profileDosen')->pluck('activity_type');
         return $categories->flatten()->countBy();
     }
     
@@ -140,7 +140,9 @@ class ActivityService
      */
     public function getActivityById($activityId)
     {
-        return Activity::with(['user', 'pictures'])->findOrFail($activityId);
+        return Activity::with(['user.profileDosen', 'pictures'])
+            ->whereHas('user.profileDosen')
+            ->findOrFail($activityId);
     }
 
     /**
@@ -148,7 +150,8 @@ class ActivityService
      */
     public function getAllActivitiesPaginated($search = null, $kategori = null, $startDate = null, $endDate = null, $perPage = 9)
     {
-        $query = Activity::with(['user', 'primaryPicture', 'pictures']);
+        $query = Activity::with(['user.profileDosen', 'primaryPicture', 'pictures'])
+            ->whereHas('user.profileDosen');
     
         // 1. Filter Pencarian (Keyword)
         if ($search) {
@@ -186,7 +189,8 @@ class ActivityService
      */
     public function getRandomActivities($excludeActivityId, $limit = 3)
     {
-        return Activity::with(['user', 'primaryPicture', 'pictures'])
+        return Activity::with(['user.profileDosen', 'primaryPicture', 'pictures'])
+            ->whereHas('user.profileDosen')
             ->where('id', '!=', $excludeActivityId)
             ->inRandomOrder()
             ->limit($limit)
