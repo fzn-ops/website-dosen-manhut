@@ -56,7 +56,7 @@
     {{-- =======================================
          2. SEKILAS KONTRIBUSI KAMI SECTION
          ======================================= --}}
-    <section id="kontribusi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 bg-[#fafafa]">
+    <section id="kontribusi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
         <h2 class="text-2xl sm:text-3xl font-extrabold text-center text-[#1a3675] mb-8 sm:mb-12">
             Sekilas Kontribusi Kami
         </h2>
