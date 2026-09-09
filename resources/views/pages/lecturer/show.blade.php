@@ -178,7 +178,7 @@
                                 <p class="text-xs font-bold text-gray-600 mt-1">{{ $activity->job }}</p>
                             </div>
                             <div class="text-left sm:text-right shrink-0">
-                                <h4 class="text-xl font-extrabold text-[#1a3675] leading-none mb-1">
+                                <h4 class="text-md font-extrabold text-[#1a3675] leading-none mb-1 mt-[8px]">
                                     {{ $activity->activity_date_start->locale('id')->translatedFormat('d F Y') }}
                                 </h4>
                                 @if($activity->activity_date_end)

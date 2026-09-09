@@ -7,7 +7,7 @@
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
-
+    <x-ornament />
     {{-- =======================================
          1. HERO SECTION
          ======================================= --}}
@@ -51,11 +51,11 @@
             </div>
         </div>
     </section>
-
+    
     {{-- =======================================
          2. SEKILAS KONTRIBUSI KAMI SECTION
          ======================================= --}}
-    <section id="kontribusi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 bg-[#fafafa]">
+    <section id="kontribusi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
         <h2 class="text-2xl md:text-3xl font-bold text-center text-[#1a3675] mb-12">
             Sekilas Kontribusi Kami
         </h2>
