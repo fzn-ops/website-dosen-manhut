@@ -16,23 +16,23 @@
             {{-- BAGIAN ATAS (Profil & Info Akademik dalam Profile Card Elegan) --}}
             <div class="bg-white border border-gray-200/90 rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs mb-6 sm:mb-10">
                 
-                {{-- Container Profil: Di Mobile berdampingan (Row), Di Desktop 2 Kolom Proporsional & Rapi --}}
-                <div class="flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
+                {{-- Container Profil: Di Mobile berdampingan (Row), Di Desktop 2 Kolom Sejajar Presisi Mengikuti Tinggi Tabel --}}
+                <div class="flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8 items-start md:items-stretch">
                     
                     {{-- Bagian Mobile Header (Foto + Identitas berdampingan di layar HP) & Desktop Foto --}}
-                    <div class="flex flex-row md:flex-col gap-4 sm:gap-5 md:gap-0 shrink-0 w-full md:w-64 lg:w-72 xl:w-80 items-center md:items-start">
-                        {{-- Foto Dosen (Selalu proporsional 3:4, membesar proporsional mengisi kartu secara penuh) --}}
-                        <div class="w-28 sm:w-36 md:w-full aspect-[3/4] shrink-0 rounded-xl sm:rounded-2xl overflow-hidden shadow-md ring-2 sm:ring-4 ring-gray-50 bg-[#cbd5e1] relative">
+                    <div class="flex flex-row md:flex-col gap-4 sm:gap-5 md:gap-0 shrink-0 w-full md:w-64 lg:w-72 items-center md:items-stretch">
+                        {{-- Foto Dosen (Tinggi mengunci presisi ke tinggi tabel edukasi, lebar proporsional 3:4 tidak pipih) --}}
+                        <div class="w-28 sm:w-36 md:w-full aspect-[3/4] md:aspect-auto md:h-full shrink-0 rounded-xl sm:rounded-2xl overflow-hidden shadow-md ring-2 sm:ring-4 ring-gray-50 bg-[#cbd5e1] relative">
                             @if(!empty($lecturer->image))
                                 <img src="{{ asset('storage/' . $lecturer->image) }}" 
                                     alt="{{ $lecturer->user->name }}"
-                                    class="w-full h-full object-cover object-top"
+                                    class="w-full h-full md:absolute md:inset-0 object-cover object-top"
                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 items-center justify-center text-gray-400" style="display: none;">
+                                <div class="w-full h-full md:absolute md:inset-0 bg-gradient-to-br from-slate-200 to-slate-300 items-center justify-center text-gray-400" style="display: none;">
                                     <svg class="w-12 sm:w-14 h-12 sm:h-14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                 </div>
                             @else
-                                <div class="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-gray-400">
+                                <div class="w-full h-full md:absolute md:inset-0 bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-gray-400">
                                     <svg class="w-12 sm:w-14 h-12 sm:h-14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                 </div>
                             @endif
@@ -124,9 +124,10 @@
 
                         {{-- Card Research Interest --}}
                         <div class="w-full border border-gray-200 rounded-xl overflow-hidden shadow-2xs mb-4 bg-white text-left">
-                            <div class="bg-[#1a3675] px-4 py-2 flex items-center gap-2 text-white">
-                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
-                                <h2 class="text-xs sm:text-sm font-bold tracking-wide">Ketertarikan Penelitian</h2>
+                            <div class="bg-[#1a3675] px-4 py-2 flex items-center justify-center gap-2 text-white">
+                                <h2 class="text-xs sm:text-sm font-bold tracking-wide">
+                                    Ketertarikan Penelitian
+                                </h2>
                             </div>
                             <div class="p-3 sm:p-3.5">
                                 <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">{{ $lecturer->research ?? 'Belum ada bidang riset yang dicantumkan.' }}</p>
@@ -135,28 +136,31 @@
 
                         {{-- Card Education --}}
                         <div class="w-full border border-gray-200 rounded-xl overflow-hidden shadow-2xs bg-white text-left">
-                            <div class="bg-[#1a3675] px-4 py-2 flex items-center gap-2 text-white">
-                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                <h2 class="text-xs sm:text-sm font-bold tracking-wide">Edukasi</h2>
+                            <div class="bg-[#1a3675] px-4 py-2 flex items-center justify-center gap-2 text-white">
+                                <h2 class="text-xs sm:text-sm font-bold tracking-wide text-center">Edukasi</h2>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs sm:text-sm text-gray-600 min-w-[480px]">
-                                    <thead class="bg-gray-50 text-gray-900 border-b border-gray-200 font-semibold text-[11px] sm:text-xs uppercase tracking-wider">
+                                    <thead class="bg-gray-50/80 text-gray-900 border-b border-gray-200 font-semibold text-[11px] sm:text-xs uppercase tracking-wider">
                                         <tr>
-                                            <th class="px-3 py-2.5 sm:py-3 text-center w-[15%]">Tingkat</th>
-                                            <th class="px-3 py-2.5 sm:py-3 text-center w-[40%]">Jurusan</th>
-                                            <th class="px-3 py-2.5 sm:py-3 text-center w-[30%]">Universitas</th>
-                                            <th class="px-3 py-2.5 sm:py-3 text-center w-[15%]">Tahun</th>
+                                            <th class="px-3 sm:px-4 py-2.5 sm:py-3 text-center w-[12%]">Tingkat</th>
+                                            <th class="px-3 sm:px-4 py-2.5 sm:py-3 text-left w-[44%]">Jurusan</th>
+                                            <th class="px-3 sm:px-4 py-2.5 sm:py-3 text-left w-[32%]">Universitas</th>
+                                            <th class="px-3 sm:px-4 py-2.5 sm:py-3 text-center w-[12%]">Tahun</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @if(!empty($lecturer['educations']) && is_array($lecturer['educations']))
                                             @foreach ($lecturer['educations'] as $edu)
                                             <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50/80 transition">
-                                                <td class="px-3 py-2.5 sm:py-3 text-center font-medium text-gray-900">{{ $edu['degree'] ?? '-' }}</td>
-                                                <td class="px-3 py-2.5 sm:py-3 text-left">{{ $edu['major'] ?? '-' }}</td>
-                                                <td class="px-3 py-2.5 sm:py-3 text-left">{{ $edu['university'] ?? '-' }}</td>
-                                                <td class="px-3 py-2.5 sm:py-3 text-center">{{ $edu['graduationYear'] ?? '-' }}</td>
+                                                <td class="px-3 sm:px-4 py-2.5 sm:py-3 text-center">
+                                                    <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1a3675] text-[11px] sm:text-xs font-bold border border-blue-100/90 shadow-2xs">
+                                                        {{ $edu['degree'] ?? '-' }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-3 sm:px-4 py-2.5 sm:py-3 text-left font-semibold text-gray-900">{{ $edu['major'] ?? '-' }}</td>
+                                                <td class="px-3 sm:px-4 py-2.5 sm:py-3 text-left font-medium text-gray-600">{{ $edu['university'] ?? '-' }}</td>
+                                                <td class="px-3 sm:px-4 py-2.5 sm:py-3 text-center font-semibold text-gray-600">{{ $edu['graduationYear'] ?? '-' }}</td>
                                             </tr>
                                             @endforeach
                                         @else
@@ -232,33 +236,50 @@
                 <div class="aktivitas-item flex flex-col lg:flex-row p-4 sm:p-6 hover:bg-white transition-colors gap-4 sm:gap-6 lg:gap-10"
                      data-search="{{ strtolower($activity->activity_name . ' ' . $activity->job . ' ' . $activity->activity_date_start . ' ' . $activity->month) }}">
                     
-                    <div class="flex-1">
-                        <div class="flex flex-col sm:flex-row justify-between sm:items-start mb-3 sm:mb-4 gap-2 sm:gap-4">
-                            <div>
-                                <h3 class="text-lg sm:text-xl font-extrabold text-[#1a3675] leading-snug">{{ $activity->activity_name }}</h3>
-                                <p class="text-xs font-bold text-gray-600 mt-0.5">{{ $activity->job }}</p>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-start mb-2.5 gap-4 lg:gap-8">
+                            <div class="flex-1 min-w-0 pr-2 lg:pr-6 max-w-xl xl:max-w-2xl">
+                                <h3 class="text-base sm:text-lg font-extrabold text-[#1a3675] leading-snug">
+                                    {{ $activity->activity_name }}
+                                </h3>
+                                @if(!empty($activity->job))
+                                    <p class="text-xs sm:text-[13px] font-semibold text-gray-600 mt-1">
+                                        {{ $activity->job }}
+                                    </p>
+                                @endif
                             </div>
+
+                            {{-- Tanggal Pelaksanaan di Sebelah Kanan --}}
                             <div class="text-left sm:text-right shrink-0">
-                                <h4 class="text-base sm:text-lg font-bold text-[#1a3675] leading-none mb-0.5">
-                                    {{ $activity->activity_date_start->locale('id')->translatedFormat('d F Y') }}
-                                </h4>
-                                @if($activity->activity_date_end)
-                                    <p class="text-[10px] sm:text-[11px] font-semibold text-gray-500 mt-1">
+                                @php
+                                    $isSameDate = empty($activity->activity_date_end) || 
+                                                  ($activity->activity_date_start && $activity->activity_date_end && $activity->activity_date_start->format('Y-m-d') === $activity->activity_date_end->format('Y-m-d'));
+                                @endphp
+
+                                @if($isSameDate)
+                                    <h4 class="text-xs sm:text-sm font-bold text-[#1a3675] leading-snug">
+                                        {{ $activity->activity_date_start->locale('id')->translatedFormat('d F Y') }}
+                                    </h4>
+                                @else
+                                    <h4 class="text-xs sm:text-sm font-bold text-[#1a3675] leading-snug">
+                                        {{ $activity->activity_date_start->locale('id')->translatedFormat('d F Y') }}
+                                    </h4>
+                                    <p class="text-[11px] font-semibold text-gray-500 mt-0.5">
                                         s/d {{ $activity->activity_date_end->locale('id')->translatedFormat('d F Y') }}
                                     </p>
                                 @endif
                             </div>
                         </div>
-                        <p class="text-xs sm:text-[13px] text-gray-500 leading-relaxed text-left line-clamp-3">
-                            {{ $activity->quote ?? $activity->description }}
-                        </p>
+
+                        {{-- Deskripsi Aktivitas --}}
+                        @if(!empty($activity->quote) || !empty($activity->description))
+                            <p class="text-xs sm:text-[13px] text-gray-600 leading-relaxed text-left line-clamp-3">
+                                {{ $activity->quote ?? $activity->description }}
+                            </p>
+                        @endif
                     </div>
                     
-                    <div class="w-full lg:w-[280px] shrink-0 flex flex-col justify-center">
-                        <div class="carousel-wrapper relative flex items-center justify-center h-24 sm:h-28 w-full max-w-[250px] mx-auto lg:mx-0">
-                            <button class="btn-prev absolute left-0 z-20 bg-white/90 p-1.5 rounded-full shadow-md hover:bg-white text-gray-800 transition active:scale-95 focus:outline-none cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
-                            </button>
+                    {{-- Slide Banner Foto Aktivitas Modern dengan Navigasi & Dots --}}
                     @php
                         $pics = $activity->pictures;
                         $primaryPic = $pics->firstWhere('is_primary', true) ?? $pics->first();
@@ -266,34 +287,52 @@
                         $sortedPics = $primaryPic ? collect([$primaryPic])->concat($otherPics) : $pics;
                         $images = $sortedPics->pluck('path')->toArray();
                         $totalImages = count($images);
-
                         $defaultImg = asset('images/hero_section.jpg');
-                        $imgCenter = $images[0] ?? $defaultImg;
-                        $imgLeft = $totalImages > 2 ? $images[$totalImages - 1] : ($images[1] ?? $imgCenter);
-                        $imgRight = $images[1] ?? ($images[2] ?? $imgCenter);
+                        if ($totalImages === 0) {
+                            $images = [$defaultImg];
+                            $totalImages = 1;
+                        }
                     @endphp
 
-                    <div class="relative flex items-center justify-center w-full h-full">
+                    <div class="w-full sm:w-[260px] lg:w-[280px] shrink-0 flex items-center justify-center">
+                        <div class="slide-banner-wrapper relative w-full aspect-[16/10] sm:h-32 lg:h-36 rounded-xl overflow-hidden shadow-2xs border border-gray-200/90 bg-gray-100 group/banner"
+                             data-total="{{ $totalImages }}">
+                            
+                            {{-- Slides Track --}}
+                            <div class="slides-track flex w-full h-full transition-transform duration-300 ease-out">
+                                @foreach($images as $imgSrc)
+                                    <div class="slide-item min-w-full w-full h-full shrink-0 overflow-hidden relative cursor-pointer" onclick="window.openActivityModal('{{ $imgSrc }}')">
+                                        <img src="{{ $imgSrc }}" alt="{{ $activity->activity_name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover/banner:scale-105">
+                                    </div>
+                                @endforeach
+                            </div>
 
-                        {{-- FOTO 1 (Kiri) --}}
-                        <div class="carousel-img absolute transition-all duration-300 ease-in-out overflow-hidden w-16 h-12 opacity-50 scale-90 -translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80">
-                            <img src="{{ $imgLeft }}" alt="Aktivitas Kiri" class="w-full h-full object-cover pointer-events-none">
-                        </div>
+                            @if($totalImages > 1)
+                                {{-- Gradient Shadow Bawah --}}
+                                <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none z-10"></div>
 
-                        {{-- FOTO 2 (Tengah / Thumbnail Utama) --}}
-                        <div class="carousel-img absolute transition-all duration-300 ease-in-out overflow-hidden w-24 h-16 opacity-100 scale-100 translate-x-0 z-10 shadow-lg border-2 border-white rounded-lg cursor-pointer">
-                            <img src="{{ $imgCenter }}" alt="Aktivitas Utama" class="w-full h-full object-cover pointer-events-none">
-                        </div>
+                                {{-- Counter Top Right --}}
+                                <div class="counter-badge absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-xs text-[10px] font-semibold text-white z-20 pointer-events-none">
+                                    <span class="current-slide-num">1</span>/{{ $totalImages }}
+                                </div>
 
-                        {{-- FOTO 3 (Kanan) --}}
-                        <div class="carousel-img absolute transition-all duration-300 ease-in-out overflow-hidden w-16 h-12 opacity-50 scale-90 translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80">
-                            <img src="{{ $imgRight }}" alt="Aktivitas Kanan" class="w-full h-full object-cover pointer-events-none">
-                        </div>
+                                {{-- Tombol Prev --}}
+                                <button type="button" class="btn-slide-prev absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-xs text-white flex items-center justify-center opacity-0 group-hover/banner:opacity-100 transition-all duration-200 z-20 cursor-pointer shadow-sm focus:outline-none" aria-label="Foto Sebelumnya">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
 
-                    </div>
-                            <button class="btn-next absolute right-0 z-20 bg-white/90 p-1.5 rounded-full shadow-md hover:bg-white text-gray-800 transition active:scale-95 focus:outline-none cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
-                            </button>
+                                {{-- Tombol Next --}}
+                                <button type="button" class="btn-slide-next absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-xs text-white flex items-center justify-center opacity-0 group-hover/banner:opacity-100 transition-all duration-200 z-20 cursor-pointer shadow-sm focus:outline-none" aria-label="Foto Berikutnya">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+
+                                {{-- Indicator Dots --}}
+                                <div class="dots-container flex items-center justify-center gap-1.5 absolute bottom-2 inset-x-0 z-20">
+                                    @for($i = 0; $i < $totalImages; $i++)
+                                        <button type="button" class="slide-dot transition-all duration-300 {{ $i === 0 ? 'w-4 h-1.5 bg-white rounded-full shadow-sm' : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/80 rounded-full cursor-pointer' }}" data-index="{{ $i }}" aria-label="Slide {{ $i + 1 }}"></button>
+                                    @endfor
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -488,38 +527,63 @@
                 applySearchAndPagination();
             });
 
-            // --- 3. LOGIKA CAROUSEL FOTO & POPUP ---
-            const carousels = document.querySelectorAll('.carousel-wrapper');
-            const stateClasses = [
-                "w-16 h-12 opacity-50 scale-90 -translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80".split(" "),
-                "w-24 h-16 opacity-100 scale-100 translate-x-0 z-10 shadow-lg border-2 border-white rounded-lg cursor-pointer".split(" "),
-                "w-16 h-12 opacity-50 scale-90 translate-x-12 z-0 rounded-md border-transparent cursor-pointer hover:opacity-80".split(" ")
-            ];
+            // --- 3. LOGIKA SLIDE BANNER AKTIVITAS & MODAL POPUP ---
+            const slideWrappers = document.querySelectorAll('.slide-banner-wrapper');
 
-            carousels.forEach(wrapper => {
-                const btnPrev = wrapper.querySelector('.btn-prev');
-                const btnNext = wrapper.querySelector('.btn-next');
-                const images = wrapper.querySelectorAll('.carousel-img');
-                let positions = [0, 1, 2];
+            slideWrappers.forEach(wrapper => {
+                const track = wrapper.querySelector('.slides-track');
+                const total = parseInt(wrapper.getAttribute('data-total') || '1', 10);
+                if (total <= 1) return;
 
-                function updateCarousel() {
-                    images.forEach((img, index) => {
-                        const currentPos = positions[index];
-                        stateClasses.forEach(clsArray => img.classList.remove(...clsArray));
-                        img.classList.add(...stateClasses[currentPos]);
+                let currentIndex = 0;
+                const btnPrev = wrapper.querySelector('.btn-slide-prev');
+                const btnNext = wrapper.querySelector('.btn-slide-next');
+                const dots = wrapper.querySelectorAll('.slide-dot');
+                const counterNum = wrapper.querySelector('.current-slide-num');
+
+                function goToSlide(index) {
+                    currentIndex = (index + total) % total;
+                    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                    if (counterNum) counterNum.textContent = currentIndex + 1;
+
+                    dots.forEach((dot, idx) => {
+                        if (idx === currentIndex) {
+                            dot.className = 'slide-dot transition-all duration-300 w-4 h-1.5 bg-white rounded-full shadow-sm';
+                        } else {
+                            dot.className = 'slide-dot transition-all duration-300 w-1.5 h-1.5 bg-white/50 hover:bg-white/80 rounded-full cursor-pointer';
+                        }
                     });
                 }
-                btnNext.addEventListener('click', () => { positions = positions.map(p => (p - 1 + 3) % 3); updateCarousel(); });
-                btnPrev.addEventListener('click', () => { positions = positions.map(p => (p + 1) % 3); updateCarousel(); });
+
+                if (btnNext) {
+                    btnNext.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        goToSlide(currentIndex + 1);
+                    });
+                }
+
+                if (btnPrev) {
+                    btnPrev.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        goToSlide(currentIndex - 1);
+                    });
+                }
+
+                dots.forEach((dot, idx) => {
+                    dot.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        goToSlide(idx);
+                    });
+                });
             });
 
-            // Modal
+            // Modal Lightbox Foto Aktivitas
             const imageModal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
             const closeModalBtn = document.getElementById('closeModalBtn');
-            const carouselClickableDivs = document.querySelectorAll('.carousel-img');
 
-            function openModal(imageSrc) {
+            window.openActivityModal = function(imageSrc) {
+                if (!imageSrc) return;
                 modalImage.src = imageSrc;
                 imageModal.classList.remove('hidden');
                 setTimeout(() => {
@@ -527,27 +591,29 @@
                     modalImage.classList.remove('scale-95');
                     modalImage.classList.add('scale-100');
                 }, 10);
-            }
+            };
 
             function closeModal() {
+                if (!imageModal) return;
                 imageModal.classList.add('opacity-0');
-                modalImage.classList.remove('scale-100');
-                modalImage.classList.add('scale-95');
+                if (modalImage) {
+                    modalImage.classList.remove('scale-100');
+                    modalImage.classList.add('scale-95');
+                }
                 setTimeout(() => {
                     imageModal.classList.add('hidden');
-                    modalImage.src = '';
+                    if (modalImage) modalImage.src = '';
                 }, 300);
             }
 
-            carouselClickableDivs.forEach(div => {
-                div.addEventListener('click', () => {
-                    const imgTag = div.querySelector('img');
-                    if(imgTag) openModal(imgTag.src);
+            if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+            if (imageModal) {
+                imageModal.addEventListener('click', (e) => {
+                    if (e.target === imageModal || e.target === closeModalBtn) {
+                        closeModal();
+                    }
                 });
-            });
-
-            closeModalBtn.addEventListener('click', closeModal);
-            imageModal.addEventListener('click', (e) => { if (e.target === imageModal) closeModal(); });
+            }
 
             applySearchAndPagination();
         });

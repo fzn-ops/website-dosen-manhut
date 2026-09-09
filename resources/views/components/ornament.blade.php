@@ -4,7 +4,7 @@
     <!-- ============================================== -->
     <!-- 1. ORNAMEN KIRI ATAS (Corporate Wave & Tech Poly) -->
     <!-- ============================================== -->
-    <svg viewBox="0 0 400 400" class="absolute top-0 left-0 w-[180px] md:w-[280px] lg:w-[400px] opacity-30 transition-all duration-300" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 400 400" class="absolute top-0 left-0 w-[180px] md:w-[280px] lg:w-[400px] opacity-45 transition-all duration-300" xmlns="http://www.w3.org/2000/svg">
         
         <!-- Latar Biru Sangat Pudar (Sky Blue) -->
         <path d="M 0 0 L 350 0 A 350 350 0 0 1 0 350 Z" fill="#e0f2fe" />
@@ -37,7 +37,7 @@
     <!-- ============================================== -->
     <!-- 2. ORNAMEN KANAN BAWAH (Blueprint & Tech Anchor) -->
     <!-- ============================================== -->
-    <svg viewBox="0 0 400 400" class="absolute bottom-0 right-0 w-[180px] md:w-[280px] lg:w-[400px] opacity-30 transition-all duration-300" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 400 400" class="absolute bottom-0 right-0 w-[180px] md:w-[280px] lg:w-[400px] opacity-45 transition-all duration-300" xmlns="http://www.w3.org/2000/svg">
         
         <!-- Latar Biru Sangat Pudar (Sky Blue) -->
         <path d="M 400 400 L 50 400 A 350 350 0 0 1 400 50 " fill="#e0f2fe" />
