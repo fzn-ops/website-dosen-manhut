@@ -15,49 +15,72 @@
         ];
     @endphp -->
 
-    <div class="bg-[#fafafc] w-full min-h-screen py-12 md:py-16">
+    <div class="bg-[#fafafc] w-full min-h-screen py-8 sm:py-12 md:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             {{-- 1. Bagian Header --}}
-            <div class="mb-8">
-                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">
+            <div class="mb-6 sm:mb-8">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-1.5 sm:mb-2 tracking-tight">
                     Kumpulan Aktivitas Terbaru
                 </h1>
-                <p class="text-sm md:text-base text-gray-600">
+                <p class="text-xs sm:text-sm md:text-base text-gray-600">
                     Yuk lihat aktivitas terbaru dari dosen manajemen hutan!
                 </p>
             </div>
 
             {{-- 2. Bagian Pencarian & Tombol Filter --}}
-            <div class="flex items-center gap-3 w-full mb-10">
+            <div class="flex items-center gap-2.5 sm:gap-3 w-full mb-6 sm:mb-10">
                 
-                {{-- Form Pencarian Backend --}}
-                <form action="{{ route('activities.index') }}" method="GET" id="searchForm" class="relative flex-grow">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                {{-- Form Pencarian Backend (Desain 100% Selaras Dashboard / SearchBarTable) --}}
+                <form action="{{ route('activities.index') }}" method="GET" id="searchForm" class="group relative flex-grow">
+                    <!-- Search Icon -->
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 sm:pl-4 text-[#183669] group-hover:text-[#183669] group-focus-within:text-[#183669] transition-colors duration-200">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                         </svg>
                     </div>
 
+                    <!-- Input Text with Hover & Focus Styles (Border only 2px, distinct hover tone) -->
                     <input type="text"
                             name="search"
                             value="{{ request('search') }}" 
                             id="searchInput"
                             autocomplete="off"
-                            placeholder="Ketik nama aktivitas atau dosen..." 
-                            class="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1a3675]/50 focus:border-[#1a3675] text-sm text-gray-700 bg-white">
+                            placeholder="Cari aktivitas atau dosen..." 
+                            class="h-[44px] sm:h-[46px] w-full rounded-[10px] border-2 border-[#d6e0ee] bg-transparent pl-11 sm:pl-12 pr-9 sm:pr-10 font-inter text-[13px] sm:text-[14px] text-[#173a63] placeholder-[#8ca1b9] transition-colors duration-200 hover:border-[#8ea9cb] focus:border-[#183669] focus:outline-none focus:ring-0">
+
+                    <!-- Clear Button ('X') when input has text -->
+                    <button id="clearSearchBtn"
+                            type="button"
+                            title="Hapus pencarian"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-3.5 text-[#8ca1b9] transition-colors hover:text-[#183669] focus:outline-none {{ request('search') ? '' : 'hidden' }}">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full transition hover:bg-[#eef2f8]">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </span>
+                    </button>
                 </form>
 
                 {{-- Wrapper Dropdown Filter --}}
                 <div class="relative shrink-0">
-                    <button id="filterBtn" class="bg-[#1a3675] hover:bg-blue-800 text-white p-3 rounded-lg shadow-sm transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a3675]">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                        </svg>
+                    @php
+                        $isFilterActive = request()->filled('kategori') || request()->filled('start_date') || request()->filled('end_date');
+                    @endphp
+                    <button id="filterBtn" 
+                            type="button"
+                            class="relative flex h-[44px] w-[44px] sm:h-[46px] sm:w-[46px] shrink-0 items-center justify-center rounded-[10px] border-2 bg-transparent text-[#183669] transition-colors focus:outline-none {{ $isFilterActive ? 'border-[#183669]' : 'border-[#d6e0ee] hover:border-[#8ea9cb]' }}"
+                            title="Filter Aktivitas">
+                        <img src="{{ asset('assets/icons/filter.svg') }}" alt="Filter Icon" class="h-5 w-5 object-contain" />
+                        
+                        {{-- Indikator titik merah saat filter aktif --}}
+                        @if($isFilterActive)
+                            <span class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 h-2 w-2 rounded-full bg-[#ef4444] ring-2 ring-[#eef2f7]"></span>
+                        @endif
                     </button>
 
-                    {{-- Menu Dropdown (Diperlebar menjadi w-64 untuk menampung kalender) --}}
-                    <div id="filterDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden origin-top-right">
+                    {{-- Menu Dropdown Filter --}}
+                    <div id="filterDropdown" class="hidden absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white border border-[#d6e0ee] rounded-xl shadow-xl z-50 overflow-hidden origin-top-right">
                         
                         {{-- Kategori Section --}}
                         <div class="px-4 pt-4 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kategori</div>
@@ -93,36 +116,37 @@
             </div>
 
             {{-- 3. Grid Daftar Aktivitas --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="aktivitasGrid">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" id="aktivitasGrid">
                 
-            {{-- Ganti $aktivitasList menjadi $activities (sesuai nama variabel dari Controller) --}}
             @foreach ($activities as $item)
             @php
                 $imgUrl = $item->primary_image_url ?? $item->primaryPicture?->path ?? $item->pictures?->first()?->path;
+                $itemDesc = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(str_replace(['<', '>'], [' <', '> '], $item->description)))));
             @endphp
             <a href="{{ route('activity.show', $item->id) }}" 
-               class="aktivitas-card block bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer text-left" 
+               class="aktivitas-card block bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 md:p-5 shadow-xs sm:shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer text-left" 
                  data-judul="{{ strtolower($item->activity_name) }}" 
                  data-dosen="{{ strtolower($item->user->name ?? 'Nama Dosen') }}"
                  data-kategori="{{ strtolower(is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type) }}"
                  data-date="{{ $item->activity_date_start ? $item->activity_date_start->format('Y-m-d') : '' }}">
                 
-                <div class="w-full h-48 md:h-[220px] rounded-xl mb-3.5 overflow-hidden bg-gray-100 relative">
+                {{-- Container Foto (Aspect Ratio 16:10 / 16:9 yang sinematis dan proporsional di HP) --}}
+                <div class="w-full aspect-[16/10] sm:aspect-[16/9] md:h-[220px] rounded-lg sm:rounded-xl mb-3 overflow-hidden bg-gray-100 relative shrink-0">
                     {{-- Tampilkan gambar utama jika ada, jika tidak pakai placeholder --}}
                     @if($imgUrl)
                         <img src="{{ $imgUrl }}" 
                              alt="{{ $item->activity_name }}" 
                              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                     @else
-                        <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-105 flex items-center justify-center text-gray-400">
+                        <div class="w-full h-full bg-[#cbd5e1] transition-transform duration-500 group-hover:scale-105 flex items-center justify-center text-xs sm:text-sm text-gray-400">
                             <span>No Image</span>
                         </div>
                     @endif
 
-                    {{-- Floating Date Badge (Ringkas di pojok atas, tidak memotong gambar) --}}
+                    {{-- Floating Date Badge (Ringkas, rapi di HP dan Desktop) --}}
                     @if($item->activity_date_start)
-                        <div class="absolute top-2.5 right-2.5 inline-flex items-center gap-1.5 rounded-lg bg-white/90 backdrop-blur-md px-2.5 py-1 text-[11px] font-semibold text-[#183669] shadow-xs border border-white/70 select-none pointer-events-none">
-                            <svg class="w-3 h-3 text-[#183669] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg bg-white/90 backdrop-blur-md px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-semibold text-[#183669] shadow-xs border border-white/70 select-none pointer-events-none">
+                            <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#183669] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                             <span>{{ \Carbon\Carbon::parse($item->activity_date_start)->locale('id')->translatedFormat('d F Y') }}</span>
@@ -139,33 +163,35 @@
                     $categories = array_values(array_filter($categories));
                 @endphp
 
-                {{-- Kategori Tags (Seluruh kategori tampil rapi tanpa +2) --}}
-                <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                {{-- Kategori Tags --}}
+                <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2">
                     @forelse($categories as $cat)
-                        <span class="bg-[#1a3675]/10 text-[#1a3675] px-2.5 py-0.5 rounded-md font-semibold text-[11px] leading-tight">
+                        <span class="bg-[#1a3675]/10 text-[#1a3675] px-2 sm:px-2.5 py-0.5 rounded-md font-semibold text-[10px] sm:text-[11px] leading-tight">
                             {{ $cat }}
                         </span>
                     @empty
-                        <span class="bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-md font-semibold text-[11px] leading-tight">
+                        <span class="bg-gray-100 text-gray-500 px-2 sm:px-2.5 py-0.5 rounded-md font-semibold text-[10px] sm:text-[11px] leading-tight">
                             Umum
                         </span>
                     @endforelse
                 </div>
                 
-                <h3 class="text-lg md:text-xl font-bold text-[#1a3675] mb-1.5 group-hover:text-blue-700 transition-colors line-clamp-2">
+                {{-- Judul Aktivitas --}}
+                <h3 class="text-base sm:text-lg md:text-xl font-bold text-[#1a3675] mb-1 sm:mb-1.5 group-hover:text-blue-700 transition-colors line-clamp-2 leading-snug">
                     {{ $item->activity_name }}
                 </h3>
 
-                {{-- Nama Dosen di Bawah Judul --}}
-                <div class="text-xs font-semibold text-gray-700 mb-2.5 flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-[#1a3675] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {{-- Nama Dosen --}}
+                <div class="text-[11px] sm:text-xs font-semibold text-gray-700 mb-2 sm:mb-2.5 flex items-center gap-1.5">
+                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#1a3675] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <span class="truncate">{{ $item->user->name ?? 'Nama Dosen' }}</span>
                 </div>
 
-                <p class="text-xs text-gray-500 leading-relaxed line-clamp-3">
-                    {{ strip_tags($item->description) }}
+                {{-- Deskripsi Ringkas --}}
+                <p class="text-[11px] sm:text-xs text-gray-500 leading-relaxed line-clamp-2 sm:line-clamp-3">
+                    {{ $itemDesc }}
                 </p>
             </a>
             @endforeach
@@ -180,7 +206,7 @@
             @endif
 
             @if ($activities->hasPages())
-                <div class="mt-20">
+                <div class="mt-10 sm:mt-16">
                     {{ $activities->withQueryString()->links('components.pagination') }}
                 </div>
             @endif
@@ -261,9 +287,19 @@
             });
         }
 
-        // --- 4. EVENT: LIVE SEARCH ---
+        // --- 4. EVENT: LIVE SEARCH & CLEAR SEARCH ---
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
         if(searchInput) {
             searchInput.addEventListener('input', (e) => {
+                if (clearSearchBtn) {
+                    if (e.target.value.trim().length > 0) {
+                        clearSearchBtn.classList.remove('hidden');
+                    } else {
+                        clearSearchBtn.classList.add('hidden');
+                    }
+                }
+
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(() => {
                     sendToBackend({ search: e.target.value });
@@ -277,6 +313,14 @@
                     clearTimeout(typingTimer);
                     sendToBackend({ search: e.target.value });
                 }
+            });
+        }
+
+        if(clearSearchBtn && searchInput) {
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                sendToBackend({ search: '' });
             });
         }
 

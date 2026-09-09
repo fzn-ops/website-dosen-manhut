@@ -7,7 +7,7 @@
         const svg = document.getElementById('pattern-svg');
         if (!svg) return;
         
-        const colors = ['#1a3675', '#eab308', '#9ca3af']; 
+        const colors = ['#1a3675', '#406dffff', '#9ca3af']; 
         
         const petalSize = 11; 
         const spacing = 25; 
