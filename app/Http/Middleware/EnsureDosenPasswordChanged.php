@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureDosenPasswordChanged
 {
-    /**
+    /** 
      * Handle an incoming request.
      * Mencegah dosen mengakses dashboard & aktivitas jika masih menggunakan password default (NIP).
      */
