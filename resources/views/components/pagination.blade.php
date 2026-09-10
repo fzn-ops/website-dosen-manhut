@@ -1,6 +1,5 @@
 @if ($paginator->hasPages())
     <nav role="navigation" aria-label="Pagination Navigation" class="flex items-center justify-end space-x-2">
-        
         {{-- Tombol Previous --}}
         @if ($paginator->onFirstPage())
             <span class="px-3 py-2 text-sm font-semibold text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
@@ -45,10 +44,10 @@
                 Next &raquo;
             </a>
         @else
+
             <span class="px-3 py-2 text-sm font-semibold text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
                 Next &raquo;
             </span>
         @endif
-        
     </nav>
 @endif
