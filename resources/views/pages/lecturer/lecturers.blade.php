@@ -47,18 +47,43 @@
                     </button>
                 </div>
 
+                {{-- Style khusus Filter Pill untuk mencegah teks hilang saat active/hover --}}
+                <style>
+                    .category-btn.is-active {
+                        background-color: #1a3675 !important;
+                        color: #ffffff !important;
+                        border-color: #1a3675 !important;
+                        font-weight: 700 !important;
+                    }
+                    .category-btn.is-active:hover {
+                        background-color: #152c61 !important;
+                        color: #ffffff !important;
+                    }
+                    .category-btn:not(.is-active) {
+                        background-color: #ffffff !important;
+                        color: #4b5563 !important;
+                        border-color: #d6e0ee !important;
+                        font-weight: 600 !important;
+                    }
+                    .category-btn:not(.is-active):hover {
+                        background-color: #f0f7ff !important;
+                        color: #1a3675 !important;
+                        border-color: #1a3675 !important;
+                    }
+                </style>
+
                 {{-- Kumpulan Pill Kategori (Horizontal scrollable di mobile, wrap di desktop) --}}
                 <div class="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap no-scrollbar" id="filterContainer">
-                    <button data-filter="semua" class="category-btn shrink-0 active px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-95 bg-[#1a3675] text-white border border-transparent cursor-pointer">
+                    <button data-filter="semua" class="category-btn is-active shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm shadow-2xs border transition-all active:scale-95 cursor-pointer">
                         Semua
                     </button>
-                    <button data-filter="perencanaan kehutanan" class="category-btn shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-xs transition-all active:scale-95 bg-white border border-[#d6e0ee] text-gray-600 hover:border-[#1a3675] hover:text-[#1a3675] cursor-pointer">
+                    <button data-filter="perencanaan kehutanan" class="category-btn shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm shadow-2xs border transition-all active:scale-95 cursor-pointer">
                         Perencanaan Hutan
                     </button>
-                    <button data-filter="pemanfaatan sumberdaya hutan" class="category-btn shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-xs transition-all active:scale-95 bg-white border border-[#d6e0ee] text-gray-600 hover:border-[#1a3675] hover:text-[#1a3675] cursor-pointer">
+                    <button data-filter="pemanfaatan sumberdaya hutan" class="category-btn shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm shadow-2xs border transition-all active:scale-95 cursor-pointer">
                         Pemanfaatan SDH
                     </button>
-                    <button data-filter="kebijakan kehutanan" class="category-btn shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-xs transition-all active:scale-95 bg-white border border-[#d6e0ee] text-gray-600 hover:border-[#1a3675] hover:text-[#1a3675] cursor-pointer">
+                    <button data-filter="kebijakan kehutanan" class="category-btn shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm shadow-2xs border transition-all active:scale-95 cursor-pointer">
                         Kebijakan Kehutanan
                     </button>
                 </div>
@@ -280,14 +305,10 @@
             // EVENT: Saat Klik Tombol Kategori
             categoryBtns.forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    categoryBtns.forEach(b => {
-                        b.classList.remove('bg-[#1a3675]', 'text-white', 'border-transparent', 'font-bold');
-                        b.classList.add('bg-white', 'text-gray-600', 'border-[#d6e0ee]', 'font-semibold');
-                    });
+                    categoryBtns.forEach(b => b.classList.remove('is-active'));
 
                     const clickedBtn = e.currentTarget;
-                    clickedBtn.classList.remove('bg-white', 'text-gray-600', 'border-[#d6e0ee]', 'font-semibold');
-                    clickedBtn.classList.add('bg-[#1a3675]', 'text-white', 'border-transparent', 'font-bold');
+                    clickedBtn.classList.add('is-active');
 
                     currentCategory = clickedBtn.getAttribute('data-filter');
                     currentPage = 1;

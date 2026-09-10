@@ -122,11 +122,20 @@
             @php
                 $imgUrl = $item->primary_image_url ?? $item->primaryPicture?->path ?? $item->pictures?->first()?->path;
                 $itemDesc = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(str_replace(['<', '>'], [' <', '> '], $item->description)))));
+                $dosenProfile = $item->user->profileDosen ?? null;
+                $dosenImg = $dosenProfile && $dosenProfile->image ? asset('storage/' . $dosenProfile->image) : null;
+                $dosenName = $item->user->name ?? 'Nama Dosen';
+                $categories = is_array($item->activity_type)
+                    ? $item->activity_type
+                    : (is_string($item->activity_type) && str_starts_with($item->activity_type, '[')
+                        ? (json_decode($item->activity_type, true) ?? [$item->activity_type])
+                        : array_filter(array_map('trim', explode(',', (string)$item->activity_type))));
+                $categories = array_values(array_filter($categories));
             @endphp
             <a href="{{ route('activity.show', $item->id) }}" 
                class="aktivitas-card block bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 md:p-5 shadow-xs sm:shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer text-left" 
                  data-judul="{{ strtolower($item->activity_name) }}" 
-                 data-dosen="{{ strtolower($item->user->name ?? 'Nama Dosen') }}"
+                 data-dosen="{{ strtolower($dosenName) }}"
                  data-kategori="{{ strtolower(is_array($item->activity_type) ? implode(', ', $item->activity_type) : $item->activity_type) }}"
                  data-date="{{ $item->activity_date_start ? $item->activity_date_start->format('Y-m-d') : '' }}">
                 
@@ -154,17 +163,13 @@
                     @endif
                 </div>
                 
-                @php
-                    $categories = is_array($item->activity_type)
-                        ? $item->activity_type
-                        : (is_string($item->activity_type) && str_starts_with($item->activity_type, '[')
-                            ? (json_decode($item->activity_type, true) ?? [$item->activity_type])
-                            : array_filter(array_map('trim', explode(',', (string)$item->activity_type))));
-                    $categories = array_values(array_filter($categories));
-                @endphp
+                {{-- Judul Aktivitas --}}
+                <h3 class="text-base sm:text-lg md:text-xl font-bold text-[#1a3675] mb-1.5 group-hover:text-blue-700 transition-colors line-clamp-2 leading-snug">
+                    {{ $item->activity_name }}
+                </h3>
 
-                {{-- Kategori Tags --}}
-                <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2">
+                {{-- Kategori Tags (Di Bawah Judul) --}}
+                <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-2 sm:mb-2.5">
                     @forelse($categories as $cat)
                         <span class="bg-[#1a3675]/10 text-[#1a3675] px-2 sm:px-2.5 py-0.5 rounded-md font-semibold text-[10px] sm:text-[11px] leading-tight">
                             {{ $cat }}
@@ -175,18 +180,19 @@
                         </span>
                     @endforelse
                 </div>
-                
-                {{-- Judul Aktivitas --}}
-                <h3 class="text-base sm:text-lg md:text-xl font-bold text-[#1a3675] mb-1 sm:mb-1.5 group-hover:text-blue-700 transition-colors line-clamp-2 leading-snug">
-                    {{ $item->activity_name }}
-                </h3>
 
-                {{-- Nama Dosen --}}
-                <div class="text-[11px] sm:text-xs font-semibold text-gray-700 mb-2 sm:mb-2.5 flex items-center gap-1.5">
-                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#1a3675] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span class="truncate">{{ $item->user->name ?? 'Nama Dosen' }}</span>
+                {{-- Nama Dosen dengan Avatar Foto Dosen --}}
+                <div class="text-[11px] sm:text-xs font-semibold text-gray-700 mb-2 sm:mb-2.5 flex items-center gap-2">
+                    <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden bg-gray-200 shrink-0 border border-gray-200">
+                        @if($dosenImg)
+                            <img src="{{ $dosenImg }}" alt="{{ $dosenName }}" class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full bg-[#1a3675]/10 text-[#1a3675] flex items-center justify-center font-bold text-[9px] sm:text-[10px]">
+                                {{ strtoupper(substr($dosenName, 0, 1)) }}
+                            </div>
+                        @endif
+                    </div>
+                    <span class="truncate">{{ $dosenName }}</span>
                 </div>
 
                 {{-- Deskripsi Ringkas --}}
