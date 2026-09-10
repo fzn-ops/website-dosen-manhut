@@ -7,7 +7,7 @@
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
-
+    <x-preloader />
     <x-ornament/>
     {{-- =======================================
          1. HERO SECTION
