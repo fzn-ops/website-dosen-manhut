@@ -127,12 +127,12 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
             </button>
 
-            {{-- Slider Container --}}
-            <div id="dosen-slider" class="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory hide-scroll pb-6 pt-2 px-2 scroll-smooth">
+            {{-- Slider Container (Menampilkan persis 4 kartu di Desktop & 2 kartu di Mobile) --}}
+            <div id="dosen-slider" class="flex gap-3.5 sm:gap-4 lg:gap-6 overflow-x-auto snap-x snap-mandatory hide-scroll pb-6 pt-2 scroll-smooth">
                 
                 @foreach ($lecturers as $lecturer)
                 @php $hasImage = !empty($lecturer['image']); @endphp
-                <a href="{{ route('lecturer.show', $lecturer['id']) }}" class="dosen-card shrink-0 w-[58%] sm:w-[40%] md:w-[28%] lg:w-[22%] snap-center relative rounded-2xl overflow-hidden shadow-xs group/card aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl" data-category="{{ strtolower($lecturer['division']) }}">
+                <a href="{{ route('lecturer.show', $lecturer['id']) }}" class="dosen-card shrink-0 w-[calc((100%-0.875rem)/2)] sm:w-[calc((100%-1rem)/2)] md:w-[calc((100%-2*1rem)/3)] lg:w-[calc((100%-3*1.5rem)/4)] snap-start relative rounded-2xl overflow-hidden shadow-xs group/card aspect-[3/4] bg-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl" data-category="{{ strtolower($lecturer['division']) }}">
                     <div class="w-full h-full bg-[#cbd5e1] relative overflow-hidden">
                         @if($hasImage)
                             <img src="{{ $lecturer['image'] }}" 
@@ -152,7 +152,7 @@
                     {{-- Gradient Biru Gelap yang Pas & Tidak Menutupi Wajah/Atas --}}
                     <div class="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-[#1a3675]/90 via-[#1a3675]/35 to-transparent pointer-events-none"></div>
                     
-                    <div class="absolute bottom-0 left-0 p-3.5 sm:p-5 text-white w-full pointer-events-none">
+                    <div class="absolute bottom-0 left-0 p-3 sm:p-4 md:p-5 text-white w-full pointer-events-none">
                         <h3 class="font-bold text-xs sm:text-sm md:text-base mb-0.5 leading-tight line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{{ $lecturer['name'] }}</h3>
                         <p class="text-[9px] sm:text-[10px] md:text-xs text-gray-200 line-clamp-1 font-medium drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]">{{ $lecturer['division'] }}</p>
                     </div>
@@ -302,17 +302,25 @@
             const btnPrev = document.getElementById('btn-prev');
             const btnNext = document.getElementById('btn-next');
 
-            const scrollAmount = 300; 
+            function getScrollStep() {
+                const firstCard = slider?.querySelector('.dosen-card:not(.hidden)');
+                if (firstCard) {
+                    const style = window.getComputedStyle(slider);
+                    const gap = parseFloat(style.gap) || 24;
+                    return firstCard.offsetWidth + gap;
+                }
+                return 300;
+            }
 
             if (btnPrev && slider) {
                 btnPrev.addEventListener('click', () => {
-                    slider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                    slider.scrollBy({ left: -getScrollStep(), behavior: 'smooth' });
                 });
             }
 
             if (btnNext && slider) {
                 btnNext.addEventListener('click', () => {
-                    slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                    slider.scrollBy({ left: getScrollStep(), behavior: 'smooth' });
                 });
             }
         });
