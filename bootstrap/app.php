@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Middleware\CheckRole;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -19,6 +20,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         //
+
+        $middleware->redirectUsersTo(function (Request $request) {
+            $user = Auth::user();
+            if ($user && $user->role == 'admin') {
+                return '/admin/dashboard';
+            }
+            if ($user && $user->role == 'dosen') {
+                return '/dosen/dashboard';
+            }
+            return '/';
+        });
 
         $middleware->alias([
             'role' => CheckRole::class,
