@@ -83,14 +83,13 @@ const getCategoryCount = (cat) => {
 	}).length;
 };
 
-// Table Columns Config
 const columns = [
-	{ key: 'name', label: 'Nama Aktivitas', sortable: true, align: 'left', width: 'w-[23%]' },
-	{ key: 'category', label: 'Kategori', sortable: true, align: 'left', width: 'w-[14%]' },
-    { key: 'role', label: 'Peran', sortable: true, align: 'left', width: 'w-[13%]' },
-	{ key: 'description', label: 'Deskripsi', sortable: true, align: 'left', width: 'w-[26%]' },
-	{ key: 'dateSort', label: 'Tanggal Publish', sortable: true, align: 'center', width: 'w-[14%]' },
-	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[10%]' },
+	{ key: 'name', label: 'Nama Aktivitas', sortable: true, width: 'w-[240px]' },
+	{ key: 'category', label: 'Kategori', sortable: true, width: 'w-[140px]' },
+	{ key: 'role', label: 'Peran', sortable: true, width: 'w-[130px]' },
+	{ key: 'description', label: 'Deskripsi', sortable: true, width: 'w-[260px]' },
+	{ key: 'dateSort', label: 'Tanggal Publish', sortable: true, width: 'w-[160px]' },
+	{ key: 'action', label: 'Aksi', sortable: false, width: 'w-[90px]' },
 ];
 
 const sortKey = ref('id');
@@ -487,32 +486,27 @@ const confirmDeleteActivity = () => {
 
 			<!-- Main Table Container -->
 			<div class="mt-6 overflow-x-auto rounded-[12px] bg-white shadow-sm ring-1 ring-[#d6e0ee]">
-				<table class="w-full min-w-[850px] table-fixed border-collapse text-sm">
+				<table class="w-full min-w-[1070px] table-fixed border-collapse text-sm">
 					<thead class="bg-[#183669]">
 						<tr class="h-[48px]">
-							<th
-								:class="[
-									'w-[60px] px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white border-r border-white/15 lg:border-r-0 select-none',
-									!hasProfile ? 'cursor-not-allowed opacity-60' : ''
-								]"
-							>
+							<th class="w-[50px] px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 lg:border-r-0">
 								<button
 									type="button"
 									:disabled="!hasProfile"
 									@click="hasProfile && toggleSort('id')"
 									:class="[
-										'group relative inline-flex items-center justify-center mx-auto transition-colors focus:outline-none',
+										'group relative inline-flex items-center justify-center mx-auto transition-colors focus:outline-none whitespace-nowrap',
 										hasProfile ? 'hover:text-white/80' : 'cursor-not-allowed opacity-60'
 									]"
 									title="Urutkan No"
 								>
 									<span>No</span>
-									<span class="absolute left-full ml-1 top-1/2 -translate-y-1/2 inline-flex items-center">
+									<span class="absolute left-full ml-0.5 top-1/2 -translate-y-1/2 inline-flex shrink-0 items-center text-white/70 group-hover:text-white">
 										<svg
 											v-if="sortKey === 'id'"
 											:class="[
 												'h-3.5 w-3.5 text-white transition-transform duration-200',
-												sortDirection === 'asc' ? 'rotate-180' : ''
+												sortDirection === 'desc' ? 'rotate-180' : ''
 											]"
 											viewBox="0 0 20 20"
 											fill="currentColor"
@@ -535,8 +529,7 @@ const confirmDeleteActivity = () => {
 								:key="col.key"
 								:class="[
 									col.width,
-									'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0',
-									col.align === 'center',
+									'px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0',
 									!hasProfile ? 'cursor-not-allowed' : ''
 								]"
 							>
@@ -546,27 +539,18 @@ const confirmDeleteActivity = () => {
 									:disabled="!hasProfile"
 									@click="hasProfile && toggleSort(col.key)"
 									:class="[
-										'group transition-colors focus:outline-none max-w-full',
-										hasProfile ? 'hover:text-white/80' : 'cursor-not-allowed opacity-60',
-										col.align === 'center'
-											? 'mx-auto flex items-center justify-center'
-											: 'inline-flex items-center gap-1.5 justify-start'
+										'group inline-flex items-center justify-center gap-1 mx-auto transition-colors focus:outline-none whitespace-nowrap',
+										hasProfile ? 'hover:text-white/80' : 'cursor-not-allowed opacity-60'
 									]"
 									:title="`Urutkan ${col.label}`"
 								>
-									<!-- Balanced spacer for center-aligned columns so text is optically centered and arrow never overflows cell -->
-									<span
-										v-if="col.align === 'center'"
-										class="h-3.5 w-3.5 shrink-0 opacity-0 pointer-events-none mr-1.5"
-										aria-hidden="true"
-									></span>
-									<span class="truncate">{{ col.label }}</span>
-									<span class="inline-flex shrink-0 items-center ml-1.5 text-white/70 group-hover:text-white">
+									<span>{{ col.label }}</span>
+									<span class="inline-flex shrink-0 items-center text-white/70 group-hover:text-white">
 										<svg
 											v-if="sortKey === col.key"
 											:class="[
 												'h-3.5 w-3.5 text-white transition-transform duration-200',
-												sortDirection === 'asc' ? 'rotate-180' : ''
+												sortDirection === 'desc' ? 'rotate-180' : ''
 											]"
 											viewBox="0 0 20 20"
 											fill="currentColor"
@@ -586,7 +570,7 @@ const confirmDeleteActivity = () => {
 								<span
 									v-else
 									:class="[
-										'block truncate',
+										'whitespace-nowrap',
 										!hasProfile ? 'cursor-not-allowed opacity-60' : ''
 									]"
 								>

@@ -13,6 +13,7 @@
 
         <!-- Scripts -->
         @routes
+        @php /** @var array $page */ @endphp
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>

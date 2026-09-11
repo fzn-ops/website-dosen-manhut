@@ -135,14 +135,13 @@ const resetAllFilters = () => {
 	currentPage.value = 1;
 };
 
-// Table Columns Config
 const columns = [
-	{ key: 'name', label: 'Nama Aktivitas', sortable: true, align: 'left', width: 'w-[22%]' },
-	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, align: 'left', width: 'w-[18%]' },
-	{ key: 'category', label: 'Kategori', sortable: true, align: 'left', width: 'w-[15%]' },
-	{ key: 'role', label: 'Peran', sortable: true, align: 'left', width: 'w-[14%]' },
-	{ key: 'dateSort', label: 'Tanggal Publish', sortable: true, align: 'center', width: 'w-[18%]' },
-	{ key: 'action', label: 'Aksi', sortable: false, align: 'center', width: 'w-[13%]' },
+	{ key: 'name', label: 'Nama Aktivitas', sortable: true, width: 'w-[220px]' },
+	{ key: 'lecturer', label: 'Nama Dosen', sortable: true, width: 'w-[180px]' },
+	{ key: 'category', label: 'Kategori', sortable: true, width: 'w-[140px]' },
+	{ key: 'role', label: 'Peran', sortable: true, width: 'w-[130px]' },
+	{ key: 'dateSort', label: 'Tanggal Publish', sortable: true, width: 'w-[160px]' },
+	{ key: 'action', label: 'Aksi', sortable: false, width: 'w-[90px]' },
 ];
 
 const sortKey = ref('id');
@@ -512,23 +511,23 @@ const confirmDeleteActivity = () => {
 
 				<!-- Table Section -->
 				<div class="overflow-x-auto rounded-[12px] bg-white shadow-sm ring-1 ring-[#d6e0ee]">
-					<table class="w-full min-w-[950px] table-fixed border-collapse text-sm">
+					<table class="w-full min-w-[970px] table-fixed border-collapse text-sm">
 						<thead class="bg-[#183669]">
 							<tr class="h-[48px]">
 								<th class="w-[50px] px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 lg:border-r-0">
 									<button
 										type="button"
 										@click="toggleSort('id')"
-										class="group relative inline-flex items-center justify-center mx-auto transition-colors hover:text-white/80 focus:outline-none"
+										class="group relative inline-flex items-center justify-center mx-auto transition-colors hover:text-white/80 focus:outline-none whitespace-nowrap"
 										title="Urutkan No"
 									>
 										<span>No</span>
-										<span class="absolute left-full ml-1 top-1/2 -translate-y-1/2 inline-flex items-center">
+										<span class="absolute left-full ml-0.5 top-1/2 -translate-y-1/2 inline-flex shrink-0 items-center text-white/70 group-hover:text-white">
 											<svg
 												v-if="sortKey === 'id'"
 												:class="[
 													'h-3.5 w-3.5 text-white transition-transform duration-200',
-													sortDirection === 'asc' ? 'rotate-180' : ''
+													sortDirection === 'desc' ? 'rotate-180' : ''
 												]"
 												viewBox="0 0 20 20"
 												fill="currentColor"
@@ -551,35 +550,23 @@ const confirmDeleteActivity = () => {
 									:key="col.key"
 									:class="[
 										col.width,
-										'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0',
-										col.align === 'center' 
+										'px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0'
 									]"
 								>
 									<button
 										v-if="col.sortable"
 										type="button"
 										@click="toggleSort(col.key)"
-										:class="[
-											'group transition-colors hover:text-white/80 focus:outline-none max-w-full',
-											col.align === 'center'
-												? 'mx-auto flex items-center justify-center'
-												: 'inline-flex items-center gap-1.5 justify-start'
-										]"
+										class="group inline-flex items-center justify-center gap-1 mx-auto transition-colors hover:text-white/80 focus:outline-none whitespace-nowrap"
 										:title="`Urutkan ${col.label}`"
 									>
-										<!-- Balanced spacer for center-aligned columns so text is optically centered and arrow never overflows cell -->
-										<span
-											v-if="col.align === 'center'"
-											class="h-3.5 w-3.5 shrink-0 opacity-0 pointer-events-none mr-1.5"
-											aria-hidden="true"
-										></span>
-										<span class="truncate">{{ col.label }}</span>
-										<span class="inline-flex shrink-0 items-center ml-1.5 text-white/70 group-hover:text-white">
+										<span>{{ col.label }}</span>
+										<span class="inline-flex shrink-0 items-center text-white/70 group-hover:text-white">
 											<svg
 												v-if="sortKey === col.key"
 												:class="[
 													'h-3.5 w-3.5 text-white transition-transform duration-200',
-													sortDirection === 'asc' ? 'rotate-180' : ''
+													sortDirection === 'desc' ? 'rotate-180' : ''
 												]"
 												viewBox="0 0 20 20"
 												fill="currentColor"
@@ -596,7 +583,7 @@ const confirmDeleteActivity = () => {
 											</svg>
 										</span>
 									</button>
-									<span v-else class="block truncate">{{ col.label }}</span>
+									<span v-else class="whitespace-nowrap">{{ col.label }}</span>
 								</th>
 							</tr>
 						</thead>

@@ -1,7 +1,7 @@
 <script setup>
 import DosenLayout from '@/Layouts/DosenLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
@@ -66,11 +66,40 @@ const props = defineProps({
 
 const page = usePage();
 
+const chartRef = ref(null);
+
+const hideChartTooltip = () => {
+	const chartInstance = chartRef.value?.chart;
+	if (chartInstance && chartInstance.tooltip) {
+		chartInstance.tooltip.setActiveElements([], { x: 0, y: 0 });
+		chartInstance.setActiveElements([]);
+		chartInstance.update();
+	}
+};
+
+const handleDocumentTouchOrClick = (event) => {
+	const canvas = chartRef.value?.chart?.canvas;
+	if (!canvas) return;
+	if (!canvas.contains(event.target)) {
+		hideChartTooltip();
+	}
+};
+
 const isLoading = ref(true);
 onMounted(() => {
 	setTimeout(() => {
 		isLoading.value = false;
 	}, 350);
+
+	window.addEventListener('pointerdown', handleDocumentTouchOrClick, { passive: true });
+	window.addEventListener('touchstart', handleDocumentTouchOrClick, { passive: true });
+	window.addEventListener('click', handleDocumentTouchOrClick, { passive: true });
+});
+
+onUnmounted(() => {
+	window.removeEventListener('pointerdown', handleDocumentTouchOrClick);
+	window.removeEventListener('touchstart', handleDocumentTouchOrClick);
+	window.removeEventListener('click', handleDocumentTouchOrClick);
 });
 
 const currentLecturer = computed(() => props.currentLecturer || { name: 'Dosen' });
@@ -93,12 +122,16 @@ const chartData = computed(() => ({
 		data: series.values,
 		borderColor: series.color,
 		backgroundColor: series.color,
-		pointRadius: 3,
-		pointHoverRadius: 5,
-		pointBorderWidth: 1.5,
+		pointRadius: 4.5,
+		pointHoverRadius: 7,
+		pointHitRadius: 14,
+		pointBorderWidth: 2,
 		pointBackgroundColor: '#ffffff',
-		tension: 0.2,
-		borderWidth: 2,
+		pointHoverBackgroundColor: series.color,
+		pointHoverBorderColor: '#ffffff',
+		pointHoverBorderWidth: 2.5,
+		tension: 0.35,
+		borderWidth: 2.5,
 		fill: false,
 	})),
 }));
@@ -106,12 +139,24 @@ const chartData = computed(() => ({
 const chartOptions = {
 	responsive: true,
 	maintainAspectRatio: false,
+	onClick: (event, elements, chart) => {
+		if (!elements || elements.length === 0) {
+			chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+			chart.setActiveElements([]);
+			chart.update();
+		}
+	},
+	interaction: {
+		mode: 'nearest',
+		intersect: true,
+		axis: 'xy',
+	},
 	layout: {
 		padding: {
-			top: 8,
-			right: 12,
-			bottom: 8,
-			left: 12,
+			top: 10,
+			right: 14,
+			bottom: 4,
+			left: 6,
 		},
 	},
 	plugins: {
@@ -120,10 +165,10 @@ const chartOptions = {
 			labels: {
 				usePointStyle: true,
 				pointStyle: 'circle',
-				boxWidth: 6,
-				boxHeight: 6,
-				padding: 16,
-				color: '#6f84a3',
+				boxWidth: 7,
+				boxHeight: 7,
+				padding: 18,
+				color: '#64748b',
 				font: {
 					family: 'Inter',
 					size: 12,
@@ -133,40 +178,61 @@ const chartOptions = {
 		},
 		tooltip: {
 			enabled: true,
+			backgroundColor: '#183669',
+			titleColor: '#ffffff',
+			bodyColor: '#e2e8f0',
+			borderColor: 'rgba(255, 255, 255, 0.15)',
+			borderWidth: 1,
+			padding: { top: 8, right: 12, bottom: 8, left: 12 },
+			cornerRadius: 8,
+			displayColors: true,
+			boxWidth: 8,
+			boxHeight: 8,
+			usePointStyle: true,
+			titleFont: { family: 'Poppins', size: 12, weight: '600' },
+			bodyFont: { family: 'Inter', size: 11.5, weight: '500' },
+			callbacks: {
+				title: (items) => `Tahun ${items[0]?.label || ''}`,
+				label: (item) => ` ${item.dataset.label}: ${item.raw} aktivitas`,
+			},
 		},
 	},
 	scales: {
 		x: {
 			grid: {
-				color: '#e2e9f4',
-				borderDash: [3, 4],
+				color: '#f1f5f9',
+				borderDash: [4, 4],
 			},
 			ticks: {
-				color: '#7487a2',
+				color: '#64748b',
 				font: {
 					family: 'Inter',
-					size: 11,
+					size: 12,
+					weight: 500,
 				},
 			},
 			border: {
-				color: '#d7e1ee',
+				color: '#e2e8f0',
 			},
 		},
 		y: {
+			beginAtZero: true,
 			min: 0,
 			grid: {
-				color: '#eef2f8',
+				color: '#f1f5f9',
 			},
 			ticks: {
 				stepSize: 1,
-				color: '#7487a2',
+				precision: 0,
+				color: '#64748b',
 				font: {
 					family: 'Inter',
 					size: 11,
+					weight: 500,
 				},
 			},
 			border: {
-				color: '#d7e1ee',
+				color: '#e2e8f0',
 			},
 		},
 	},
@@ -184,12 +250,12 @@ watch(
 );
 
 const columns = [
-	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[23%]' },
-	{ key: 'category', label: 'Kategori', sortable: true, cellAlign: 'left', width: 'w-[14%]' },
-	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[13%]' },
-	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[26%]' },
-	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'left', width: 'w-[14%]' },
-	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[10%]' },
+	{ key: 'name', label: 'Nama Aktivitas', sortable: true, cellAlign: 'left', width: 'w-[240px]' },
+	{ key: 'category', label: 'Kategori', sortable: true, cellAlign: 'left', width: 'w-[140px]' },
+	{ key: 'role', label: 'Peran', sortable: true, cellAlign: 'left', width: 'w-[130px]' },
+	{ key: 'description', label: 'Deskripsi', sortable: true, cellAlign: 'left', width: 'w-[260px]' },
+	{ key: 'dateSort', label: 'Tanggal', sortable: true, cellAlign: 'left', width: 'w-[160px]' },
+	{ key: 'action', label: 'Aksi', sortable: false, cellAlign: 'center', width: 'w-[90px]' },
 ];
 
 const sortKey = ref('id');
@@ -200,7 +266,7 @@ const toggleSort = (key) => {
 		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
 	} else {
 		sortKey.value = key;
-		sortDirection.value = key === 'id' ? 'desc' : 'asc';
+		sortDirection.value = key === 'id' || key === 'dateSort' ? 'desc' : 'asc';
 	}
 };
 
@@ -384,10 +450,11 @@ const confirmDeleteActivity = () => {
 				<!-- Header Title & Subtitle -->
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div class="space-y-1.5">
-						<h1 class="mt-1 text-[32px] font-bold leading-[1.02] tracking-[-0.03em] text-[#173a63] sm:text-[40px] lg:text-[44px]">
-							Selamat Datang, {{ currentLecturer.name }} !
+						<h1 class="mt-1 text-[26px] font-bold leading-[1.2] tracking-[-0.03em] text-[#173a63] sm:text-[36px] sm:leading-tight lg:text-[42px]">
+							<span class="block sm:inline">Selamat Datang,</span>
+							<span class="block sm:inline sm:ml-2">{{ currentLecturer.name }} !</span>
 						</h1>
-						<p class="font-inter text-[14px] font-medium leading-tight text-[#4d6786] sm:text-[16px]">
+						<p class="font-inter text-[13.5px] font-medium leading-normal text-[#4d6786] sm:text-[15px] sm:leading-tight">
 							Pantau ringkasan statistik, perkembangan dan kelola seluruh aktivitas Anda
 						</p>
 					</div>
@@ -450,15 +517,21 @@ const confirmDeleteActivity = () => {
 
 				<!-- Chart Section -->
 				<div class="rounded-[12px] bg-white px-4 py-5 shadow-sm ring-1 ring-[#d6e0ee] sm:px-6 sm:py-6">
-					<div class="flex flex-wrap items-start justify-between gap-3">
+					<div class="flex flex-wrap items-center justify-between gap-3">
 						<div>
-							<h2 class="text-[19px] font-bold text-[#173a63]">Statistik Aktivitas Saya</h2>
-							<p class="font-inter text-[13px] font-medium text-[#4d6786]">Perkembangan aktivitas tahun ke tahun</p>
+							<h2 class="text-[18px] font-bold text-[#173a63] sm:text-[20px]">Statistik Aktivitas Saya</h2>
+							<p class="font-inter text-[12.5px] font-medium text-[#4d6786] sm:text-[13.5px]">Perkembangan aktivitas tahun ke tahun</p>
+						</div>
+						<div v-if="years && years.length" class="inline-flex items-center gap-1.5 rounded-full bg-[#f0f4f9] px-3 py-1 font-inter text-[11.5px] font-semibold text-[#183669] ring-1 ring-inset ring-[#d6e0ee]">
+							<svg class="h-3.5 w-3.5 text-[#183669]/70" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.253 18.75m3-18.75H3.75a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 3.75 21h16.5a2.25 2.25 0 0 0 2.25-2.25V5.25a2.25 2.25 0 0 0-2.25-2.25Z" />
+							</svg>
+							<span>{{ years[0] }} - {{ years[years.length - 1] }}</span>
 						</div>
 					</div>
 
-					<div class="mt-4 rounded-[10px] border border-[#dbe4f0] p-2 sm:p-4">
-						<div v-if="isLoading" class="h-[240px] w-full sm:h-[300px] lg:h-[320px] animate-pulse flex flex-col justify-between p-4 bg-slate-50/50 rounded-lg">
+					<div class="mt-4 rounded-[10px] border border-[#dbe4f0] bg-[#fafcff]/50 p-2 sm:p-4">
+						<div v-if="isLoading" class="h-[250px] w-full sm:h-[300px] lg:h-[320px] animate-pulse flex flex-col justify-between p-4 bg-slate-50/50 rounded-lg">
 							<div class="flex items-center justify-between">
 								<div class="h-4 w-32 rounded bg-slate-200"></div>
 								<div class="flex gap-4">
@@ -476,8 +549,8 @@ const confirmDeleteActivity = () => {
 								<div v-for="y in 4" :key="y" class="h-3 w-12 rounded bg-slate-200"></div>
 							</div>
 						</div>
-						<div v-else class="h-[240px] w-full sm:h-[300px] lg:h-[320px]">
-							<Line :data="chartData" :options="chartOptions" aria-label="Grafik aktivitas saya" />
+						<div v-else class="h-[250px] w-full sm:h-[300px] lg:h-[320px]">
+							<Line ref="chartRef" :data="chartData" :options="chartOptions" aria-label="Grafik aktivitas saya" />
 						</div>
 					</div>
 				</div>
@@ -498,93 +571,82 @@ const confirmDeleteActivity = () => {
 					</div>
 
 					<div class="overflow-x-auto rounded-[12px] bg-white shadow-sm ring-1 ring-[#d6e0ee]">
-						<table class="w-full min-w-[850px] table-fixed border-collapse text-sm">
+						<table class="w-full min-w-[1070px] table-fixed border-collapse text-sm">
 							<thead class="bg-[#183669]">
-								<tr class="h-[48px]">
-									<th class="w-[60px] px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 lg:border-r-0">
-										<button
-											type="button"
-											@click="toggleSort('id')"
-											class="group relative inline-flex items-center justify-center mx-auto transition-colors hover:text-white/80 focus:outline-none"
-											title="Urutkan No"
-										>
-											<span>No</span>
-											<span class="absolute left-full ml-1 top-1/2 -translate-y-1/2 inline-flex items-center">
-												<svg
-													v-if="sortKey === 'id'"
-													:class="[
-														'h-3.5 w-3.5 text-white transition-transform duration-200',
-														sortDirection === 'asc' ? 'rotate-180' : ''
-													]"
-													viewBox="0 0 20 20"
-													fill="currentColor"
-												>
-													<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
-												</svg>
-												<svg
-													v-else
-													class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
-													viewBox="0 0 20 20"
-													fill="currentColor"
-												>
-													<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
-												</svg>
-											</span>
-										</button>
-									</th>
-									<th
-										v-for="col in columns"
-										:key="col.key"
-										:class="[
-											col.width,
-											'px-3 py-2.5 font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0',
-											col.align === 'center' || col.cellAlign === 'center' ? 'text-center' : 'text-left'
-										]"
+							<tr class="h-[48px]">
+								<th class="w-[50px] px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 lg:border-r-0">
+									<button
+										type="button"
+										@click="toggleSort('id')"
+										class="group relative inline-flex items-center justify-center mx-auto transition-colors hover:text-white/80 focus:outline-none whitespace-nowrap"
+										title="Urutkan No"
 									>
-										<button
-											v-if="col.sortable"
-											type="button"
-											@click="toggleSort(col.key)"
-											:class="[
-												'group transition-colors hover:text-white/80 focus:outline-none max-w-full',
-												col.align === 'center' || col.cellAlign === 'center'
-													? 'mx-auto flex items-center justify-center'
-													: 'inline-flex items-center gap-1.5 justify-start'
-											]"
-											:title="`Urutkan ${col.label}`"
-										>
-											<span
-												v-if="col.align === 'center' || col.cellAlign === 'center'"
-												class="h-3.5 w-3.5 shrink-0 opacity-0 pointer-events-none mr-1.5"
-												aria-hidden="true"
-											></span>
-											<span class="truncate">{{ col.label }}</span>
-											<span class="inline-flex shrink-0 items-center ml-1.5 text-white/70 group-hover:text-white">
-												<svg
-													v-if="sortKey === col.key"
-													:class="[
-														'h-3.5 w-3.5 text-white transition-transform duration-200',
-														sortDirection === 'asc' ? 'rotate-180' : ''
-													]"
-													viewBox="0 0 20 20"
-													fill="currentColor"
-												>
-													<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
-												</svg>
-												<svg
-													v-else
-													class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
-													viewBox="0 0 20 20"
-													fill="currentColor"
-												>
-													<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
-												</svg>
-											</span>
-										</button>
-										<span v-else>{{ col.label }}</span>
-									</th>
-								</tr>
-							</thead>
+										<span>No</span>
+										<span class="absolute left-full ml-0.5 top-1/2 -translate-y-1/2 inline-flex shrink-0 items-center text-white/70 group-hover:text-white">
+											<svg
+												v-if="sortKey === 'id'"
+												:class="[
+													'h-3.5 w-3.5 text-white transition-transform duration-200',
+													sortDirection === 'desc' ? 'rotate-180' : ''
+												]"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+											</svg>
+											<svg
+												v-else
+												class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+											</svg>
+										</span>
+									</button>
+								</th>
+								<th
+									v-for="col in columns"
+									:key="col.key"
+									:class="[
+										col.width,
+										'px-2 py-2.5 text-center font-poppins text-[13px] font-semibold text-white select-none border-r border-white/15 last:border-r-0 lg:border-r-0'
+									]"
+								>
+									<button
+										v-if="col.sortable"
+										type="button"
+										@click="toggleSort(col.key)"
+										class="group inline-flex items-center justify-center gap-1 mx-auto transition-colors hover:text-white/80 focus:outline-none whitespace-nowrap"
+										:title="`Urutkan ${col.label}`"
+									>
+										<span>{{ col.label }}</span>
+										<span class="inline-flex shrink-0 items-center text-white/70 group-hover:text-white">
+											<svg
+												v-if="sortKey === col.key"
+												:class="[
+													'h-3.5 w-3.5 text-white transition-transform duration-200',
+													sortDirection === 'desc' ? 'rotate-180' : ''
+												]"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+											</svg>
+											<svg
+												v-else
+												class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.69l3.72-3.72a.75.75 0 111.06 1.06l-5 5a.75.75 0 01-1.06 0l-5-5a.75.75 0 111.06-1.06l3.72 3.72V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+											</svg>
+										</span>
+									</button>
+									<span v-else class="whitespace-nowrap">{{ col.label }}</span>
+								</th>
+							</tr>
+						</thead>
 							<tbody class="divide-y divide-[#d6e0ee] font-inter text-[14px] text-[#435b76]">
 								<!-- Skeleton Loading Rows -->
 								<template v-if="isLoading">
