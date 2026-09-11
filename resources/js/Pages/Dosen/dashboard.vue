@@ -1,12 +1,13 @@
 <script setup>
 import DosenLayout from '@/Layouts/DosenLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
-import ModalFormAktivitas from '@/Components/dosen/ModalFormAktivitas.vue';
-import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
+
+const ModalFormAktivitas = defineAsyncComponent(() => import('@/Components/dosen/ModalFormAktivitas.vue'));
+const ModalDeleteConfirmation = defineAsyncComponent(() => import('@/Components/ModalDeleteConfirmation.vue'));
 import { Line } from 'vue-chartjs';
 import {
 	Chart as ChartJS,

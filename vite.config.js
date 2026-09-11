@@ -1,13 +1,13 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
-import path from 'path';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, './resources/js'),
-            'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy'),
+            '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
+            'ziggy-js': fileURLToPath(new URL('./vendor/tightenco/ziggy', import.meta.url)),
         },
     },
     plugins: [
@@ -24,4 +24,18 @@ export default defineConfig({
             },
         }),
     ],
+    build: {
+        cssCodeSplit: true,
+        chunkSizeWarningLimit: 1000,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('xlsx')) return 'vendor-xlsx';
+                        if (id.includes('chart.js') || id.includes('vue-chartjs')) return 'vendor-charts';
+                    }
+                },
+            },
+        },
+    },
 });

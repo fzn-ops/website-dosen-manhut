@@ -1,16 +1,17 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
 import TablePagination from '@/Components/TablePagination.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
 import SearchBarTable from '@/Components/SearchBarTable.vue';
-import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
-import ModalBulkDeletePublication from '@/Components/admin/ModalBulkDeletePublication.vue';
-import ModalSyncLoading from '@/Components/admin/ModalSyncLoading.vue';
-import ModalSelectLecturerSync from '@/Components/admin/ModalSelectLecturerSync.vue';
-import axios from 'axios'; 
+import axios from 'axios';
+
+const ModalDeleteConfirmation = defineAsyncComponent(() => import('@/Components/ModalDeleteConfirmation.vue'));
+const ModalBulkDeletePublication = defineAsyncComponent(() => import('@/Components/admin/ModalBulkDeletePublication.vue'));
+const ModalSyncLoading = defineAsyncComponent(() => import('@/Components/admin/ModalSyncLoading.vue'));
+const ModalSelectLecturerSync = defineAsyncComponent(() => import('@/Components/admin/ModalSelectLecturerSync.vue')); 
 
 const props = defineProps({
     publications: {

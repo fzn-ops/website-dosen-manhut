@@ -1,14 +1,15 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
-import ModalFormAktivitasDosen from '@/Components/admin/ModalFormAktivitasDosen.vue';
 import TablePagination from '@/Components/TablePagination.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
 import SearchBarTable from '@/Components/SearchBarTable.vue';
-import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
+
+const ModalFormAktivitasDosen = defineAsyncComponent(() => import('@/Components/admin/ModalFormAktivitasDosen.vue'));
+const ModalDeleteConfirmation = defineAsyncComponent(() => import('@/Components/ModalDeleteConfirmation.vue'));
 
 const props = defineProps({
 	activities: {

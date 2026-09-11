@@ -1,12 +1,13 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
-import ModalFormAktivitasDosen from '@/Components/admin/ModalFormAktivitasDosen.vue';
-import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
+
+const ModalFormAktivitasDosen = defineAsyncComponent(() => import('@/Components/admin/ModalFormAktivitasDosen.vue'));
+const ModalDeleteConfirmation = defineAsyncComponent(() => import('@/Components/ModalDeleteConfirmation.vue'));
 import { Line } from 'vue-chartjs';
 import {
 	Chart as ChartJS,

@@ -1,14 +1,15 @@
 <script setup>
 import DosenLayout from '@/Layouts/DosenLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EditButtonTable from '@/Components/EditButtonTable.vue';
 import DeleteButtonTable from '@/Components/DeleteButtonTable.vue';
-import ModalFormAktivitas from '@/Components/dosen/ModalFormAktivitas.vue';
 import TablePagination from '@/Components/TablePagination.vue';
 import SearchBarTable from '@/Components/SearchBarTable.vue';
-import ModalDeleteConfirmation from '@/Components/ModalDeleteConfirmation.vue';
 import ToastNotification from '@/Components/ToastNotification.vue';
+
+const ModalFormAktivitas = defineAsyncComponent(() => import('@/Components/dosen/ModalFormAktivitas.vue'));
+const ModalDeleteConfirmation = defineAsyncComponent(() => import('@/Components/ModalDeleteConfirmation.vue'));
 
 const props = defineProps({
 	activities: {
