@@ -7,7 +7,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
-
+    <x-preloader />
     {{-- Wrapper Halaman --}}
     <div class="bg-[#fafafc] w-full min-h-screen py-8 sm:py-12 md:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

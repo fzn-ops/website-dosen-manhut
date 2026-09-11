@@ -2,7 +2,7 @@
     <x-slot:title>
         Aktivitas Terkini | DosenManhut
     </x-slot>
-
+    <x-preloader />
     {{-- Data Dummy (Pastikan ada 'date_raw' format YYYY-MM-DD) --}}
 <!--     @php
         $aktivitasList = [

@@ -2,7 +2,7 @@
     <x-slot:title>
         Tentang Kami | DosenManhut
     </x-slot>
-
+    <x-preloader />
     {{-- Wrapper Halaman --}}
     <div class="relative bg-[#fafafc] w-full min-h-screen overflow-hidden pb-16 sm:pb-20">
         

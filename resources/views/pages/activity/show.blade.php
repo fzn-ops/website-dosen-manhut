@@ -2,7 +2,7 @@
     <x-slot:title>
         {{ $activity->activity_name }} | DosenManhut
     </x-slot>
-
+    <x-preloader />
     <div class="bg-[#fafafc] w-full min-h-screen py-8 md:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
