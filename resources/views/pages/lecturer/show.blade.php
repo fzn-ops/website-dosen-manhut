@@ -199,11 +199,11 @@
                     <table class="w-full text-left text-xs sm:text-sm text-gray-700 min-w-[620px]">
                         <thead class="bg-[#1a3675] text-white text-[11px] sm:text-xs uppercase tracking-wider">
                             <tr>
-                                <th class="px-4 sm:px-5 py-3 font-semibold text-center w-[38%] min-w-[200px]">Title</th>
-                                <th class="px-4 sm:px-5 py-3 font-semibold text-center w-[25%] min-w-[140px]">Authors</th>
-                                <th class="px-4 sm:px-5 py-3 font-semibold text-center w-[23%] min-w-[130px]">Publisher</th>
-                                <th class="px-3 sm:px-4 py-3 font-semibold text-center w-[7%] whitespace-nowrap">Cited By</th>
-                                <th class="px-3 sm:px-4 py-3 font-semibold text-center w-[7%] whitespace-nowrap">Year</th>
+                                <th class="px-4 sm:px-5 py-3 font-semibold text-center w-[38%] min-w-[200px]">Judul</th>
+                                <th class="px-4 sm:px-5 py-3 font-semibold text-center w-[25%] min-w-[140px]">Penulis</th>
+                                <th class="px-4 sm:px-5 py-3 font-semibold text-center w-[23%] min-w-[130px]">Penerbit</th>
+                                <th class="px-3 sm:px-4 py-3 font-semibold text-center w-[7%] whitespace-nowrap">Sitasi</th>
+                                <th class="px-3 sm:px-4 py-3 font-semibold text-center w-[7%] whitespace-nowrap">Tahun</th>
                             </tr>
                         </thead>
                         <tbody>
