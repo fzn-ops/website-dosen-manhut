@@ -37,7 +37,11 @@
                             : (is_string($activity->activity_type) && str_starts_with($activity->activity_type, '[') 
                                 ? (json_decode($activity->activity_type, true) ?? [$activity->activity_type]) 
                                 : array_filter(array_map('trim', explode(',', (string)$activity->activity_type))));
-                        $actTypes = array_values(array_filter($actTypes));
+                        $actTypes = collect($actTypes)
+                            ->filter()
+                            ->sortBy(fn($c) => in_array(strtolower(trim((string)$c)), ['lainnya', 'lain-lain', 'other', 'others']) ? 1 : 0)
+                            ->values()
+                            ->all();
                     @endphp 
 
                     @if(!empty($actTypes))
@@ -223,8 +227,8 @@
                         }
                     </style>
 
-                    {{-- 5. Teks Konten Deskripsi --}}
-                    <div class="activity-description text-[#1e3456] text-[14px] sm:text-[15px] font-inter leading-relaxed break-words text-left bg-white p-4 sm:p-6 md:p-8 rounded-2xl border border-gray-200/80 shadow-2xs">
+                    {{-- 5. Teks Konten Deskripsi (Tanpa Box Kartu) --}}
+                    <div class="activity-description text-[#1e3456] text-[14px] sm:text-[15px] font-inter leading-relaxed break-words text-left">
                         {!! $activity->description !!}
                     </div>
 
@@ -242,9 +246,22 @@
                         <div class="flex flex-col gap-3.5">
                             @foreach ($relatedActivities as $item)
                             @php
-                                $relImgUrl = $item->primary_image_url ?? $item->pictures?->first()?->path;
+                                $relImgUrl = $item->primary_image_url ?? $item->primaryPicture?->path ?? $item->pictures?->first()?->path;
+                                $relDosenProfile = $item->user->profileDosen ?? null;
+                                $relDosenImg = $relDosenProfile && $relDosenProfile->image ? asset('storage/' . $relDosenProfile->image) : null;
+                                $relDosenName = $item->user->name ?? 'Nama Dosen';
+                                $relTypes = is_array($item->activity_type) 
+                                    ? $item->activity_type 
+                                    : (is_string($item->activity_type) && str_starts_with($item->activity_type, '[') 
+                                        ? (json_decode($item->activity_type, true) ?? [$item->activity_type]) 
+                                        : array_filter(array_map('trim', explode(',', (string)$item->activity_type))));
+                                $relTypes = collect($relTypes)
+                                    ->filter()
+                                    ->sortBy(fn($c) => in_array(strtolower(trim((string)$c)), ['lainnya', 'lain-lain', 'other', 'others']) ? 1 : 0)
+                                    ->values()
+                                    ->all();
                             @endphp
-                            <a href="{{ route('activity.show', $item->id) }}" class="group bg-white border border-gray-200/90 rounded-xl p-3 flex gap-3.5 hover:shadow-md hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-200">
+                            <a href="{{ route('activity.show', $item->id) }}" class="group bg-white border border-gray-200/90 rounded-xl p-3 flex gap-3 hover:shadow-md hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-200">
                                 
                                 <div class="w-24 sm:w-28 aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
                                     @if($relImgUrl)
@@ -255,34 +272,38 @@
                                 </div>
 
                                 <div class="flex flex-col justify-center flex-1 min-w-0">
-                                    @php
-                                        $relTypes = is_array($item->activity_type) 
-                                            ? $item->activity_type 
-                                            : (is_string($item->activity_type) && str_starts_with($item->activity_type, '[') 
-                                                ? (json_decode($item->activity_type, true) ?? [$item->activity_type]) 
-                                                : array_filter(array_map('trim', explode(',', (string)$item->activity_type))));
-                                        $relTypes = array_values(array_filter($relTypes));
-                                    @endphp
-                                    
-                                    <div class="flex items-center justify-between gap-1 text-[10px] sm:text-[11px] font-semibold text-[#1a3675] mb-1">
-                                        @if(!empty($relTypes))
-                                            <span class="bg-blue-50 text-[#1a3675] px-1.5 py-0.5 rounded text-[10px] font-semibold truncate max-w-[85px]" title="{{ implode(', ', $relTypes) }}">
-                                                {{ $relTypes[0] }}@if(count($relTypes) > 1)<span class="text-gray-500 font-bold ml-0.5">+{{ count($relTypes) - 1 }}</span>@endif
-                                            </span>
-                                        @endif
-                                        <span class="text-gray-400 font-medium whitespace-nowrap shrink-0 ml-auto text-[10px]">
-                                            {{ \Carbon\Carbon::parse($item->activity_date_start)->locale('id')->translatedFormat('d M Y') }}
-                                        </span>
+                                    {{-- Tanggal Pelaksanaan --}}
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-gray-400 mb-1">
+                                        {{ \Carbon\Carbon::parse($item->activity_date_start)->locale('id')->translatedFormat('d M Y') }}
                                     </div>
 
-                                    <h4 class="text-xs sm:text-sm font-extrabold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#1a3675] transition-colors">
+                                    {{-- Judul Aktivitas --}}
+                                    <h4 class="text-xs sm:text-sm font-extrabold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#1a3675] transition-colors mb-1.5">
                                         {{ $item->activity_name }}
                                     </h4>
-                                    @if(!empty($item->user->name))
-                                        <p class="text-[11px] text-gray-500 font-medium mt-1 truncate">
-                                            {{ $item->user->name }}
-                                        </p>
+
+                                    {{-- Kategori (Di Bawah Judul) --}}
+                                    @if(!empty($relTypes))
+                                        <div class="flex items-center gap-1 mb-2 flex-wrap">
+                                            <span class="bg-blue-50 text-[#1a3675] px-1.5 py-0.5 rounded text-[10px] font-semibold truncate max-w-[120px]" title="{{ implode(', ', $relTypes) }}">
+                                                {{ $relTypes[0] }}@if(count($relTypes) > 1)<span class="text-gray-500 font-bold ml-0.5">+{{ count($relTypes) - 1 }}</span>@endif
+                                            </span>
+                                        </div>
                                     @endif
+
+                                    {{-- Nama Dosen dengan Avatar Foto Profil Dosen --}}
+                                    <div class="flex items-center gap-1.5 text-[11px] text-gray-600 font-semibold truncate">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-200 shrink-0 border border-gray-200">
+                                            @if($relDosenImg)
+                                                <img src="{{ $relDosenImg }}" alt="{{ $relDosenName }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="w-full h-full bg-[#1a3675]/10 text-[#1a3675] flex items-center justify-center font-bold text-[8px]">
+                                                    {{ strtoupper(substr($relDosenName, 0, 1)) }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <span class="truncate">{{ $relDosenName }}</span>
+                                    </div>
                                 </div>
                             </a>
                             @endforeach

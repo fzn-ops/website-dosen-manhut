@@ -130,7 +130,11 @@
                     : (is_string($item->activity_type) && str_starts_with($item->activity_type, '[')
                         ? (json_decode($item->activity_type, true) ?? [$item->activity_type])
                         : array_filter(array_map('trim', explode(',', (string)$item->activity_type))));
-                $categories = array_values(array_filter($categories));
+                $categories = collect($categories)
+                    ->filter()
+                    ->sortBy(fn($c) => in_array(strtolower(trim((string)$c)), ['lainnya', 'lain-lain', 'other', 'others']) ? 1 : 0)
+                    ->values()
+                    ->all();
             @endphp
             <a href="{{ route('activity.show', $item->id) }}" 
                class="aktivitas-card block bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 md:p-5 shadow-xs sm:shadow-sm flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer text-left" 

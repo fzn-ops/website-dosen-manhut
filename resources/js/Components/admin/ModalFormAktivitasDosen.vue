@@ -610,7 +610,7 @@ const handleSubmit = () => {
 
 								<!-- State 2: Images uploaded (Grid INSIDE the container box) -->
 								<div v-else class="w-full">
-									<div class="grid grid-cols-3 gap-2.5">
+									<div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
 										<div
 											v-for="(img, idx) in form.imagePreviews"
 											:key="idx"
@@ -623,25 +623,25 @@ const handleSubmit = () => {
 												<!-- Is Primary Badge -->
 												<span
 													v-if="form.primaryImageIndex === idx"
-													class="inline-flex h-[21px] items-center justify-center gap-1 rounded-[6px] bg-[#183669] px-2 text-[9.5px] font-bold text-white shadow-md leading-none select-none"
+													class="inline-flex h-[22px] items-center justify-center gap-1 rounded-[6px] bg-[#183669] px-2 text-[10px] font-bold text-white shadow-md leading-none select-none"
 												>
-													<svg class="h-2.5 w-2.5 shrink-0 fill-amber-400 text-amber-400" viewBox="0 0 24 24">
+													<svg class="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0 fill-amber-400 text-amber-400" viewBox="0 0 24 24">
 														<path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
 													</svg>
-													<span class="inline-block leading-none translate-y-[0.5px]">Utama</span>
+													<span class="leading-none translate-y-[0.5px]">Utama</span>
 												</span>
                                                 <!-- 1. Set Primary Button -->
                                                 <button
                                                     v-else
                                                     type="button"
                                                     @click.stop="setPrimaryImage(idx)"
-                                                    class="inline-flex h-[21px] items-center justify-center gap-1 rounded-[6px] bg-white/95 px-2 text-[9.5px] font-bold text-[#183669] shadow-md backdrop-blur-xs transition hover:bg-white active:scale-95 leading-none select-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
+                                                    class="inline-flex h-[22px] items-center justify-center gap-1 rounded-[6px] bg-slate-900/60 hover:bg-[#183669] px-2 text-[10px] font-semibold text-white shadow-md backdrop-blur-xs transition active:scale-95 leading-none select-none cursor-pointer"
                                                     title="Jadikan gambar utama"
                                                 >
-                                                    <svg class="h-2.5 w-2.5 shrink-0 fill-none text-[#183669]" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                                                    <svg class="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0 fill-none text-white/90" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                                                     </svg>
-                                                    <span class="inline-block leading-none translate-y-[0.5px]">Set Utama</span>
+                                                    <span class="leading-none translate-y-[0.5px]">Set Utama</span>
                                                 </button>
                                             </div>
 
@@ -649,20 +649,22 @@ const handleSubmit = () => {
                                             <button
                                                 type="button"
                                                 @click.stop="confirmRemoveImage(idx)"
-                                                class="absolute right-1.5 top-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
+                                                class="absolute right-1.5 top-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-red-600/90 hover:bg-red-600 text-white shadow-md backdrop-blur-xs transition hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
                                                 title="Hapus Gambar"
                                             >
-                                                <img src="/assets/icons/delete.svg" alt="Hapus" class="h-3 w-3 object-contain" />
+                                                <svg class="h-3 w-3 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
                                             </button>
 
                                             <!-- 3. Zoom Button -->
                                             <button
                                                 type="button"
                                                 @click.stop="openImagePreview(img)"
-                                                class="absolute right-1.5 bottom-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/80 text-white shadow-md backdrop-blur-xs transition hover:bg-slate-900 hover:scale-110 active:scale-95 focus:outline-none opacity-100 lg:opacity-0 lg:pointer-events-none lg:group-hover:opacity-100 lg:group-hover:pointer-events-auto"
+                                                class="absolute right-1.5 bottom-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 hover:bg-black/85 text-white shadow-md backdrop-blur-xs transition hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
                                                 title="Lihat Ukuran Penuh"
                                             >
-                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <svg class="h-3 w-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
                                                 </svg>
                                             </button>
@@ -673,7 +675,7 @@ const handleSubmit = () => {
 											v-if="form.imagePreviews.length < 3"
 											type="button"
 											@click="triggerFileInput"
-											class="flex aspect-video flex-col items-center justify-center rounded-[8px] border-2 border-dashed border-[#183669]/40 bg-white/80 text-[#183669] transition hover:border-[#183669] hover:bg-[#183669]/5"
+											class="flex aspect-video flex-col items-center justify-center rounded-[8px] border-2 border-dashed border-[#183669]/40 bg-white/80 text-[#183669] transition hover:border-[#183669] hover:bg-[#183669]/5 cursor-pointer"
 										>
 											<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 												<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
